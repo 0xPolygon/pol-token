@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {ERC20, ERC20Permit, ERC20Votes} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 
 /// @custom:security-contact security@polygon.technology
-contract Polygon is Ownable2Step, ERC20Permit {
+contract Polygon is Ownable2Step, ERC20Votes {
     address public hub;
     address public treasury;
     uint256 public lastHubMint;
