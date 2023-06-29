@@ -15,7 +15,7 @@ contract PolygonTest is Test {
         migration = makeAddr("migration");
         treasury = makeAddr("treasury");
         hub = makeAddr("hub");
-        polygon = new Polygon(migration, hub, treasury);
+        polygon = new Polygon(migration, hub, treasury, msg.sender);
     }
 
     function test_Deployment() external {
@@ -28,6 +28,7 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(hub), 0);
         assertEq(polygon.hub(), hub);
         assertEq(polygon.treasury(), treasury);
+        assertEq(polygon.owner(), msg.sender);
         assertEq(polygon.nextSupplyIncreaseTimestamp(), block.timestamp + ONE_YEAR);
         assertEq(polygon.lastHubMint(), block.timestamp);
         assertEq(polygon.lastTreasuryMint(), block.timestamp);
