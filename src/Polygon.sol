@@ -6,19 +6,48 @@ import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/e
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit {
     address public hub;
-    uint256 public lastMint;
+    address public treasury;
+    uint256 public lastHubMint;
+    uint256 public lastTreasuryMint;
+    uint256 public nextSupplyIncreaseTimestamp;
+    uint256 public previousSupply = 10000000000;
     uint256 private constant ONE_YEAR = 31536000;
 
-    constructor(address migration_, address hub_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+    constructor(address migration_, address hub_, address treasury_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         hub = hub_;
-        lastMint = block.timestamp;
-        _mint(migration_, 10000000000 * 10 ** decimals());
-        _mint(hub_, 100000000 * 10 ** decimals());
+        treasury = treasury_;
+        lastHubMint = block.timestamp;
+        lastTreasuryMint = block.timestamp;
+        nextSupplyIncreaseTimestamp = block.timestamp + ONE_YEAR;
+        _mint(migration_, previousSupply * 10 ** decimals());
     }
 
-    function mint() external {
-        require(block.timestamp >= lastMint + ONE_YEAR, "Polygon: minting not allowed yet");
-        lastMint += ONE_YEAR;
-        _mint(hub, 1 * totalSupply() / 100);
+    function mintToHub() external {
+        uint256 timeDiff = block.timestamp - lastHubMint;
+        lastHubMint = block.timestamp;
+        uint256 amount = (timeDiff * previousSupply) / (ONE_YEAR * 100);
+        // prevent moving forward timestamp when no tokens are claimable
+        require(amount != 0, "Polygon: minting not allowed yet");
+        _mint(hub, amount);
+        _updatePreviousSupply();
+    }
+
+    function mintToTreasury() external {
+        uint256 timeDiff = block.timestamp - lastTreasuryMint;
+        lastTreasuryMint = block.timestamp;
+        uint256 amount = (timeDiff * previousSupply) / (ONE_YEAR * 100);
+        // prevent moving forward mint timestamp when no tokens are claimable
+        require(amount != 0, "Polygon: minting not allowed yet");
+        _mint(treasury, amount);
+        _updatePreviousSupply();
+    }
+
+    function _updatePreviousSupply() private {
+        unchecked { // no need to check for overflow
+            if (block.timestamp >= nextSupplyIncreaseTimestamp) {
+                previousSupply = (previousSupply * 102) / 100;
+                nextSupplyIncreaseTimestamp += ONE_YEAR;
+            }
+        }
     }
 }
