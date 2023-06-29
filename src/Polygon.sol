@@ -10,29 +10,31 @@ contract Polygon is ERC20Permit {
     uint256 public lastHubMint;
     uint256 public lastTreasuryMint;
     uint256 public nextSupplyIncreaseTimestamp;
-    uint256 public previousSupply = 10000000000e18;
-    uint256 private constant ONE_YEAR = 31536000;
+    uint256 public previousSupply;
+    uint256 private constant _ONE_YEAR = 31536000;
 
     constructor(address migration_, address hub_, address treasury_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         hub = hub_;
         treasury = treasury_;
         lastHubMint = block.timestamp;
         lastTreasuryMint = block.timestamp;
-        nextSupplyIncreaseTimestamp = block.timestamp + ONE_YEAR;
-        _mint(migration_, 10000000000e18);
+        nextSupplyIncreaseTimestamp = block.timestamp + _ONE_YEAR;
+        uint256 initialSupply = 10000000000e18;
+        previousSupply = initialSupply;
+        _mint(migration_, initialSupply);
     }
 
     function mintToHub() external {
         uint256 timeDiff = block.timestamp - lastHubMint;
         lastHubMint = block.timestamp;
-        _mint(hub, (timeDiff * previousSupply) / (ONE_YEAR * 100));
+        _mint(hub, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
         _updatePreviousSupply();
     }
 
     function mintToTreasury() external {
         uint256 timeDiff = block.timestamp - lastTreasuryMint;
         lastTreasuryMint = block.timestamp;
-        _mint(treasury, (timeDiff * previousSupply) / (ONE_YEAR * 100));
+        _mint(treasury, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
         _updatePreviousSupply();
     }
 
@@ -40,7 +42,7 @@ contract Polygon is ERC20Permit {
         unchecked { // no need to check for overflow
             if (block.timestamp >= nextSupplyIncreaseTimestamp) {
                 previousSupply = (previousSupply * 102) / 100;
-                nextSupplyIncreaseTimestamp += ONE_YEAR;
+                nextSupplyIncreaseTimestamp += _ONE_YEAR;
             }
         }
     }
