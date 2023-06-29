@@ -10,7 +10,7 @@ contract Polygon is ERC20Permit {
     uint256 public lastHubMint;
     uint256 public lastTreasuryMint;
     uint256 public nextSupplyIncreaseTimestamp;
-    uint256 public previousSupply = 10000000000;
+    uint256 public previousSupply = 10000000000e18;
     uint256 private constant ONE_YEAR = 31536000;
 
     constructor(address migration_, address hub_, address treasury_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
@@ -19,26 +19,20 @@ contract Polygon is ERC20Permit {
         lastHubMint = block.timestamp;
         lastTreasuryMint = block.timestamp;
         nextSupplyIncreaseTimestamp = block.timestamp + ONE_YEAR;
-        _mint(migration_, previousSupply * 10 ** decimals());
+        _mint(migration_, 10000000000e18);
     }
 
     function mintToHub() external {
         uint256 timeDiff = block.timestamp - lastHubMint;
         lastHubMint = block.timestamp;
-        uint256 amount = (timeDiff * previousSupply) / (ONE_YEAR * 100);
-        // prevent moving forward timestamp when no tokens are claimable
-        require(amount != 0, "Polygon: minting not allowed yet");
-        _mint(hub, amount);
+        _mint(hub, (timeDiff * previousSupply) / (ONE_YEAR * 100));
         _updatePreviousSupply();
     }
 
     function mintToTreasury() external {
         uint256 timeDiff = block.timestamp - lastTreasuryMint;
         lastTreasuryMint = block.timestamp;
-        uint256 amount = (timeDiff * previousSupply) / (ONE_YEAR * 100);
-        // prevent moving forward mint timestamp when no tokens are claimable
-        require(amount != 0, "Polygon: minting not allowed yet");
-        _mint(treasury, amount);
+        _mint(treasury, (timeDiff * previousSupply) / (ONE_YEAR * 100));
         _updatePreviousSupply();
     }
 
