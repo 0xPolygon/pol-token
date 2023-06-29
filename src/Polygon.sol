@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity 0.8.20;
 
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 
@@ -9,11 +9,11 @@ contract Polygon is ERC20Permit {
     uint256 public lastMint;
     uint256 private constant ONE_YEAR = 31536000;
 
-    constructor(address treasury_, address hub_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+    constructor(address migration_, address hub_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         hub = hub_;
         lastMint = block.timestamp;
-        _mint(treasury_, 10000000000 * 10 ** decimals());
-        _mint(hub, 100000000 * 10 ** decimals());
+        _mint(migration_, 10000000000 * 10 ** decimals());
+        _mint(hub_, 100000000 * 10 ** decimals());
     }
 
     function mint() external {
