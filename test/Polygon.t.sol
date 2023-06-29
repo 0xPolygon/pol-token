@@ -28,6 +28,7 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(hub), 0);
         assertEq(polygon.hub(), hub);
         assertEq(polygon.treasury(), treasury);
+        assertEq(polygon.nextSupplyIncreaseTimestamp(), block.timestamp + ONE_YEAR);
         assertEq(polygon.lastHubMint(), block.timestamp);
         assertEq(polygon.lastTreasuryMint(), block.timestamp);
     }
@@ -40,11 +41,37 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(hub), (delay * 10000000000e18) / (ONE_YEAR * 100));
     }
 
+    function test_HubMintExceedingYearly(uint128 delay) external {
+        vm.assume(delay >= ONE_YEAR);
+        skip(delay);
+        uint256 _nextSupplyIncreaseTimestamp = polygon.nextSupplyIncreaseTimestamp();
+        polygon.mintToHub();
+        assertEq(polygon.previousSupply(), (10000000000e18 * 102) / 100);
+        assertEq(polygon.lastHubMint(), _nextSupplyIncreaseTimestamp);
+        assertEq(polygon.lastTreasuryMint(), _nextSupplyIncreaseTimestamp);
+        assertEq(polygon.nextSupplyIncreaseTimestamp(), _nextSupplyIncreaseTimestamp + ONE_YEAR);
+        assertEq(polygon.balanceOf(hub), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
+        assertEq(polygon.balanceOf(treasury), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
+    }
+
     function test_TreasuryMint(uint256 delay) external {
         vm.assume(delay < ONE_YEAR);
         skip(delay);
         polygon.mintToTreasury();
         assertEq(polygon.lastTreasuryMint(), block.timestamp);
         assertEq(polygon.balanceOf(treasury), (delay * 10000000000e18) / (ONE_YEAR * 100));
+    }
+
+    function test_TreasuryMintExceedingYearly(uint128 delay) external {
+        vm.assume(delay >= ONE_YEAR);
+        skip(delay);
+        uint256 _nextSupplyIncreaseTimestamp = polygon.nextSupplyIncreaseTimestamp();
+        polygon.mintToTreasury();
+        assertEq(polygon.previousSupply(), (10000000000e18 * 102) / 100);
+        assertEq(polygon.lastHubMint(), _nextSupplyIncreaseTimestamp);
+        assertEq(polygon.lastTreasuryMint(), _nextSupplyIncreaseTimestamp);
+        assertEq(polygon.nextSupplyIncreaseTimestamp(), _nextSupplyIncreaseTimestamp + ONE_YEAR);
+        assertEq(polygon.balanceOf(hub), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
+        assertEq(polygon.balanceOf(treasury), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
     }
 }
