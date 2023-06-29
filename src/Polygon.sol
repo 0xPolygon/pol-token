@@ -24,26 +24,35 @@ contract Polygon is ERC20Permit {
         _mint(migration_, initialSupply);
     }
 
-    function mintToHub() external {
-        uint256 timeDiff = block.timestamp - lastHubMint;
-        lastHubMint = block.timestamp;
-        _mint(hub, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
-        _updatePreviousSupply();
-    }
-
-    function mintToTreasury() external {
-        uint256 timeDiff = block.timestamp - lastTreasuryMint;
-        lastTreasuryMint = block.timestamp;
-        _mint(treasury, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
-        _updatePreviousSupply();
-    }
-
-    function _updatePreviousSupply() private {
-        unchecked { // no need to check for overflow
-            if (block.timestamp >= nextSupplyIncreaseTimestamp) {
-                previousSupply = (previousSupply * 102) / 100;
-                nextSupplyIncreaseTimestamp += _ONE_YEAR;
-            }
+    function mintToHub() public {
+        if (block.timestamp < nextSupplyIncreaseTimestamp) {
+            uint256 timeDiff = block.timestamp - lastHubMint;
+            lastHubMint = block.timestamp;
+            _mint(hub, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
+        } else {
+            _updateYearlyInflation();
         }
+    }
+
+    function mintToTreasury() public {
+        if (block.timestamp < nextSupplyIncreaseTimestamp) {
+            uint256 timeDiff = block.timestamp - lastTreasuryMint;
+            lastTreasuryMint = block.timestamp;
+            _mint(treasury, (timeDiff * previousSupply) / (_ONE_YEAR * 100));
+        } else {
+            _updateYearlyInflation();
+        }
+    }
+
+    function _updateYearlyInflation() internal {
+        uint256 _nextSupplyIncreaseTimestamp = nextSupplyIncreaseTimestamp;
+        uint256 hubTimeDiff = _nextSupplyIncreaseTimestamp - lastHubMint;
+        uint256 treasuryTimeDiff = _nextSupplyIncreaseTimestamp - lastTreasuryMint;
+        uint256 _previousSupply = previousSupply;
+        _mint(hub, (hubTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
+        _mint(treasury, (treasuryTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
+        lastHubMint = lastTreasuryMint = _nextSupplyIncreaseTimestamp;
+        previousSupply = (_previousSupply * 102) / 100; // update yearly inflation rate
+        nextSupplyIncreaseTimestamp = _nextSupplyIncreaseTimestamp + _ONE_YEAR;
     }
 }
