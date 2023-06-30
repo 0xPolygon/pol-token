@@ -6,15 +6,18 @@ import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step
 
 /// @custom:security-contact security@polygon.technology
 contract Polygon is Ownable2Step, ERC20Votes {
-    address public hub;
-    address public treasury;
+    uint256 private constant _ONE_YEAR = 31536000;
+    address public immutable hub;
+    address public immutable treasury;
+    uint256 public immutable inflationRateModificationTimestamp;
     uint256 public lastHubMint;
     uint256 public lastTreasuryMint;
     uint256 public hubInflationRate;
     uint256 public treasuryInflationRate;
     uint256 public nextSupplyIncreaseTimestamp;
     uint256 public previousSupply;
-    uint256 private constant _ONE_YEAR = 31536000;
+
+    error Invalid(string msg);
 
     constructor(address migration_, address hub_, address treasury_, address owner_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         hub = hub_;
@@ -24,7 +27,8 @@ contract Polygon is Ownable2Step, ERC20Votes {
         hubInflationRate = 1e3;
         treasuryInflationRate = 1e3;
         nextSupplyIncreaseTimestamp = block.timestamp + _ONE_YEAR;
-        uint256 initialSupply = 10000000000e18;
+        inflationRateModificationTimestamp = block.timestamp + (_ONE_YEAR * 10);
+        uint256 initialSupply = 10_000_000_000e18; // 10 billion tokens
         previousSupply = initialSupply;
         _mint(migration_, initialSupply);
         _transferOwnership(owner_);
@@ -63,12 +67,22 @@ contract Polygon is Ownable2Step, ERC20Votes {
     }
 
     function updateHubInflation(uint256 newRate) external onlyOwner {
-        require(newRate < hubInflationRate, "Polygon: inflation rate must be less than previous");
+        if (block.timestamp < inflationRateModificationTimestamp) {
+            revert Invalid("inflation rate cannot be modified yet");
+        }
+        if (newRate >= hubInflationRate) {
+            revert Invalid("inflation rate must be less than 1e3");
+        }
         hubInflationRate = newRate;
     }
 
     function updateTreasuryInflation(uint256 newRate) external onlyOwner {
-        require(newRate < treasuryInflationRate, "Polygon: inflation rate must be less than previous");
+        if (block.timestamp < inflationRateModificationTimestamp) {
+            revert Invalid("inflation rate cannot be modified yet");
+        }
+        if (newRate >= treasuryInflationRate) {
+            revert Invalid("inflation rate must be less than 1e3");
+        }
         treasuryInflationRate = newRate;
     }
 }

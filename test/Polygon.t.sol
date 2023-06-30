@@ -75,4 +75,20 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(hub), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
         assertEq(polygon.balanceOf(treasury), (ONE_YEAR * 10000000000e18) / (ONE_YEAR * 100));
     }
+
+    function testRevert_updateHubInflationRateTooEarly(uint256 delay, uint256 rate) external {
+        vm.assume(delay < polygon.inflationRateModificationTimestamp());
+        skip(delay);
+        vm.startPrank(polygon.owner());
+        vm.expectRevert(abi.encodeWithSelector(Polygon.Invalid.selector, "inflation rate cannot be modified yet"));
+        polygon.updateHubInflation(rate);
+    }
+
+    function testRevert_updateTreasuryInflationRateTooEarly(uint256 delay, uint256 rate) external {
+        vm.assume(delay < polygon.inflationRateModificationTimestamp());
+        skip(delay);
+        vm.startPrank(polygon.owner());
+        vm.expectRevert(abi.encodeWithSelector(Polygon.Invalid.selector, "inflation rate cannot be modified yet"));
+        polygon.updateTreasuryInflation(rate);
+    }
 }
