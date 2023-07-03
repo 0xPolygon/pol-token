@@ -36,10 +36,12 @@ contract Polygon is Ownable2Step, ERC20Votes {
     }
 
     function updateHubInflation(uint256 newRate) external onlyOwner {
+        mintToHub();
         hub.decreaseInflation(newRate);
     }
 
     function updateTreasuryInflation(uint256 newRate) external onlyOwner {
+        mintToTreasury();
         treasury.decreaseInflation(newRate);
     }
 }
