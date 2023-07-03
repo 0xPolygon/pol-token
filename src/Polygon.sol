@@ -3,86 +3,43 @@ pragma solidity 0.8.20;
 
 import {ERC20, ERC20Permit, ERC20Votes} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {Beneficiary, MintingManager} from "./lib/MintingManager.sol";
 
 /// @custom:security-contact security@polygon.technology
 contract Polygon is Ownable2Step, ERC20Votes {
-    uint256 private constant _ONE_YEAR = 31536000;
-    address public immutable hub;
-    address public immutable treasury;
-    uint256 public immutable inflationRateModificationTimestamp;
-    uint256 public lastHubMint;
-    uint256 public lastTreasuryMint;
-    uint256 public hubInflationRate;
-    uint256 public treasuryInflationRate;
-    uint256 public nextSupplyIncreaseTimestamp;
-    uint256 public previousSupply;
+    using MintingManager for Beneficiary;
 
-    error Invalid(string msg);
+    Beneficiary public hub;
+    Beneficiary public treasury;
 
-    constructor(address migration_, address hub_, address treasury_, address owner_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
-        hub = hub_;
-        treasury = treasury_;
-        lastHubMint = block.timestamp;
-        lastTreasuryMint = block.timestamp;
-        hubInflationRate = 1e3;
-        treasuryInflationRate = 1e3;
-        nextSupplyIncreaseTimestamp = block.timestamp + _ONE_YEAR;
-        inflationRateModificationTimestamp = block.timestamp + (_ONE_YEAR * 10);
+    constructor(
+        address migration_,
+        address hub_,
+        address treasury_,
+        address owner_
+    ) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         uint256 initialSupply = 10_000_000_000e18; // 10 billion tokens
-        previousSupply = initialSupply;
         _mint(migration_, initialSupply);
+        hub = MintingManager.create(hub_, initialSupply / 100);
+        treasury = MintingManager.create(treasury_, initialSupply / 100);
         _transferOwnership(owner_);
     }
 
     function mintToHub() public {
-        if (block.timestamp < nextSupplyIncreaseTimestamp) {
-            uint256 timeDiff = block.timestamp - lastHubMint;
-            lastHubMint = block.timestamp;
-            _mint(hub, (timeDiff * previousSupply * hubInflationRate) / (_ONE_YEAR * 100 * 1e3));
-        } else {
-            _updateYearlyInflation();
-        }
+        uint256 amount = hub.claimMintedTokens();
+        _mint(hub.addr(), amount);
     }
 
     function mintToTreasury() public {
-        if (block.timestamp < nextSupplyIncreaseTimestamp) {
-            uint256 timeDiff = block.timestamp - lastTreasuryMint;
-            lastTreasuryMint = block.timestamp;
-            _mint(treasury, (timeDiff * previousSupply * treasuryInflationRate) / (_ONE_YEAR * 100 * 1e3));
-        } else {
-            _updateYearlyInflation();
-        }
-    }
-
-    function _updateYearlyInflation() internal {
-        uint256 _nextSupplyIncreaseTimestamp = nextSupplyIncreaseTimestamp;
-        uint256 hubTimeDiff = _nextSupplyIncreaseTimestamp - lastHubMint;
-        uint256 treasuryTimeDiff = _nextSupplyIncreaseTimestamp - lastTreasuryMint;
-        uint256 _previousSupply = previousSupply;
-        _mint(hub, (hubTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
-        _mint(treasury, (treasuryTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
-        lastHubMint = lastTreasuryMint = _nextSupplyIncreaseTimestamp;
-        previousSupply = (_previousSupply * (100 + ((hubInflationRate + treasuryInflationRate) / 1e3))) / 100; // update yearly inflation rate
-        nextSupplyIncreaseTimestamp = _nextSupplyIncreaseTimestamp + _ONE_YEAR;
+        uint256 amount = treasury.claimMintedTokens();
+        _mint(treasury.addr(), amount);
     }
 
     function updateHubInflation(uint256 newRate) external onlyOwner {
-        if (block.timestamp < inflationRateModificationTimestamp) {
-            revert Invalid("inflation rate cannot be modified yet");
-        }
-        if (newRate >= hubInflationRate) {
-            revert Invalid("inflation rate must be less than 1e3");
-        }
-        hubInflationRate = newRate;
+        hub.decreaseInflation(newRate);
     }
 
     function updateTreasuryInflation(uint256 newRate) external onlyOwner {
-        if (block.timestamp < inflationRateModificationTimestamp) {
-            revert Invalid("inflation rate cannot be modified yet");
-        }
-        if (newRate >= treasuryInflationRate) {
-            revert Invalid("inflation rate must be less than 1e3");
-        }
-        treasuryInflationRate = newRate;
+        treasury.decreaseInflation(newRate);
     }
 }
