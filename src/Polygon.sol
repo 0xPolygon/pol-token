@@ -1,88 +1,69 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {ERC20, ERC20Permit, ERC20Votes} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {IMinterImplementation} from "./IMinterImplementation.sol";
 
 /// @custom:security-contact security@polygon.technology
-contract Polygon is Ownable2Step, ERC20Votes {
-    uint256 private constant _ONE_YEAR = 31536000;
+contract Polygon is Ownable2Step, ERC20Permit {
     address public immutable hub;
     address public immutable treasury;
-    uint256 public immutable inflationRateModificationTimestamp;
+    uint256 public immutable inflationModificationTimestamp;
+    uint256 private immutable _mintPerSecond = 3170979198376458650;
+    uint256 public lastMint;
     uint256 public lastHubMint;
     uint256 public lastTreasuryMint;
-    uint256 public hubInflationRate;
-    uint256 public treasuryInflationRate;
-    uint256 public nextSupplyIncreaseTimestamp;
-    uint256 public previousSupply;
+    uint256 public hubMintPerSecond;
+    uint256 public treasuryMintPerSecond;
+    uint256 private _INFLATION_LOCK = 1;
+    IMinterImplementation public minterImpl;
 
     error Invalid(string msg);
 
-    constructor(address migration_, address hub_, address treasury_, address owner_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+    constructor(address migration_, address hub_, address treasury_, IMinterImplementation minterImpl_, address owner_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         hub = hub_;
         treasury = treasury_;
-        lastHubMint = block.timestamp;
-        lastTreasuryMint = block.timestamp;
-        hubInflationRate = 1e3;
-        treasuryInflationRate = 1e3;
-        nextSupplyIncreaseTimestamp = block.timestamp + _ONE_YEAR;
-        inflationRateModificationTimestamp = block.timestamp + (_ONE_YEAR * 10);
-        uint256 initialSupply = 10_000_000_000e18; // 10 billion tokens
-        previousSupply = initialSupply;
-        _mint(migration_, initialSupply);
+        minterImpl = minterImpl_;
+        lastMint = block.timestamp;
+        inflationModificationTimestamp = block.timestamp + 315360000;
+        _mint(migration_, 10_000_000_000e18);
         _transferOwnership(owner_);
     }
 
-    function mintToHub() public {
-        if (block.timestamp < nextSupplyIncreaseTimestamp) {
-            uint256 timeDiff = block.timestamp - lastHubMint;
-            lastHubMint = block.timestamp;
-            _mint(hub, (timeDiff * previousSupply * hubInflationRate) / (_ONE_YEAR * 100 * 1e3));
-        } else {
-            _updateYearlyInflation();
+    function mint() public {
+        if (_INFLATION_LOCK == 0) {
+            revert Invalid("inflation rate is unlocked");
         }
+        uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
+        lastMint = block.timestamp;
+        _mint(hub, amount);
+        _mint(treasury, amount);
     }
 
-    function mintToTreasury() public {
-        if (block.timestamp < nextSupplyIncreaseTimestamp) {
-            uint256 timeDiff = block.timestamp - lastTreasuryMint;
-            lastTreasuryMint = block.timestamp;
-            _mint(treasury, (timeDiff * previousSupply * treasuryInflationRate) / (_ONE_YEAR * 100 * 1e3));
-        } else {
-            _updateYearlyInflation();
+    function mintAfterUnlock() external {
+        if (_INFLATION_LOCK == 1) {
+            revert Invalid("inflation rate is locked");
         }
+        uint256 newHubMintPerSecond = minterImpl.getHubMintPerSecond();
+        uint256 newTreasuryMintPerSecond = minterImpl.getTreasuryMintPerSecond();
+        if (newHubMintPerSecond > _mintPerSecond) {
+            newHubMintPerSecond = _mintPerSecond;
+        }
+        if (newTreasuryMintPerSecond > _mintPerSecond) {
+            newTreasuryMintPerSecond = _mintPerSecond;
+        }
+        uint256 _lastMint = lastMint;
+        _mint(hub, (block.timestamp - _lastMint) * newHubMintPerSecond);
+        _mint(treasury, (block.timestamp - _lastMint) * newTreasuryMintPerSecond);
+        lastMint = block.timestamp;
     }
 
-    function _updateYearlyInflation() internal {
-        uint256 _nextSupplyIncreaseTimestamp = nextSupplyIncreaseTimestamp;
-        uint256 hubTimeDiff = _nextSupplyIncreaseTimestamp - lastHubMint;
-        uint256 treasuryTimeDiff = _nextSupplyIncreaseTimestamp - lastTreasuryMint;
-        uint256 _previousSupply = previousSupply;
-        _mint(hub, (hubTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
-        _mint(treasury, (treasuryTimeDiff * _previousSupply) / (_ONE_YEAR * 100));
-        lastHubMint = lastTreasuryMint = _nextSupplyIncreaseTimestamp;
-        previousSupply = (_previousSupply * (100 + ((hubInflationRate + treasuryInflationRate) / 1e3))) / 100; // update yearly inflation rate
-        nextSupplyIncreaseTimestamp = _nextSupplyIncreaseTimestamp + _ONE_YEAR;
-    }
-
-    function updateHubInflation(uint256 newRate) external onlyOwner {
-        if (block.timestamp < inflationRateModificationTimestamp) {
-            revert Invalid("inflation rate cannot be modified yet");
+    function unlockInflation() external onlyOwner {
+        if (block.timestamp < inflationModificationTimestamp) {
+            revert Invalid("too early to unlock inflation");
         }
-        if (newRate >= hubInflationRate) {
-            revert Invalid("inflation rate must be less than 1e3");
-        }
-        hubInflationRate = newRate;
-    }
-
-    function updateTreasuryInflation(uint256 newRate) external onlyOwner {
-        if (block.timestamp < inflationRateModificationTimestamp) {
-            revert Invalid("inflation rate cannot be modified yet");
-        }
-        if (newRate >= treasuryInflationRate) {
-            revert Invalid("inflation rate must be less than 1e3");
-        }
-        treasuryInflationRate = newRate;
+        mint();
+        delete _INFLATION_LOCK;
     }
 }
