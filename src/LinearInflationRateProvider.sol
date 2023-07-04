@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-contract LinearInflationRateProvider {
+import {IInflationRateProvider} from "./interfaces/IInflationRateProvider.sol";
+
+contract LinearInflationRateProvider is IInflationRateProvider {
     uint256 private immutable _mintPerSecond = 3170979198376458650;
     uint256 public immutable duration;
 

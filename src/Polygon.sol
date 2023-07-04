@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
-import {IInflationRateProvider} from "./IInflationRateProvider.sol";
+import {IInflationRateProvider} from "./interfaces/IInflationRateProvider.sol";
 
 /// @custom:security-contact security@polygon.technology
 contract Polygon is Ownable2Step, ERC20Permit {
@@ -52,10 +52,10 @@ contract Polygon is Ownable2Step, ERC20Permit {
         _mint(hub, (block.timestamp - _lastMint) * hubMintPerSecond);
         _mint(treasury, (block.timestamp - _lastMint) * treasuryMintPerSecond);
         if (newHubMintPerSecond > _mintPerSecond) {
-            newHubMintPerSecond = _mintPerSecond;
+            hubMintPerSecond = newHubMintPerSecond = _mintPerSecond;
         }
         if (newTreasuryMintPerSecond > _mintPerSecond) {
-            newTreasuryMintPerSecond = _mintPerSecond;
+            treasuryMintPerSecond = newTreasuryMintPerSecond = _mintPerSecond;
         }
         lastMint = block.timestamp;
     }
