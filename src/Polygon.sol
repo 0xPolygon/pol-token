@@ -46,8 +46,7 @@ contract Polygon is Ownable2Step, ERC20Permit {
         if (_inflation_lock == 1) {
             revert Invalid("inflation rate is locked");
         }
-        uint256 newHubMintPerSecond = provider.getHubMintPerSecond();
-        uint256 newTreasuryMintPerSecond = provider.getTreasuryMintPerSecond();
+        (uint256 newHubMintPerSecond, uint256 newTreasuryMintPerSecond) = provider.getAllMintPerSecond();
         uint256 _lastMint = lastMint;
         _mint(hub, (block.timestamp - _lastMint) * hubMintPerSecond);
         _mint(treasury, (block.timestamp - _lastMint) * treasuryMintPerSecond);

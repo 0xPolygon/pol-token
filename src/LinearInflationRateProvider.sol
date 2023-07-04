@@ -13,14 +13,18 @@ contract LinearInflationRateProvider is IInflationRateProvider {
         duration = duration_;
     }
 
-    function getHubMintPerSecond() external view returns (uint256) {
+    function getAllMintPerSecond() external view returns (uint256, uint256) {
+        return (getHubMintPerSecond(), getTreasuryMintPerSecond());
+    }
+
+    function getHubMintPerSecond() public view returns (uint256) {
         if (block.timestamp > endTimestamp) {
             return 0;
         }
         return (_mintPerSecond * (endTimestamp - block.timestamp) / duration);
     }
 
-    function getTreasuryMintPerSecond() external view returns (uint256) {
+    function getTreasuryMintPerSecond() public view returns (uint256) {
         if (block.timestamp > endTimestamp) {
             return 0;
         }
