@@ -21,7 +21,10 @@ contract Polygon is Ownable2Step, ERC20Permit {
 
     error Invalid(string msg);
 
-    constructor(address migration_, address hub_, address treasury_, IMinterImplementation minterImpl_, address owner_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+    constructor(address migration_, address hub_, address treasury_, IMinterImplementation minterImpl_, address owner_)
+        ERC20("Polygon", "POL")
+        ERC20Permit("Polygon")
+    {
         hub = hub_;
         treasury = treasury_;
         minterImpl = minterImpl_;
