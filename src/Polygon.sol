@@ -15,7 +15,7 @@ contract Polygon is Ownable2Step, ERC20Permit {
     uint256 public lastMint;
     uint256 public hubMintPerSecond;
     uint256 public treasuryMintPerSecond;
-    uint256 private _INFLATION_LOCK = 1;
+    uint256 private _inflation_lock = 1;
 
     error Invalid(string msg);
 
@@ -33,7 +33,7 @@ contract Polygon is Ownable2Step, ERC20Permit {
     }
 
     function mint() public {
-        if (_INFLATION_LOCK == 0) {
+        if (_inflation_lock == 0) {
             revert Invalid("inflation rate is unlocked");
         }
         uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
@@ -43,7 +43,7 @@ contract Polygon is Ownable2Step, ERC20Permit {
     }
 
     function mintAfterUnlock() external {
-        if (_INFLATION_LOCK == 1) {
+        if (_inflation_lock == 1) {
             revert Invalid("inflation rate is locked");
         }
         uint256 newHubMintPerSecond = provider.getHubMintPerSecond();
@@ -65,6 +65,6 @@ contract Polygon is Ownable2Step, ERC20Permit {
             revert Invalid("too early to unlock inflation");
         }
         mint();
-        delete _INFLATION_LOCK;
+        delete _inflation_lock;
     }
 }
