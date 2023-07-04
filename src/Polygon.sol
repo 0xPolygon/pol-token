@@ -10,6 +10,7 @@ contract Polygon is Ownable2Step, ERC20Permit {
     address public immutable hub;
     address public immutable treasury;
     uint256 public immutable inflationModificationTimestamp;
+    IMinterImplementation public immutable minterImpl;
     uint256 private immutable _mintPerSecond = 3170979198376458650;
     uint256 public lastMint;
     uint256 public lastHubMint;
@@ -17,7 +18,6 @@ contract Polygon is Ownable2Step, ERC20Permit {
     uint256 public hubMintPerSecond;
     uint256 public treasuryMintPerSecond;
     uint256 private _INFLATION_LOCK = 1;
-    IMinterImplementation public minterImpl;
 
     error Invalid(string msg);
 
