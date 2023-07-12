@@ -3,67 +3,29 @@ pragma solidity 0.8.20;
 
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
-import {IInflationRateProvider} from "./interfaces/IInflationRateProvider.sol";
 
 /// @custom:security-contact security@polygon.technology
 contract Polygon is Ownable2Step, ERC20Permit {
-    address public immutable hub;
-    address public immutable treasury;
-    uint256 public immutable inflationModificationTimestamp;
-    IInflationRateProvider public immutable provider;
+    address public inflationManager;
     uint256 private immutable _mintPerSecond = 3170979198376458650;
-    uint256 public lastMint;
-    uint256 public hubMintPerSecond;
-    uint256 public treasuryMintPerSecond;
-    uint256 private _inflation_lock = 1;
 
     error Invalid(string msg);
 
-    constructor(address migration_, address hub_, address treasury_, IInflationRateProvider provider_, address owner_)
+    constructor(address migration_, address inflationManager_, address owner_)
         ERC20("Polygon", "POL")
         ERC20Permit("Polygon")
     {
-        hub = hub_;
-        treasury = treasury_;
-        provider = provider_;
-        lastMint = block.timestamp;
-        inflationModificationTimestamp = block.timestamp + 315360000;
+        inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
         _transferOwnership(owner_);
     }
 
-    function mint() public {
-        if (_inflation_lock == 0) {
-            revert Invalid("inflation rate is unlocked");
-        }
-        uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
-        lastMint = block.timestamp;
-        _mint(hub, amount);
-        _mint(treasury, amount);
+    function mint(address to, uint256 amount) external {
+        require(msg.sender == inflationManager, "Polygon: only inflation manager can mint");
+        _mint(to, amount);
     }
 
-    function mintAfterUnlock() external {
-        if (_inflation_lock == 1) {
-            revert Invalid("inflation rate is locked");
-        }
-        (uint256 newHubMintPerSecond, uint256 newTreasuryMintPerSecond) = provider.getAllMintPerSecond();
-        uint256 _lastMint = lastMint;
-        _mint(hub, (block.timestamp - _lastMint) * hubMintPerSecond);
-        _mint(treasury, (block.timestamp - _lastMint) * treasuryMintPerSecond);
-        if (newHubMintPerSecond > _mintPerSecond) {
-            hubMintPerSecond = newHubMintPerSecond = _mintPerSecond;
-        }
-        if (newTreasuryMintPerSecond > _mintPerSecond) {
-            treasuryMintPerSecond = newTreasuryMintPerSecond = _mintPerSecond;
-        }
-        lastMint = block.timestamp;
-    }
-
-    function unlockInflation() external onlyOwner {
-        if (block.timestamp < inflationModificationTimestamp) {
-            revert Invalid("too early to unlock inflation");
-        }
-        mint();
-        delete _inflation_lock;
+    function updateInflationManager(address inflationManager_) external onlyOwner {
+        inflationManager = inflationManager_;
     }
 }
