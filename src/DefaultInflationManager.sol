@@ -16,7 +16,6 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
     uint256 public inflationModificationTimestamp;
     uint256 private _inflation_lock = 1;
 
-
     constructor(IPolygon token_, address hub_, address treasury_, address owner_) {
         token = token_;
         hub = hub_;
@@ -58,7 +57,10 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
     }
 
     function unlockInflationModification() external {
-        require(block.timestamp >= inflationModificationTimestamp, "DefaultInflationManager: inflation modification is locked");
+        require(
+            block.timestamp >= inflationModificationTimestamp,
+            "DefaultInflationManager: inflation modification is locked"
+        );
         delete inflationModificationTimestamp;
         mint();
         delete _inflation_lock;
