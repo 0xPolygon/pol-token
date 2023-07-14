@@ -5,6 +5,11 @@ import {IInflationManager} from "./interfaces/IInflationManager.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 
+/// @title Default Inflation Manager
+/// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
+/// @notice A default inflation manager for the Polygon ERC20 token contract on Ethereum L1
+/// @dev The contract allows for a 1% mint each per year to the hub and treasury contracts
+/// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is Ownable2Step, IInflationManager {
     uint256 private constant _mintPerSecond = 3170979198376458650;
     IPolygon public immutable token;
@@ -25,16 +30,20 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
         _transferOwnership(owner_);
     }
 
+    /// @notice Allows anyone to mint tokens to the hub and treasury contracts
+    /// @dev Minting is done based on timestamp diffs at a constant rate
     function mint() public {
-        require(_inflation_lock == 1, "InflationManager: inflation is locked");
+        require(_inflation_lock == 1, "InflationManager: inflation is unlocked");
         uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
         lastMint = block.timestamp;
         token.mint(hub, amount);
         token.mint(treasury, amount);
     }
 
+    /// @notice Allows anyone to mint tokens to the hub and treasury contracts after the inflation lock is removed
+    /// @dev Minting is done based on timestamp diffs at the respective constant rate
     function mintAfterUnlock() external {
-        require(_inflation_lock == 0, "InflationManager: inflation is unlocked");
+        require(_inflation_lock == 0, "InflationManager: inflation is locked");
         uint256 _lastMint = lastMint;
         uint256 hubAmt = (block.timestamp - _lastMint) * hubMintPerSecond;
         uint256 treasuryAmt = (block.timestamp - _lastMint) * treasuryMintPerSecond;
@@ -43,19 +52,27 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
         token.mint(treasury, treasuryAmt);
     }
 
-    function updateHubMintPerSecond(uint256 hubMintPerSecond_) external onlyOwner {
+    /// @notice Allows governance to update the mint per second rate for the hub and treasury contracts
+    /// @param hubMintPerSecond_ The new hub mint per second rate
+    /// @param treasuryMintPerSecond_ The new treasury mint per second rate
+    function updateInflationRates(uint256 hubMintPerSecond_, uint256 treasuryMintPerSecond_) external onlyOwner {
+        require(
+            hubMintPerSecond_ < _mintPerSecond && treasuryMintPerSecond_ < _mintPerSecond,
+            "InflationManager: mint per second too high"
+        );
         hubMintPerSecond = hubMintPerSecond_;
-    }
-
-    function updateTreasuryMintPerSecond(uint256 treasuryMintPerSecond_) external onlyOwner {
         treasuryMintPerSecond = treasuryMintPerSecond_;
     }
 
+    /// @notice Allows governance to update the inflation unlock timestamp
+    /// @param timestamp The new inflation unlock timestamp
     function updateInflationModificationTimestamp(uint256 timestamp) external onlyOwner {
         require(timestamp >= block.timestamp, "InflationManager: invalid timestamp");
         inflationModificationTimestamp = timestamp;
     }
 
+    /// @notice Allows anyone to unlock inflation modification if the timestamp has passed
+    /// @dev The function will mint tokens to the hub and treasury contracts and set the mint per second rates to the default
     function unlockInflationModification() external {
         require(
             block.timestamp >= inflationModificationTimestamp,
