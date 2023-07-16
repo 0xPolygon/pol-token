@@ -29,13 +29,13 @@ contract PolygonTest is Test {
     }
 
     function test_Deployment() external {
-        assertEq(polygon.name(), "Polygon");
-        assertEq(polygon.symbol(), "POL");
-        assertEq(polygon.decimals(), 18);
-        assertEq(polygon.totalSupply(), 10000000000 * 10 ** 18);
-        assertEq(polygon.balanceOf(migration), 10000000000 * 10 ** 18);
-        assertEq(polygon.balanceOf(treasury), 0);
-        assertEq(polygon.balanceOf(hub), 0);
-        assertEq(polygon.owner(), msg.sender);
+        assertEq(address(inflationManager.token()), address(polygon));
+        assertEq(inflationManager.hub(), hub);
+        assertEq(inflationManager.treasury(), treasury);
+        assertEq(inflationManager.hubMintPerSecond(), 0);
+        assertEq(inflationManager.treasuryMintPerSecond(), 0);
+        assertEq(inflationManager.lastMint(), block.timestamp);
+        assertEq(inflationManager.inflationModificationTimestamp(), block.timestamp + (365 days * 10));
+        assertEq(inflationManager.owner(), msg.sender);
     }
 }

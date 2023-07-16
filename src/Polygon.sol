@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
+import {IPolygon} from "./interfaces/IPolygon.sol";
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Votes.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 
@@ -10,7 +11,7 @@ import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step
 /// @dev The contract allows for a 1-to-1 representation between $POL and $MATIC and allows for additional inflation based
 /// on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
-contract Polygon is Ownable2Step, ERC20Permit {
+contract Polygon is Ownable2Step, ERC20Permit, IPolygon {
     address public immutable inflationManager;
 
     constructor(address migration_, address inflationManager_, address owner_)
