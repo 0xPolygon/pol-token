@@ -20,7 +20,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
     uint256 public treasuryMintPerSecond;
     uint256 public lastMint;
     uint256 public inflationModificationTimestamp;
-    uint256 private _inflation_lock = 1;
+    uint256 private _inflation_lock;
 
     function initialize(IPolygon token_, address hub_, address treasury_, address owner_) external initializer {
         token = token_;
@@ -28,6 +28,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
         treasury = treasury_;
         lastMint = block.timestamp;
         inflationModificationTimestamp = block.timestamp + (365 days * 10);
+        _inflation_lock = 1;
         _transferOwnership(owner_);
     }
 

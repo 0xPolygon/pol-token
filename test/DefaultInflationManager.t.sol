@@ -9,7 +9,7 @@ import {TransparentUpgradeableProxy} from
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-contract PolygonTest is Test {
+contract DefaultInflationManagerTest is Test {
     Polygon public polygon;
     address public migration;
     address public treasury;
@@ -37,5 +37,45 @@ contract PolygonTest is Test {
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.inflationModificationTimestamp(), block.timestamp + (365 days * 10));
         assertEq(inflationManager.owner(), msg.sender);
+    }
+
+    function test_Mint() external {
+        inflationManager.mint();
+
+        assertEq(polygon.balanceOf(hub), 0);
+        assertEq(polygon.balanceOf(treasury), 0);
+        assertEq(inflationManager.lastMint(), block.timestamp);
+    }
+
+    function test_MintDelay(uint128 delay) external {
+        skip(delay);
+        uint256 lastMint = inflationManager.lastMint();
+        inflationManager.mint();
+
+        assertEq(polygon.balanceOf(hub), (block.timestamp - lastMint) * 3170979198376458650);
+        assertEq(polygon.balanceOf(treasury), (block.timestamp - lastMint) * 3170979198376458650);
+        assertEq(inflationManager.lastMint(), block.timestamp);
+    }
+
+    function test_MintDelayTwice(uint128 delay) external {
+        skip(delay);
+        uint256 lastMint = inflationManager.lastMint();
+        inflationManager.mint();
+
+        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
+        assertEq(polygon.balanceOf(hub), balance);
+        assertEq(polygon.balanceOf(treasury), balance);
+        assertEq(inflationManager.lastMint(), block.timestamp);
+
+        lastMint = inflationManager.lastMint();
+
+        skip(delay);
+        inflationManager.mint();
+
+        balance += (block.timestamp - lastMint) * 3170979198376458650;
+
+        assertEq(polygon.balanceOf(hub), balance);
+        assertEq(polygon.balanceOf(treasury), balance);
+        assertEq(inflationManager.lastMint(), block.timestamp);
     }
 }
