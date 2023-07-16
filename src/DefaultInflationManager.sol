@@ -3,15 +3,15 @@ pragma solidity 0.8.20;
 
 import {IInflationManager} from "./interfaces/IInflationManager.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
-import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
-import {Initializable} from "open
+import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
+import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 
 /// @title Default Inflation Manager
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
 /// @notice A default inflation manager for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint each per year to the hub and treasury contracts
 /// @custom:security-contact security@polygon.technology
-contract DefaultInflationManager is Ownable2Step, IInflationManager {
+contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInflationManager {
     uint256 private constant _mintPerSecond = 3170979198376458650;
     IPolygon public token;
     address public hub;
@@ -22,7 +22,7 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
     uint256 public inflationModificationTimestamp;
     uint256 private _inflation_lock = 1;
 
-    function initialize(IPolygon token_, address hub_, address treasury_, address owner_) {
+    function initialize(IPolygon token_, address hub_, address treasury_, address owner_) external initializer {
         token = token_;
         hub = hub_;
         treasury = treasury_;
@@ -85,6 +85,10 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
         hubMintPerSecond = treasuryMintPerSecond = _mintPerSecond;
     }
 
-
-    uint256[50] __gap;
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
 }
