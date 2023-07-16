@@ -37,5 +37,6 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(hub), 0);
         assertEq(polygon.owner(), msg.sender);
+        assertEq(polygon.inflationManager(), address(inflationManager));
     }
 }

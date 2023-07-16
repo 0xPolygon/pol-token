@@ -8,7 +8,7 @@ import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/
 
 /// @title Default Inflation Manager
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
-/// @notice A default inflation manager for the Polygon ERC20 token contract on Ethereum L1
+/// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint each per year to the hub and treasury contracts
 /// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInflationManager {
