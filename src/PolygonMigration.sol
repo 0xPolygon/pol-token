@@ -15,14 +15,14 @@ contract PolygonMigration is Ownable2Step {
 
     IERC20 public immutable polygon;
     IERC20 public immutable matic;
-    uint256 public returnTimestamp;
+    uint256 public releaseTimestamp;
 
     event Migrated(address indexed account, uint256 amount);
 
     constructor(IERC20 polygon_, IERC20 matic_, address owner_) {
         polygon = polygon_;
         matic = matic_;
-        returnTimestamp = block.timestamp + (365 days * 4); // 4 years
+        releaseTimestamp = block.timestamp + (365 days * 4); // 4 years
         _transferOwnership(owner_);
     }
 
@@ -34,13 +34,13 @@ contract PolygonMigration is Ownable2Step {
         matic.safeTransfer(0x000000000000000000000000000000000000dEaD, amount);
     }
 
-    function modifyReturnTimestamp(uint256 timestamp_) external onlyOwner {
+    function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
         require(timestamp_ >= block.timestamp, "PolygonMigration: invalid timestamp");
-        returnTimestamp = timestamp_;
+        releaseTimestamp = timestamp_;
     }
 
     function release() external onlyOwner {
-        require(block.timestamp >= returnTimestamp, "PolygonMigration: migration is not over");
+        require(block.timestamp >= releaseTimestamp, "PolygonMigration: migration is not over");
         polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));
     }
 }
