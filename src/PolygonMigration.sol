@@ -26,6 +26,9 @@ contract PolygonMigration is Ownable2Step {
         _transferOwnership(owner_);
     }
 
+    /// @notice This function allows for migrating MATIC tokens to POL tokens
+    /// @dev The function does not do any validation since the migration is a one-way process
+    /// @param amount Amount of MATIC to migrate
     function migrate(uint256 amount) external {
         emit Migrated(msg.sender, amount);
 
@@ -34,11 +37,15 @@ contract PolygonMigration is Ownable2Step {
         matic.safeTransfer(0x000000000000000000000000000000000000dEaD, amount);
     }
 
+    /// @notice Allows governance to update the release timestamp if required
+    /// @dev The function does not do any validation since governance can correct the timestamp if required
+    /// @param timestamp_ New release timestamp
     function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
         require(timestamp_ >= block.timestamp, "PolygonMigration: invalid timestamp");
         releaseTimestamp = timestamp_;
     }
 
+    /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
     function release() external onlyOwner {
         require(block.timestamp >= releaseTimestamp, "PolygonMigration: migration is not over");
         polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));

@@ -11,8 +11,7 @@ import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step
 /// on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
 contract Polygon is Ownable2Step, ERC20Permit {
-    address public inflationManager;
-    uint256 private immutable _mintPerSecond = 3170979198376458650;
+    address public immutable inflationManager;
 
     constructor(address migration_, address inflationManager_, address owner_)
         ERC20("Polygon", "POL")
@@ -30,12 +29,5 @@ contract Polygon is Ownable2Step, ERC20Permit {
     function mint(address to, uint256 amount) external {
         require(msg.sender == inflationManager, "Polygon: only inflation manager can mint");
         _mint(to, amount);
-    }
-
-    /// @notice Allows for governance to update the inflation manager to adjust rates if required
-    /// @dev The function does not do any valdiation since governance can correct the address if required
-    /// @param inflationManager_ Address of the new inflation manager contract
-    function updateInflationManager(address inflationManager_) external onlyOwner {
-        inflationManager = inflationManager_;
     }
 }

@@ -4,6 +4,7 @@ pragma solidity 0.8.20;
 import {IInflationManager} from "./interfaces/IInflationManager.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {Initializable} from "open
 
 /// @title Default Inflation Manager
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
@@ -12,16 +13,16 @@ import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step
 /// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is Ownable2Step, IInflationManager {
     uint256 private constant _mintPerSecond = 3170979198376458650;
-    IPolygon public immutable token;
-    address public immutable hub;
-    address public immutable treasury;
+    IPolygon public token;
+    address public hub;
+    address public treasury;
     uint256 public hubMintPerSecond;
     uint256 public treasuryMintPerSecond;
     uint256 public lastMint;
     uint256 public inflationModificationTimestamp;
     uint256 private _inflation_lock = 1;
 
-    constructor(IPolygon token_, address hub_, address treasury_, address owner_) {
+    function initialize(IPolygon token_, address hub_, address treasury_, address owner_) {
         token = token_;
         hub = hub_;
         treasury = treasury_;
@@ -71,9 +72,9 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
         inflationModificationTimestamp = timestamp;
     }
 
-    /// @notice Allows anyone to unlock inflation modification if the timestamp has passed
-    /// @dev The function will mint tokens to the hub and treasury contracts and set the mint per second rates to the default
-    function unlockInflationModification() external {
+    /// @notice Allows governance to unlock inflation modification if the timestamp has passed
+    /// @dev The function will mint remaining tokens to the hub and treasury contracts and set the mint per second rates to the default
+    function unlockInflationModification() external onlyOwner {
         require(
             block.timestamp >= inflationModificationTimestamp,
             "DefaultInflationManager: inflation modification is locked"
@@ -83,4 +84,7 @@ contract DefaultInflationManager is Ownable2Step, IInflationManager {
         delete _inflation_lock;
         hubMintPerSecond = treasuryMintPerSecond = _mintPerSecond;
     }
+
+
+    uint256[50] __gap;
 }
