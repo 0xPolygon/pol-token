@@ -39,4 +39,19 @@ contract PolygonTest is Test {
         assertEq(polygon.owner(), msg.sender);
         assertEq(polygon.inflationManager(), address(inflationManager));
     }
+
+    function testRevert_Mint(address user, address to, uint256 amount) external {
+        vm.assume(user != address(inflationManager));
+        vm.startPrank(user);
+        vm.expectRevert("Polygon: only inflation manager can mint");
+        polygon.mint(to, amount);
+    }
+
+    function test_Mint(address to, uint256 amount) external {
+        vm.assume(to != address(0) && amount <= 10000000000 * 10 ** 18 && to != migration);
+        vm.startPrank(address(inflationManager));
+        polygon.mint(to, amount);
+
+        assertEq(polygon.balanceOf(to), amount);
+    }
 }
