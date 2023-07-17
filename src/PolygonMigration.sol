@@ -46,8 +46,10 @@ contract PolygonMigration is Ownable2Step {
     }
 
     /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
+    /// @dev In case any MATIC was sent out of process, it will be sent to the dead address
     function release() external onlyOwner {
         require(block.timestamp >= releaseTimestamp, "PolygonMigration: migration is not over");
         polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));
+        matic.safeTransfer(0x000000000000000000000000000000000000dEaD, matic.balanceOf(address(this)));
     }
 }
