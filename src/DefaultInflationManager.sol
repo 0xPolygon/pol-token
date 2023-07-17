@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import {IInflationManager} from "./interfaces/IInflationManager.sol";
+import {IMinter} from "./interfaces/IMinter.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
@@ -11,7 +11,7 @@ import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/
 /// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint each per year to the hub and treasury contracts
 /// @custom:security-contact security@polygon.technology
-contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInflationManager {
+contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMinter {
     uint256 private constant _mintPerSecond = 3170979198376458650;
     IPolygon public token;
     address public hub;
