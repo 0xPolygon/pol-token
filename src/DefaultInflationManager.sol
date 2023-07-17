@@ -35,7 +35,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
     /// @notice Allows anyone to mint tokens to the hub and treasury contracts
     /// @dev Minting is done based on timestamp diffs at a constant rate
     function mint() public {
-        require(_inflation_lock == 1, "InflationManager: inflation is unlocked");
+        require(_inflation_lock == 1, "DefaultInflationManager: inflation is unlocked");
         uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
         lastMint = block.timestamp;
         token.mint(hub, amount);
@@ -45,7 +45,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
     /// @notice Allows anyone to mint tokens to the hub and treasury contracts after the inflation lock is removed
     /// @dev Minting is done based on timestamp diffs at the respective constant rate
     function mintAfterUnlock() external {
-        require(_inflation_lock == 0, "InflationManager: inflation is locked");
+        require(_inflation_lock == 0, "DefaultInflationManager: inflation is locked");
         uint256 _lastMint = lastMint;
         uint256 hubAmt = (block.timestamp - _lastMint) * hubMintPerSecond;
         uint256 treasuryAmt = (block.timestamp - _lastMint) * treasuryMintPerSecond;
@@ -60,7 +60,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
     function updateInflationRates(uint256 hubMintPerSecond_, uint256 treasuryMintPerSecond_) external onlyOwner {
         require(
             hubMintPerSecond_ < _mintPerSecond && treasuryMintPerSecond_ < _mintPerSecond,
-            "InflationManager: mint per second too high"
+            "DefaultInflationManager: mint per second too high"
         );
         hubMintPerSecond = hubMintPerSecond_;
         treasuryMintPerSecond = treasuryMintPerSecond_;
@@ -69,7 +69,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IInf
     /// @notice Allows governance to update the inflation unlock timestamp
     /// @param timestamp The new inflation unlock timestamp
     function updateInflationModificationTimestamp(uint256 timestamp) external onlyOwner {
-        require(timestamp >= block.timestamp, "InflationManager: invalid timestamp");
+        require(timestamp >= block.timestamp, "DefaultInflationManager: invalid timestamp");
         inflationModificationTimestamp = timestamp;
     }
 
