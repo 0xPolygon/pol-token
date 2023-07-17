@@ -1,3 +1,5 @@
 /target
 /out
 /cache
+/coverage
+lcov.info

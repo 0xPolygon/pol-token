@@ -30,6 +30,11 @@ contract DefaultInflationManagerTest is Test {
         inflationManager.initialize(IPolygon(address(polygon)), hub, treasury, governance);
     }
 
+    function testRevert_Initialize() external {
+        vm.expectRevert("Initializable: contract is already initialized");
+        inflationManager.initialize(IPolygon(address(0)), address(0), address(0), address(0));
+    }
+
     function test_Deployment() external {
         assertEq(address(inflationManager.token()), address(polygon));
         assertEq(inflationManager.hub(), hub);
@@ -90,6 +95,21 @@ contract DefaultInflationManagerTest is Test {
         vm.startPrank(governance);
         vm.expectRevert("DefaultInflationManager: inflation modification is locked");
         inflationManager.unlockInflationModification();
+    }
+
+    function testRevert_updateInflationModificationTimestamp(uint256 timestamp) external {
+        vm.assume(timestamp < block.timestamp);
+        vm.startPrank(governance);
+        vm.expectRevert("DefaultInflationManager: invalid timestamp");
+        inflationManager.updateInflationModificationTimestamp(timestamp);
+    }
+
+    function test_updateInflationModificationTimestamp(uint256 timestamp) external {
+        vm.assume(timestamp >= block.timestamp);
+        vm.startPrank(governance);
+        inflationManager.updateInflationModificationTimestamp(timestamp);
+
+        assertEq(inflationManager.inflationModificationTimestamp(), timestamp);
     }
 
     function test_UnlockInflation(uint128 timestamp) external {
