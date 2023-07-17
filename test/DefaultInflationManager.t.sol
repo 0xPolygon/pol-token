@@ -190,8 +190,15 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.treasuryMintPerSecond(), treasuryMintPerSecond);
     }
 
-    function test_UpdateInflationRatesAndMint(uint128 timestamp, uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650 && timestamp >= inflationManager.inflationModificationTimestamp());
+    function test_UpdateInflationRatesAndMint(
+        uint128 timestamp,
+        uint256 hubMintPerSecond,
+        uint256 treasuryMintPerSecond
+    ) external {
+        vm.assume(
+            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
+                && timestamp >= inflationManager.inflationModificationTimestamp()
+        );
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
@@ -210,8 +217,16 @@ contract DefaultInflationManagerTest is Test {
         assertEq(polygon.balanceOf(treasury), balance);
     }
 
-    function test_UpdateInflationRatesAndMintTwice(uint128 timestamp, uint64 delay, uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650 && timestamp >= inflationManager.inflationModificationTimestamp());
+    function test_UpdateInflationRatesAndMintTwice(
+        uint128 timestamp,
+        uint64 delay,
+        uint256 hubMintPerSecond,
+        uint256 treasuryMintPerSecond
+    ) external {
+        vm.assume(
+            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
+                && timestamp >= inflationManager.inflationModificationTimestamp()
+        );
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
