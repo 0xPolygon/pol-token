@@ -4,7 +4,10 @@ pragma solidity 0.8.20;
 import {IPolygon} from "src/interfaces/IPolygon.sol";
 import {Polygon} from "src/Polygon.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
-import {IERC20, ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {
+    IERC20,
+    ERC20PresetMinterPauser
+} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 
@@ -23,7 +26,8 @@ contract PolygonMigrationTest is Test {
         inflationManager = makeAddr("inflationManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration = new PolygonMigration(IERC20(0xF62849F9A0B5Bf2913b396098F7c7019b51A820a), IERC20(address(matic)), governance);
+        migration =
+            new PolygonMigration(IERC20(0xF62849F9A0B5Bf2913b396098F7c7019b51A820a), IERC20(address(matic)), governance);
         polygon = new Polygon(address(migration), address(inflationManager), msg.sender);
     }
 
