@@ -16,7 +16,6 @@ contract DefaultInflationManagerTest is Test {
     address public hub;
     address public governance;
     DefaultInflationManager public inflationManager;
-    uint256 public constant ONE_YEAR = 31536000;
 
     function setUp() external {
         migration = makeAddr("migration");

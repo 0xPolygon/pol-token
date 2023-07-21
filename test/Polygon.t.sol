@@ -15,7 +15,6 @@ contract PolygonTest is Test {
     address public treasury;
     address public hub;
     DefaultInflationManager public inflationManager;
-    uint256 public constant ONE_YEAR = 31536000;
 
     function setUp() external {
         migration = makeAddr("migration");
