@@ -5,6 +5,7 @@ import {IMinter} from "./interfaces/IMinter.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {UUPSUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
 
 /// @title Default Inflation Manager
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
@@ -12,7 +13,7 @@ import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/
 /// @dev The contract allows for a 1% mint each per year to the hub and treasury contracts
 /// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMinter {
-    uint256 private constant _mintPerSecond = 3170979198376458650;
+    uint256 private constant _MINT_PER_SECOND = 3170979198376458650;
     IPolygon public token;
     address public hub;
     address public treasury;
@@ -20,7 +21,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
     uint256 public treasuryMintPerSecond;
     uint256 public lastMint;
     uint256 public inflationModificationTimestamp;
-    uint256 private _inflation_lock;
+    uint256 private _inflationLock;
 
     function initialize(IPolygon token_, address hub_, address treasury_, address owner_) external initializer {
         token = token_;
@@ -28,15 +29,15 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
         treasury = treasury_;
         lastMint = block.timestamp;
         inflationModificationTimestamp = block.timestamp + (365 days * 10);
-        _inflation_lock = 1;
+        _inflationLock = 1;
         _transferOwnership(owner_);
     }
 
     /// @notice Allows anyone to mint tokens to the hub and treasury contracts
     /// @dev Minting is done based on timestamp diffs at a constant rate
     function mint() public {
-        require(_inflation_lock == 1, "DefaultInflationManager: inflation is unlocked");
-        uint256 amount = (block.timestamp - lastMint) * _mintPerSecond;
+        require(_inflationLock == 1, "DefaultInflationManager: inflation is unlocked");
+        uint256 amount = (block.timestamp - lastMint) * _MINT_PER_SECOND;
         lastMint = block.timestamp;
         token.mint(hub, amount);
         token.mint(treasury, amount);
@@ -45,7 +46,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
     /// @notice Allows anyone to mint tokens to the hub and treasury contracts after the inflation lock is removed
     /// @dev Minting is done based on timestamp diffs at the respective constant rate
     function mintAfterUnlock() external {
-        require(_inflation_lock == 0, "DefaultInflationManager: inflation is locked");
+        require(_inflationLock == 0, "DefaultInflationManager: inflation is locked");
         uint256 _lastMint = lastMint;
         uint256 hubAmt = (block.timestamp - _lastMint) * hubMintPerSecond;
         uint256 treasuryAmt = (block.timestamp - _lastMint) * treasuryMintPerSecond;
@@ -59,7 +60,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
     /// @param treasuryMintPerSecond_ The new treasury mint per second rate
     function updateInflationRates(uint256 hubMintPerSecond_, uint256 treasuryMintPerSecond_) external onlyOwner {
         require(
-            hubMintPerSecond_ < _mintPerSecond && treasuryMintPerSecond_ < _mintPerSecond,
+            hubMintPerSecond_ < _MINT_PER_SECOND && treasuryMintPerSecond_ < _MINT_PER_SECOND,
             "DefaultInflationManager: mint per second too high"
         );
         hubMintPerSecond = hubMintPerSecond_;
@@ -82,8 +83,8 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
         );
         delete inflationModificationTimestamp;
         mint();
-        delete _inflation_lock;
-        hubMintPerSecond = treasuryMintPerSecond = _mintPerSecond;
+        delete _inflationLock;
+        hubMintPerSecond = treasuryMintPerSecond = _MINT_PER_SECOND;
     }
 
     /**
