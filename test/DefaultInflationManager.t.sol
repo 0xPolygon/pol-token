@@ -41,7 +41,6 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.hubMintPerSecond(), 0);
         assertEq(inflationManager.treasuryMintPerSecond(), 0);
         assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(inflationManager.inflationModificationTimestamp(), block.timestamp + (365 days * 10));
         assertEq(inflationManager.owner(), governance);
     }
 
@@ -85,114 +84,6 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.lastMint(), block.timestamp);
     }
 
-    function testRevert_MintUnlocked() external {
-        vm.expectRevert("DefaultInflationManager: inflation is locked");
-        inflationManager.mintAfterUnlock();
-    }
-
-    function testRevert_UnlockInflation() external {
-        vm.startPrank(governance);
-        vm.expectRevert("DefaultInflationManager: inflation modification is locked");
-        inflationManager.unlockInflationModification();
-    }
-
-    function testRevert_updateInflationModificationTimestamp(uint256 timestamp) external {
-        vm.assume(timestamp < block.timestamp);
-        vm.startPrank(governance);
-        vm.expectRevert("DefaultInflationManager: invalid timestamp");
-        inflationManager.updateInflationModificationTimestamp(timestamp);
-    }
-
-    function test_updateInflationModificationTimestamp(uint256 timestamp) external {
-        vm.assume(timestamp >= block.timestamp);
-        vm.startPrank(governance);
-        inflationManager.updateInflationModificationTimestamp(timestamp);
-
-        assertEq(inflationManager.inflationModificationTimestamp(), timestamp);
-    }
-
-    function test_UnlockInflation(uint128 timestamp) external {
-        vm.assume(timestamp >= inflationManager.inflationModificationTimestamp());
-        vm.warp(timestamp);
-        vm.startPrank(governance);
-
-        uint256 lastMint = inflationManager.lastMint();
-        inflationManager.unlockInflationModification();
-
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-    }
-
-    function testRevert_MintAlreadyUnlocked(uint128 timestamp) external {
-        vm.assume(timestamp >= inflationManager.inflationModificationTimestamp());
-        vm.warp(timestamp);
-        vm.startPrank(governance);
-        inflationManager.unlockInflationModification();
-
-        vm.expectRevert("DefaultInflationManager: inflation is unlocked");
-        inflationManager.mint();
-    }
-
-    function test_MintAfterUnlock(uint128 timestamp, uint64 delay) external {
-        vm.assume(timestamp >= inflationManager.inflationModificationTimestamp());
-        vm.warp(timestamp);
-        vm.startPrank(governance);
-
-        uint256 lastMint = inflationManager.lastMint();
-        inflationManager.unlockInflationModification();
-
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-
-        skip(delay);
-
-        lastMint = inflationManager.lastMint();
-        inflationManager.mintAfterUnlock();
-
-        balance += (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-    }
-
-    function test_MintAfterUnlockTwice(uint128 timestamp, uint64 delay) external {
-        vm.assume(timestamp >= inflationManager.inflationModificationTimestamp());
-        vm.warp(timestamp);
-        vm.startPrank(governance);
-
-        uint256 lastMint = inflationManager.lastMint();
-        inflationManager.unlockInflationModification();
-
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-
-        skip(delay);
-
-        lastMint = inflationManager.lastMint();
-        inflationManager.mintAfterUnlock();
-
-        balance += (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-
-        skip(delay);
-
-        lastMint = inflationManager.lastMint();
-        inflationManager.mintAfterUnlock();
-
-        balance += (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-    }
-
     function testRevert_UpdateInflationRates(uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
         vm.assume(hubMintPerSecond >= 3170979198376458650 || treasuryMintPerSecond >= 3170979198376458650);
         vm.startPrank(governance);
@@ -216,7 +107,6 @@ contract DefaultInflationManagerTest is Test {
     ) external {
         vm.assume(
             hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-                && timestamp >= inflationManager.inflationModificationTimestamp()
         );
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
@@ -228,7 +118,7 @@ contract DefaultInflationManagerTest is Test {
         vm.startPrank(governance);
 
         uint256 lastMint = inflationManager.lastMint();
-        inflationManager.unlockInflationModification();
+        inflationManager.mint();
 
         uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
         assertEq(inflationManager.lastMint(), block.timestamp);
@@ -244,7 +134,6 @@ contract DefaultInflationManagerTest is Test {
     ) external {
         vm.assume(
             hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-                && timestamp >= inflationManager.inflationModificationTimestamp()
         );
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
@@ -256,7 +145,6 @@ contract DefaultInflationManagerTest is Test {
         vm.startPrank(governance);
 
         uint256 lastMint = inflationManager.lastMint();
-        inflationManager.unlockInflationModification();
 
         uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
         assertEq(inflationManager.lastMint(), block.timestamp);
@@ -265,7 +153,7 @@ contract DefaultInflationManagerTest is Test {
 
         skip(delay);
         lastMint = inflationManager.lastMint();
-        inflationManager.mintAfterUnlock();
+        inflationManager.mint();
 
         uint256 hubBalance = balance + ((block.timestamp - lastMint) * inflationManager.hubMintPerSecond());
         uint256 treasuryBalance = balance + ((block.timestamp - lastMint) * inflationManager.treasuryMintPerSecond());
