@@ -46,8 +46,27 @@ contract PolygonMigrationTest is Test {
         migration.migrate(amount);
 
         assertEq(matic.balanceOf(user), 0);
-        assertEq(matic.balanceOf(0x000000000000000000000000000000000000dEaD), amount);
+        assertEq(matic.balanceOf(address(migration)), amount);
         assertEq(polygon.balanceOf(user), amount);
+    }
+
+    function test_Unmigrate(address user, uint256 amount, uint256 amount2) external {
+        vm.assume(amount <= 10000000000 * 10 ** 18 && amount2 <= amount && user != address(0));
+        matic.mint(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrate(amount);
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(user), amount);
+
+        polygon.approve(address(migration), amount2);
+        migration.unmigrate(amount2);
+
+        assertEq(polygon.balanceOf(user), amount - amount2);
+        assertEq(matic.balanceOf(address(migration)), amount - amount2);
+        assertEq(matic.balanceOf(user), amount2);
     }
 
     function testRevert_UpdateReleaseTimestampOnlyGovernance(address user, uint256 timestamp) external {
