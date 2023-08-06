@@ -8,6 +8,7 @@ import {
     IERC20,
     ERC20PresetMinterPauser
 } from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {SigUtils} from "test/SigUtils.t.sol";
 import {Test} from "forge-std/Test.sol";
 import "forge-std/console.sol";
 
@@ -15,6 +16,7 @@ contract PolygonMigrationTest is Test {
     ERC20PresetMinterPauser public matic;
     Polygon public polygon;
     PolygonMigration public migration;
+    SigUtils public sigUtils;
     address public treasury;
     address public hub;
     address public inflationManager;
@@ -29,6 +31,7 @@ contract PolygonMigrationTest is Test {
         migration =
             new PolygonMigration(IERC20(0xF62849F9A0B5Bf2913b396098F7c7019b51A820a), IERC20(address(matic)), governance);
         polygon = new Polygon(address(migration), address(inflationManager), msg.sender);
+        sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
     }
 
     function test_Deployment() external {
@@ -63,6 +66,32 @@ contract PolygonMigrationTest is Test {
 
         polygon.approve(address(migration), amount2);
         migration.unmigrate(amount2);
+
+        assertEq(polygon.balanceOf(user), amount - amount2);
+        assertEq(matic.balanceOf(address(migration)), amount - amount2);
+        assertEq(matic.balanceOf(user), amount2);
+    }
+
+    function test_UnmigrateWithPermit(uint256 privKey, uint256 amount, uint256 amount2) external {
+        vm.assume(
+            privKey != 0 && privKey < 115792089237316195423570985008687907852837564279074904382605163141518161494337 && amount <= 10000000000 * 10 ** 18 && amount2 <= amount
+        );
+        address user = vm.addr(privKey);
+        matic.mint(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrate(amount);
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(user), amount);
+
+        uint256 deadline = 1 minutes;
+        SigUtils.Permit memory permit =
+            SigUtils.Permit({owner: user, spender: address(migration), value: amount2, nonce: 0, deadline: deadline});
+        bytes32 digest = sigUtils.getTypedDataHash(permit);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, digest);
+        migration.unmigrateWithPermit(amount2, deadline, v, r, s);
 
         assertEq(polygon.balanceOf(user), amount - amount2);
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
