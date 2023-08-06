@@ -30,7 +30,7 @@ contract PolygonMigrationTest is Test {
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
         migration =
             new PolygonMigration(IERC20(0xF62849F9A0B5Bf2913b396098F7c7019b51A820a), IERC20(address(matic)), governance);
-        polygon = new Polygon(address(migration), address(inflationManager), msg.sender);
+        polygon = new Polygon(address(migration), address(inflationManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
     }
 

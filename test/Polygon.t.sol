@@ -23,7 +23,7 @@ contract PolygonTest is Test {
         inflationManager = DefaultInflationManager(
             address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, ""))
         );
-        polygon = new Polygon(migration, address(inflationManager), msg.sender);
+        polygon = new Polygon(migration, address(inflationManager));
         inflationManager.initialize(IPolygon(address(polygon)), hub, treasury, msg.sender);
     }
 
@@ -35,7 +35,6 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(migration), 10000000000 * 10 ** 18);
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(hub), 0);
-        assertEq(polygon.owner(), msg.sender);
         assertEq(polygon.inflationManager(), address(inflationManager));
     }
 

@@ -25,7 +25,7 @@ contract DefaultInflationManagerTest is Test {
         inflationManager = DefaultInflationManager(
             address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, ""))
         );
-        polygon = new Polygon(migration, address(inflationManager), msg.sender);
+        polygon = new Polygon(migration, address(inflationManager));
         inflationManager.initialize(IPolygon(address(polygon)), hub, treasury, governance);
     }
 
