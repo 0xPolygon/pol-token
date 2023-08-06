@@ -76,8 +76,8 @@ contract PolygonMigration is Ownable2Step {
         releaseTimestamp = timestamp_;
     }
 
-    /// @notice Allows governance to lock the unmigration process
-    /// @dev The function does not do any validation since governance can unlock the unmigration process if required
+    /// @notice Allows governance to lock or unlock the unmigration process
+    /// @dev The function does not do any validation since governance can update the unmigration process if required
     /// @param unmigrationLock_ New unmigration lock status
     function updateUnmigrationLock(uint256 unmigrationLock_) external onlyOwner {
         unmigrationLock = unmigrationLock_;
