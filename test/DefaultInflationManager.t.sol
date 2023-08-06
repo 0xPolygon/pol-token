@@ -105,9 +105,7 @@ contract DefaultInflationManagerTest is Test {
         uint256 hubMintPerSecond,
         uint256 treasuryMintPerSecond
     ) external {
-        vm.assume(
-            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-        );
+        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
@@ -132,9 +130,7 @@ contract DefaultInflationManagerTest is Test {
         uint256 hubMintPerSecond,
         uint256 treasuryMintPerSecond
     ) external {
-        vm.assume(
-            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-        );
+        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
