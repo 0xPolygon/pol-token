@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.21;
 
 import {IMinter} from "./interfaces/IMinter.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";

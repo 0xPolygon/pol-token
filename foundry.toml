@@ -6,6 +6,7 @@ optimizer = true
 optimize_runs = 999999
 via_ir = true
 
+
 [profile.intense.fuzz]
 runs = 10000
 max_test_rejects = 999999
