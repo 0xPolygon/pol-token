@@ -57,7 +57,10 @@ contract PolygonMigration is Ownable2Step {
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
     /// @param amount Amount of POL to migrate
-    function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external ifUnmigrationUnlocked {
+    function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
+        external
+        ifUnmigrationUnlocked
+    {
         emit Unmigrated(msg.sender, amount);
 
         IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
