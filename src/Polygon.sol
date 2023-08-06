@@ -19,7 +19,6 @@ contract Polygon is ERC20Permit, IPolygon {
     {
         inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
-        _transferOwnership(owner_);
     }
 
     /// @notice Mint token entrypoint for the inflation manager contract
