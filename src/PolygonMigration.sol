@@ -23,6 +23,11 @@ contract PolygonMigration is Ownable2Step {
     event Migrated(address indexed account, uint256 amount);
     event Unmigrated(address indexed account, uint256 amount);
 
+    modifier ifUnmigrationUnlocked() {
+        require(unmigrationLock == 0, "PolygonMigration: unmigration is locked");
+        _;
+    }
+
     constructor(IERC20 polygon_, IERC20 matic_, address owner_) {
         polygon = polygon_;
         matic = matic_;
@@ -44,9 +49,7 @@ contract PolygonMigration is Ownable2Step {
     /// @notice This function allows for migrating MATIC tokens to POL tokens
     /// @dev The function does not do any validation since the migration is a one-way process
     /// @param amount Amount of MATIC to migrate
-    function unmigrate(uint256 amount) external {
-        require(unmigrationLock == 0, "PolygonMigration: unmigration is locked");
-
+    function unmigrate(uint256 amount) external ifUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
@@ -56,9 +59,7 @@ contract PolygonMigration is Ownable2Step {
     /// @notice This function allows for migrating MATIC tokens to POL tokens
     /// @dev The function does not do any validation since the migration is a one-way process
     /// @param amount Amount of MATIC to migrate
-    function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external {
-        require(unmigrationLock == 0, "PolygonMigration: unmigration is locked");
-
+    function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external ifUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
         IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
@@ -74,6 +75,9 @@ contract PolygonMigration is Ownable2Step {
         releaseTimestamp = timestamp_;
     }
 
+    /// @notice Allows governance to lock the unmigration process
+    /// @dev The function does not do any validation since governance can unlock the unmigration process if required
+    /// @param unmigrationLock_ New unmigration lock status
     function updateUnmigrationLock(uint256 unmigrationLock_) external onlyOwner {
         unmigrationLock = unmigrationLock_;
     }
