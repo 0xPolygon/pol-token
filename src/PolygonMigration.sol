@@ -46,9 +46,8 @@ contract PolygonMigration is Ownable2Step {
         polygon.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice This function allows for migrating MATIC tokens to POL tokens
-    /// @dev The function does not do any validation since the migration is a one-way process
-    /// @param amount Amount of MATIC to migrate
+    /// @notice This function allows for unmigrating from POL tokens to MATIC tokens
+    /// @param amount Amount of POL to migrate
     function unmigrate(uint256 amount) external ifUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
@@ -56,9 +55,8 @@ contract PolygonMigration is Ownable2Step {
         matic.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice This function allows for migrating MATIC tokens to POL tokens
-    /// @dev The function does not do any validation since the migration is a one-way process
-    /// @param amount Amount of MATIC to migrate
+    /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
+    /// @param amount Amount of POL to migrate
     function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s) external ifUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
