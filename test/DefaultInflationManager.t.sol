@@ -38,8 +38,8 @@ contract DefaultInflationManagerTest is Test {
         assertEq(address(inflationManager.token()), address(polygon));
         assertEq(inflationManager.hub(), hub);
         assertEq(inflationManager.treasury(), treasury);
-        assertEq(inflationManager.hubMintPerSecond(), 0);
-        assertEq(inflationManager.treasuryMintPerSecond(), 0);
+        assertEq(inflationManager.hubMintPerSecond(), 3170979198376458650);
+        assertEq(inflationManager.treasuryMintPerSecond(), 3170979198376458650);
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.owner(), governance);
     }
@@ -105,7 +105,7 @@ contract DefaultInflationManagerTest is Test {
         uint256 hubMintPerSecond,
         uint256 treasuryMintPerSecond
     ) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
+        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650 && timestamp > block.timestamp);
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
@@ -118,10 +118,9 @@ contract DefaultInflationManagerTest is Test {
         uint256 lastMint = inflationManager.lastMint();
         inflationManager.mint();
 
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
         assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
+        assertEq(polygon.balanceOf(hub), (block.timestamp - lastMint) * hubMintPerSecond);
+        assertEq(polygon.balanceOf(treasury), (block.timestamp - lastMint) * treasuryMintPerSecond);
     }
 
     function test_UpdateInflationRatesAndMintTwice(
@@ -130,7 +129,7 @@ contract DefaultInflationManagerTest is Test {
         uint256 hubMintPerSecond,
         uint256 treasuryMintPerSecond
     ) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
+        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650 && timestamp > block.timestamp);
         vm.startPrank(governance);
         inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
@@ -141,18 +140,20 @@ contract DefaultInflationManagerTest is Test {
         vm.startPrank(governance);
 
         uint256 lastMint = inflationManager.lastMint();
+        inflationManager.mint();
 
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
+        uint256 hubBalance = (block.timestamp - lastMint) * hubMintPerSecond;
+        uint256 treasuryBalance = (block.timestamp - lastMint) * treasuryMintPerSecond;
         assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
+        assertEq(polygon.balanceOf(hub), hubBalance);
+        assertEq(polygon.balanceOf(treasury), treasuryBalance);
 
         skip(delay);
         lastMint = inflationManager.lastMint();
         inflationManager.mint();
 
-        uint256 hubBalance = balance + ((block.timestamp - lastMint) * inflationManager.hubMintPerSecond());
-        uint256 treasuryBalance = balance + ((block.timestamp - lastMint) * inflationManager.treasuryMintPerSecond());
+        hubBalance += ((block.timestamp - lastMint) * hubMintPerSecond);
+        treasuryBalance += ((block.timestamp - lastMint) * treasuryMintPerSecond);
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(polygon.balanceOf(hub), hubBalance);
         assertEq(polygon.balanceOf(treasury), treasuryBalance);
