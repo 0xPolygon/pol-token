@@ -99,6 +99,25 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), amount2);
     }
 
+    function testRevert_Unmigrate(address user, uint256 amount, uint256 unmigrationLock) external {
+
+        vm.assume(amount <= 10000000000 * 10 ** 18 && user != address(0) && unmigrationLock != 0);
+        matic.mint(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrate(amount);
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(user), amount);
+        vm.startPrank(governance);
+        migration.updateUnmigrationLock(unmigrationLock);
+
+        vm.startPrank(user);
+        vm.expectRevert("PolygonMigration: unmigration is locked");
+        migration.unmigrate(amount);
+    }
+
     function testRevert_UpdateReleaseTimestampOnlyGovernance(address user, uint256 timestamp) external {
         vm.assume(timestamp >= block.timestamp && user != governance);
         vm.expectRevert("Ownable: caller is not the owner");

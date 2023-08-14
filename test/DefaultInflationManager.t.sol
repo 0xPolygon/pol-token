@@ -29,6 +29,17 @@ contract DefaultInflationManagerTest is Test {
         inflationManager.initialize(IPolygon(address(polygon)), hub, treasury, governance);
     }
 
+    function test_Initialize_InflationManagerImpl() external {
+        DefaultInflationManager inflationManagerImpl = new DefaultInflationManager();
+        
+        //  setting DefaultInflationManager._initialized to 0
+        vm.store(address(inflationManagerImpl), bytes32(uint256(0)), bytes32(uint256(0)));
+        inflationManagerImpl.initialize(IPolygon(address(polygon)), hub, treasury, governance);
+
+        vm.expectRevert("Initializable: contract is already initialized");
+        inflationManagerImpl.initialize(IPolygon(address(0)), address(0), address(0), address(0));
+    }
+
     function testRevert_Initialize() external {
         vm.expectRevert("Initializable: contract is already initialized");
         inflationManager.initialize(IPolygon(address(0)), address(0), address(0), address(0));
