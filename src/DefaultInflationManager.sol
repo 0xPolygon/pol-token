@@ -20,6 +20,8 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IMin
     uint256 public treasuryMintPerSecond;
     uint256 public lastMint;
 
+    constructor() initializer { }
+    
     function initialize(IPolygon token_, address hub_, address treasury_, address owner_) external initializer {
         token = token_;
         hub = hub_;
