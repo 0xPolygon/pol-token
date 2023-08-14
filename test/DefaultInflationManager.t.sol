@@ -31,7 +31,7 @@ contract DefaultInflationManagerTest is Test {
 
     function test_Initialize_InflationManagerImpl() external {
         DefaultInflationManager inflationManagerImpl = new DefaultInflationManager();
-        
+
         //  setting DefaultInflationManager._initialized to 0
         vm.store(address(inflationManagerImpl), bytes32(uint256(0)), bytes32(uint256(0)));
         inflationManagerImpl.initialize(IPolygon(address(polygon)), hub, treasury, governance);

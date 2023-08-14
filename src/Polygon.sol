@@ -13,10 +13,7 @@ import {IPolygon} from "./interfaces/IPolygon.sol";
 contract Polygon is ERC20Permit, IPolygon {
     address public immutable inflationManager;
 
-    constructor(address migration_, address inflationManager_)
-        ERC20("Polygon", "POL")
-        ERC20Permit("Polygon")
-    {
+    constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
     }

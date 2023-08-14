@@ -100,7 +100,6 @@ contract PolygonMigrationTest is Test {
     }
 
     function testRevert_Unmigrate(address user, uint256 amount, uint256 unmigrationLock) external {
-
         vm.assume(amount <= 10000000000 * 10 ** 18 && user != address(0) && unmigrationLock != 0);
         matic.mint(user, amount);
         vm.startPrank(user);
