@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {Polygon} from "src/Polygon.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
+import {IPolygonMigration} from "src/interfaces/IPolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import {SigUtils} from "test/SigUtils.t.sol";
 import {Test} from "forge-std/Test.sol";
@@ -64,10 +65,10 @@ contract PolygonMigrationTest is Test {
         migration.setPolygonToken(address(polygon));
 
         vm.startPrank(governance);
-        vm.expectRevert("invalid");
+        vm.expectRevert(IPolygonMigration.InvalidAddressOrAlreadySet.selector);
         migration.setPolygonToken(address(polygon));
 
-        vm.expectRevert("invalid");
+        vm.expectRevert(IPolygonMigration.InvalidAddressOrAlreadySet.selector);
         migration.setPolygonToken(address(0));
         vm.stopPrank();
     }
@@ -98,6 +99,35 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount - amount2);
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
         assertEq(matic.balanceOf(user), amount2);
+    }
+
+    function testRevert_Unmigrate(
+        address user,
+        uint256 amount,
+        uint256 unmigrationLock
+    ) external {
+        vm.assume(
+            amount <= 10000000000 * 10 ** 18 &&
+                user != address(0) &&
+                user != address(migration) &&
+                unmigrationLock != 0
+        );
+        matic.mint(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrate(amount);
+        vm.stopPrank();
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(user), amount);
+        vm.prank(governance);
+        migration.updateUnmigrationLock(unmigrationLock);
+
+        vm.startPrank(user);
+        vm.expectRevert(IPolygonMigration.UnmigrationLocked.selector);
+        migration.unmigrate(amount);
+        vm.stopPrank();
     }
 
     function test_UnmigrateTo(
@@ -187,7 +217,7 @@ contract PolygonMigrationTest is Test {
     ) external {
         vm.assume(timestamp < block.timestamp);
         vm.startPrank(governance);
-        vm.expectRevert("PolygonMigration: invalid timestamp");
+        vm.expectRevert(IPolygonMigration.InvalidTimestamp.selector);
         migration.updateReleaseTimestamp(timestamp);
     }
 
@@ -207,7 +237,7 @@ contract PolygonMigrationTest is Test {
     function testRevert_ReleaseTooEarly(uint256 timestamp) external {
         vm.assume(timestamp < migration.releaseTimestamp());
         vm.startPrank(governance);
-        vm.expectRevert("PolygonMigration: migration is not over");
+        vm.expectRevert(IPolygonMigration.MigrationNotOver.selector);
         migration.release();
     }
 

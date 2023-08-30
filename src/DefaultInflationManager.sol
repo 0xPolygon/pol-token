@@ -20,6 +20,8 @@ contract DefaultInflationManager is
 {
     using SafeERC20 for IPolygon;
 
+    error MintPerSecondTooHigh();
+
     uint256 private constant _MINT_PER_SECOND = 3170979198376458650;
     IPolygon public token;
     IPolygonMigration public migration;
@@ -69,11 +71,10 @@ contract DefaultInflationManager is
         uint256 stakeManagerMintPerSecond_,
         uint256 treasuryMintPerSecond_
     ) external onlyOwner {
-        require(
-            stakeManagerMintPerSecond_ < _MINT_PER_SECOND &&
-                treasuryMintPerSecond_ < _MINT_PER_SECOND,
-            "DefaultInflationManager: mint per second too high"
-        );
+        if (
+            stakeManagerMintPerSecond_ >= _MINT_PER_SECOND ||
+            treasuryMintPerSecond_ >= _MINT_PER_SECOND
+        ) revert MintPerSecondTooHigh();
         stakeManagerMintPerSecond = stakeManagerMintPerSecond_;
         treasuryMintPerSecond = treasuryMintPerSecond_;
     }

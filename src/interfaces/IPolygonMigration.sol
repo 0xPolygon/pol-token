@@ -2,6 +2,11 @@
 pragma solidity 0.8.21;
 
 interface IPolygonMigration {
+    error UnmigrationLocked();
+    error InvalidAddressOrAlreadySet();
+    error InvalidTimestamp();
+    error MigrationNotOver();
+
     function migrate(uint256 amount) external;
 
     function unmigrate(uint256 amount) external;

@@ -9,6 +9,8 @@ import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/prox
 import {Test} from "forge-std/Test.sol";
 
 contract DefaultInflationManagerTest is Test {
+    error MintPerSecondTooHigh();
+
     ERC20PresetMinterPauser public matic;
     Polygon public polygon;
     PolygonMigration public migration;
@@ -135,7 +137,7 @@ contract DefaultInflationManagerTest is Test {
                 treasuryMintPerSecond >= 3170979198376458650
         );
         vm.startPrank(governance);
-        vm.expectRevert("DefaultInflationManager: mint per second too high");
+        vm.expectRevert(MintPerSecondTooHigh.selector);
         inflationManager.updateInflationRates(
             stakeManagerMintPerSecond,
             treasuryMintPerSecond

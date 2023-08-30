@@ -5,13 +5,14 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 
 /// @title Polygon Migration
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
 /// @notice This is the migration contract for Matic <-> Polygon ERC20 token on Ethereum L1
 /// @dev The contract allows for a 1-to-1 conversion from $MATIC into $POL and vice-versa
 /// @custom:security-contact security@polygon.technology
-contract PolygonMigration is Ownable2Step {
+contract PolygonMigration is Ownable2Step, IPolygonMigration {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC20Permit;
 
@@ -24,10 +25,7 @@ contract PolygonMigration is Ownable2Step {
     event Unmigrated(address indexed account, uint256 amount);
 
     modifier ifUnmigrationUnlocked() {
-        require(
-            unmigrationLock == 0,
-            "PolygonMigration: unmigration is locked"
-        );
+        if (unmigrationLock != 0) revert UnmigrationLocked();
         _;
     }
 
@@ -41,10 +39,8 @@ contract PolygonMigration is Ownable2Step {
     /// @notice This function allows owner/governance to set POL token address *only once*
     /// @param polygon_ Address of deployed POL token
     function setPolygonToken(address polygon_) external onlyOwner {
-        require(
-            polygon_ != address(0) && address(polygon) == address(0),
-            "invalid"
-        );
+        if (polygon_ == address(0) || address(polygon) != address(0))
+            revert InvalidAddressOrAlreadySet();
         polygon = IERC20(polygon_);
     }
 
@@ -108,10 +104,7 @@ contract PolygonMigration is Ownable2Step {
     /// @dev The function does not do any validation since governance can correct the timestamp if required
     /// @param timestamp_ New release timestamp
     function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
-        require(
-            timestamp_ >= block.timestamp,
-            "PolygonMigration: invalid timestamp"
-        );
+        if (timestamp_ < block.timestamp) revert InvalidTimestamp();
         releaseTimestamp = timestamp_;
     }
 
@@ -127,10 +120,7 @@ contract PolygonMigration is Ownable2Step {
     /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
     /// @dev In case any MATIC was sent out of process, it will be sent to the dead address
     function release() external onlyOwner {
-        require(
-            block.timestamp >= releaseTimestamp,
-            "PolygonMigration: migration is not over"
-        );
+        if (block.timestamp < releaseTimestamp) revert MigrationNotOver();
         polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));
         matic.safeTransfer(
             0x000000000000000000000000000000000000dEaD,

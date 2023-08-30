@@ -26,10 +26,8 @@ contract Polygon is ERC20Permit, IPolygon {
     /// @param to Address to mint to
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external {
-        require(
-            msg.sender == inflationManager,
-            "Polygon: only inflation manager can mint"
-        );
+        if (msg.sender != inflationManager) revert OnlyInflationManager();
+
         _mint(to, amount);
     }
 }

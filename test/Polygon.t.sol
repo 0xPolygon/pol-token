@@ -2,6 +2,7 @@
 pragma solidity 0.8.21;
 
 import {Polygon} from "src/Polygon.sol";
+import {IPolygon} from "src/interfaces/IPolygon.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
 import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
@@ -56,7 +57,7 @@ contract PolygonTest is Test {
     ) external {
         vm.assume(user != address(inflationManager));
         vm.startPrank(user);
-        vm.expectRevert("Polygon: only inflation manager can mint");
+        vm.expectRevert(IPolygon.OnlyInflationManager.selector);
         polygon.mint(to, amount);
     }
 
