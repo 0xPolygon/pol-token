@@ -42,7 +42,11 @@ contract PolygonMigrationTest is Test {
     }
 
     function test_Migrate(address user, uint256 amount) external {
-        vm.assume(amount <= 10000000000 * 10 ** 18 && user != address(0));
+        vm.assume(
+            amount <= 10000000000 * 10 ** 18 &&
+                user != address(0) &&
+                user != address(migration)
+        );
         matic.mint(user, amount);
         vm.startPrank(user);
         matic.approve(address(migration), amount);
@@ -134,14 +138,15 @@ contract PolygonMigrationTest is Test {
         uint256 amount,
         uint256 amount2
     ) external {
+        address user;
         vm.assume(
             privKey != 0 &&
                 privKey <
                 115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
+                (user = vm.addr(privKey)) != address(migration) &&
                 amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount
         );
-        address user = vm.addr(privKey);
         matic.mint(user, amount);
         vm.startPrank(user);
         matic.approve(address(migration), amount);
