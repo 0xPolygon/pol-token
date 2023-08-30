@@ -5,7 +5,7 @@ libs = ['lib']
 optimizer = true
 optimize_runs = 999999
 via_ir = true
-
+solc = '0.8.21'
 
 [profile.intense.fuzz]
 runs = 10000
