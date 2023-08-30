@@ -15,7 +15,7 @@ contract PolygonMigration is Ownable2Step {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC20Permit;
 
-    IERC20 public immutable polygon;
+    IERC20 public polygon;
     IERC20 public immutable matic;
     uint256 public releaseTimestamp;
     uint256 public unmigrationLock;
@@ -31,12 +31,21 @@ contract PolygonMigration is Ownable2Step {
         _;
     }
 
-    constructor(IERC20 polygon_, IERC20 matic_, address owner_) {
-        polygon = polygon_;
-        matic = matic_;
+    constructor(address matic_, address owner_) {
+        matic = IERC20(matic_);
         releaseTimestamp = block.timestamp + (365 days * 4); // 4 years
 
         _transferOwnership(owner_);
+    }
+
+    /// @notice This function allows owner/governance to set POL token address *only once*
+    /// @param polygon_ Address of deployed POL token
+    function setPolygonToken(address polygon_) external onlyOwner {
+        require(
+            polygon_ != address(0) && address(polygon) == address(0),
+            "invalid"
+        );
+        polygon = IERC20(polygon_);
     }
 
     /// @notice This function allows for migrating MATIC tokens to POL tokens
@@ -56,6 +65,19 @@ contract PolygonMigration is Ownable2Step {
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
         matic.safeTransfer(msg.sender, amount);
+    }
+
+    /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
+    /// @param amount Amount of POL to migrate
+    /// @param account Address to receive MATIC tokens
+    function unmigrateTo(
+        uint256 amount,
+        address account
+    ) external ifUnmigrationUnlocked {
+        emit Unmigrated(msg.sender, amount);
+
+        polygon.safeTransferFrom(msg.sender, address(this), amount);
+        matic.safeTransfer(account, amount);
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit

@@ -1,16 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IPolygon} from "src/interfaces/IPolygon.sol";
 import {Polygon} from "src/Polygon.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
-import {
-    IERC20,
-    ERC20PresetMinterPauser
-} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import {SigUtils} from "test/SigUtils.t.sol";
 import {Test} from "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 contract PolygonMigrationTest is Test {
     ERC20PresetMinterPauser public matic;
@@ -18,20 +13,22 @@ contract PolygonMigrationTest is Test {
     PolygonMigration public migration;
     SigUtils public sigUtils;
     address public treasury;
-    address public hub;
+    address public stakeManager;
     address public inflationManager;
     address public governance;
 
     function setUp() external {
         treasury = makeAddr("treasury");
-        hub = makeAddr("hub");
+        stakeManager = makeAddr("stakeManager");
         inflationManager = makeAddr("inflationManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration =
-            new PolygonMigration(IERC20(0xF62849F9A0B5Bf2913b396098F7c7019b51A820a), IERC20(address(matic)), governance);
+        migration = new PolygonMigration(address(matic), governance);
         polygon = new Polygon(address(migration), address(inflationManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
+
+        vm.prank(governance);
+        migration.setPolygonToken(address(polygon));
     }
 
     function test_Deployment() external {
@@ -54,6 +51,21 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), 0);
         assertEq(matic.balanceOf(address(migration)), amount);
         assertEq(polygon.balanceOf(user), amount);
+    }
+
+    function test_CannotResetPolygonToken() external {
+        address user = makeAddr("user");
+        vm.prank(user);
+        vm.expectRevert("Ownable: caller is not the owner");
+        migration.setPolygonToken(address(polygon));
+
+        vm.startPrank(governance);
+        vm.expectRevert("invalid");
+        migration.setPolygonToken(address(polygon));
+
+        vm.expectRevert("invalid");
+        migration.setPolygonToken(address(0));
+        vm.stopPrank();
     }
 
     function test_Unmigrate(
@@ -82,6 +94,36 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount - amount2);
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
         assertEq(matic.balanceOf(user), amount2);
+    }
+
+    function test_UnmigrateTo(
+        address user,
+        address migrateTo,
+        uint256 amount,
+        uint256 amount2
+    ) external {
+        vm.assume(
+            amount <= 10000000000 * 10 ** 18 &&
+                amount2 <= amount &&
+                user != address(0) &&
+                user != address(migration)
+        );
+        matic.mint(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrate(amount);
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(user), amount);
+
+        polygon.approve(address(migration), amount2);
+        migration.unmigrateTo(amount2, migrateTo);
+
+        assertEq(polygon.balanceOf(user), amount - amount2);
+        assertEq(matic.balanceOf(address(migration)), amount - amount2);
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(migrateTo), amount2);
     }
 
     function test_UnmigrateWithPermit(
