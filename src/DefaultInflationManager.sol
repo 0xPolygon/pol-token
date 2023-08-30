@@ -31,6 +31,11 @@ contract DefaultInflationManager is
     address public stakeManager;
     address public treasury;
 
+    constructor() {
+        // so that the implementation contract cannot be initialized
+        _disableInitializers();
+    }
+
     function initialize(
         address token_,
         address migration_,

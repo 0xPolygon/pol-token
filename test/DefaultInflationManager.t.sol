@@ -18,15 +18,17 @@ contract DefaultInflationManagerTest is Test {
     address public stakeManager;
     address public governance;
     DefaultInflationManager public inflationManager;
+    DefaultInflationManager public inflationManagerImplementation;
 
     function setUp() external {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         governance = makeAddr("governance");
+        inflationManagerImplementation = new DefaultInflationManager();
         inflationManager = DefaultInflationManager(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new DefaultInflationManager()),
+                    address(inflationManagerImplementation),
                     msg.sender,
                     ""
                 )
@@ -74,6 +76,26 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.treasuryMintPerSecond(), 3170979198376458650);
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.owner(), governance);
+    }
+
+    function test_ImplementationCannotBeInitialized() external {
+        vm.expectRevert("Initializable: contract is already initialized");
+        DefaultInflationManager(address(inflationManagerImplementation))
+            .initialize(
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0)
+            );
+        vm.expectRevert("Initializable: contract is already initialized");
+        DefaultInflationManager(address(inflationManager)).initialize(
+            address(0),
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        );
     }
 
     function test_Mint() external {
