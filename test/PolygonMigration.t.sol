@@ -106,7 +106,10 @@ contract PolygonMigrationTest is Test {
             amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount &&
                 user != address(0) &&
-                user != address(migration)
+                user != address(migration) &&
+                user != migrateTo &&
+                migrateTo != address(0) &&
+                migrateTo != address(migration)
         );
         matic.mint(user, amount);
         vm.startPrank(user);
