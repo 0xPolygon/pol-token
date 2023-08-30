@@ -37,7 +37,10 @@ contract PolygonMigrationTest is Test {
     function test_Deployment() external {
         assertEq(address(migration.polygon()), address(polygon));
         assertEq(address(migration.matic()), address(matic));
-        assertEq(migration.releaseTimestamp(), block.timestamp + (365 days * 4));
+        assertEq(
+            migration.releaseTimestamp(),
+            block.timestamp + (365 days * 4)
+        );
         assertEq(migration.owner(), governance);
     }
 
@@ -53,8 +56,17 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount);
     }
 
-    function test_Unmigrate(address user, uint256 amount, uint256 amount2) external {
-        vm.assume(amount <= 10000000000 * 10 ** 18 && amount2 <= amount && user != address(0));
+    function test_Unmigrate(
+        address user,
+        uint256 amount,
+        uint256 amount2
+    ) external {
+        vm.assume(
+            amount <= 10000000000 * 10 ** 18 &&
+                amount2 <= amount &&
+                user != address(0) &&
+                user != address(migration)
+        );
         matic.mint(user, amount);
         vm.startPrank(user);
         matic.approve(address(migration), amount);
@@ -72,10 +84,17 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), amount2);
     }
 
-    function test_UnmigrateWithPermit(uint256 privKey, uint256 amount, uint256 amount2) external {
+    function test_UnmigrateWithPermit(
+        uint256 privKey,
+        uint256 amount,
+        uint256 amount2
+    ) external {
         vm.assume(
-            privKey != 0 && privKey < 115792089237316195423570985008687907852837564279074904382605163141518161494337
-                && amount <= 10000000000 * 10 ** 18 && amount2 <= amount
+            privKey != 0 &&
+                privKey <
+                115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
+                amount <= 10000000000 * 10 ** 18 &&
+                amount2 <= amount
         );
         address user = vm.addr(privKey);
         matic.mint(user, amount);
@@ -88,8 +107,13 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount);
 
         uint256 deadline = 1 minutes;
-        SigUtils.Permit memory permit =
-            SigUtils.Permit({owner: user, spender: address(migration), value: amount2, nonce: 0, deadline: deadline});
+        SigUtils.Permit memory permit = SigUtils.Permit({
+            owner: user,
+            spender: address(migration),
+            value: amount2,
+            nonce: 0,
+            deadline: deadline
+        });
         bytes32 digest = sigUtils.getTypedDataHash(permit);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(privKey, digest);
         migration.unmigrateWithPermit(amount2, deadline, v, r, s);
@@ -99,13 +123,18 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), amount2);
     }
 
-    function testRevert_UpdateReleaseTimestampOnlyGovernance(address user, uint256 timestamp) external {
+    function testRevert_UpdateReleaseTimestampOnlyGovernance(
+        address user,
+        uint256 timestamp
+    ) external {
         vm.assume(timestamp >= block.timestamp && user != governance);
         vm.expectRevert("Ownable: caller is not the owner");
         migration.updateReleaseTimestamp(timestamp);
     }
 
-    function testRevert_UpdateReleaseTimestampTooEarly(uint256 timestamp) external {
+    function testRevert_UpdateReleaseTimestampTooEarly(
+        uint256 timestamp
+    ) external {
         vm.assume(timestamp < block.timestamp);
         vm.startPrank(governance);
         vm.expectRevert("PolygonMigration: invalid timestamp");

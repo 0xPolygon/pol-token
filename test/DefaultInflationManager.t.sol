@@ -36,9 +36,12 @@ contract DefaultInflationManagerTest is Test {
 
     function test_Deployment() external {
         assertEq(address(inflationManager.token()), address(polygon));
-        assertEq(inflationManager.hub(), hub);
+        assertEq(inflationManager.stakeManager(), stakeManager);
         assertEq(inflationManager.treasury(), treasury);
-        assertEq(inflationManager.hubMintPerSecond(), 3170979198376458650);
+        assertEq(
+            inflationManager.stakeManagerMintPerSecond(),
+            3170979198376458650
+        );
         assertEq(inflationManager.treasuryMintPerSecond(), 3170979198376458650);
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.owner(), governance);
@@ -47,7 +50,8 @@ contract DefaultInflationManagerTest is Test {
     function test_Mint() external {
         inflationManager.mint();
 
-        assertEq(polygon.balanceOf(hub), 0);
+        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(matic.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(inflationManager.lastMint(), block.timestamp);
     }
@@ -84,20 +88,44 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.lastMint(), block.timestamp);
     }
 
-    function testRevert_UpdateInflationRates(uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond >= 3170979198376458650 || treasuryMintPerSecond >= 3170979198376458650);
+    function testRevert_UpdateInflationRates(
+        uint256 stakeManagerMintPerSecond,
+        uint256 treasuryMintPerSecond
+    ) external {
+        vm.assume(
+            stakeManagerMintPerSecond >= 3170979198376458650 ||
+                treasuryMintPerSecond >= 3170979198376458650
+        );
         vm.startPrank(governance);
         vm.expectRevert("DefaultInflationManager: mint per second too high");
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
+        inflationManager.updateInflationRates(
+            stakeManagerMintPerSecond,
+            treasuryMintPerSecond
+        );
     }
 
-    function test_UpdateInflationRates(uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
+    function test_UpdateInflationRates(
+        uint256 stakeManagerMintPerSecond,
+        uint256 treasuryMintPerSecond
+    ) external {
+        vm.assume(
+            stakeManagerMintPerSecond < 3170979198376458650 &&
+                treasuryMintPerSecond < 3170979198376458650
+        );
         vm.startPrank(governance);
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
+        inflationManager.updateInflationRates(
+            stakeManagerMintPerSecond,
+            treasuryMintPerSecond
+        );
 
-        assertEq(inflationManager.hubMintPerSecond(), hubMintPerSecond);
-        assertEq(inflationManager.treasuryMintPerSecond(), treasuryMintPerSecond);
+        assertEq(
+            inflationManager.stakeManagerMintPerSecond(),
+            stakeManagerMintPerSecond
+        );
+        assertEq(
+            inflationManager.treasuryMintPerSecond(),
+            treasuryMintPerSecond
+        );
     }
 
     function test_UpdateInflationRatesAndMint(

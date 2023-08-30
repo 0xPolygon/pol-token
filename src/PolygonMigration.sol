@@ -24,7 +24,10 @@ contract PolygonMigration is Ownable2Step {
     event Unmigrated(address indexed account, uint256 amount);
 
     modifier ifUnmigrationUnlocked() {
-        require(unmigrationLock == 0, "PolygonMigration: unmigration is locked");
+        require(
+            unmigrationLock == 0,
+            "PolygonMigration: unmigration is locked"
+        );
         _;
     }
 
@@ -57,13 +60,24 @@ contract PolygonMigration is Ownable2Step {
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
     /// @param amount Amount of POL to migrate
-    function unmigrateWithPermit(uint256 amount, uint256 deadline, uint8 v, bytes32 r, bytes32 s)
-        external
-        ifUnmigrationUnlocked
-    {
+    function unmigrateWithPermit(
+        uint256 amount,
+        uint256 deadline,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external ifUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
-        IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
+        IERC20Permit(address(polygon)).safePermit(
+            msg.sender,
+            address(this),
+            amount,
+            deadline,
+            v,
+            r,
+            s
+        );
         polygon.safeTransferFrom(msg.sender, address(this), amount);
         matic.safeTransfer(msg.sender, amount);
     }
@@ -72,22 +86,33 @@ contract PolygonMigration is Ownable2Step {
     /// @dev The function does not do any validation since governance can correct the timestamp if required
     /// @param timestamp_ New release timestamp
     function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
-        require(timestamp_ >= block.timestamp, "PolygonMigration: invalid timestamp");
+        require(
+            timestamp_ >= block.timestamp,
+            "PolygonMigration: invalid timestamp"
+        );
         releaseTimestamp = timestamp_;
     }
 
     /// @notice Allows governance to lock or unlock the unmigration process
     /// @dev The function does not do any validation since governance can update the unmigration process if required
     /// @param unmigrationLock_ New unmigration lock status
-    function updateUnmigrationLock(uint256 unmigrationLock_) external onlyOwner {
+    function updateUnmigrationLock(
+        uint256 unmigrationLock_
+    ) external onlyOwner {
         unmigrationLock = unmigrationLock_;
     }
 
     /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
     /// @dev In case any MATIC was sent out of process, it will be sent to the dead address
     function release() external onlyOwner {
-        require(block.timestamp >= releaseTimestamp, "PolygonMigration: migration is not over");
+        require(
+            block.timestamp >= releaseTimestamp,
+            "PolygonMigration: migration is not over"
+        );
         polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));
-        matic.safeTransfer(0x000000000000000000000000000000000000dEaD, matic.balanceOf(address(this)));
+        matic.safeTransfer(
+            0x000000000000000000000000000000000000dEaD,
+            matic.balanceOf(address(this))
+        );
     }
 }
