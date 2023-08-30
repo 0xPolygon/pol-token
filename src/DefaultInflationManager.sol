@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {IMinter} from "./interfaces/IMinter.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
+import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -21,18 +22,27 @@ contract DefaultInflationManager is
 
     uint256 private constant _MINT_PER_SECOND = 3170979198376458650;
     IPolygon public token;
+    IPolygonMigration public migration;
     uint256 public stakeManagerMintPerSecond;
     uint256 public treasuryMintPerSecond;
     uint256 public lastMint;
     address public stakeManager;
     address public treasury;
 
-    function initialize(IPolygon token_, address hub_, address treasury_, address owner_) external initializer {
-        token = token_;
-        hub = hub_;
+    function initialize(
+        address token_,
+        address migration_,
+        address stakeManager_,
+        address treasury_,
+        address owner_
+    ) external initializer {
+        token = IPolygon(token_);
+        migration = IPolygonMigration(migration_);
+        stakeManager = stakeManager_;
         treasury = treasury_;
-        hubMintPerSecond = treasuryMintPerSecond = _MINT_PER_SECOND;
+        stakeManagerMintPerSecond = treasuryMintPerSecond = _MINT_PER_SECOND;
         lastMint = block.timestamp;
+        token.safeApprove(migration_, type(uint256).max);
         _transferOwnership(owner_);
     }
 
@@ -45,8 +55,11 @@ contract DefaultInflationManager is
         uint256 treasuryAmt = (block.timestamp - _lastMint) *
             treasuryMintPerSecond;
         lastMint = block.timestamp;
-        token.mint(hub, hubAmt);
+
         token.mint(treasury, treasuryAmt);
+
+        token.mint(address(this), stakeManagerAmt);
+        migration.unmigrateTo(stakeManagerAmt, stakeManager);
     }
 
     /// @notice Allows governance to update the mint per second rate for the hub and treasury contracts
