@@ -50,6 +50,16 @@ contract PolygonTest is Test {
         assertEq(polygon.inflationManager(), address(inflationManager));
     }
 
+    function test_InvalidDeployment() external {
+        Polygon token;
+        vm.expectRevert(IPolygon.InvalidAddress.selector);
+        token = new Polygon(makeAddr("migration"), address(0));
+        vm.expectRevert(IPolygon.InvalidAddress.selector);
+        token = new Polygon(address(0), makeAddr("inflationManager"));
+        vm.expectRevert(IPolygon.InvalidAddress.selector);
+        token = new Polygon(address(0), address(0));
+    }
+
     function testRevert_Mint(
         address user,
         address to,

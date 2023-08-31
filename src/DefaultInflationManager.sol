@@ -21,6 +21,7 @@ contract DefaultInflationManager is
     using SafeERC20 for IPolygon;
 
     error MintPerSecondTooHigh();
+    error InvalidAddress();
 
     uint256 private constant _MINT_PER_SECOND = 3170979198376458650;
     IPolygon public token;
@@ -43,6 +44,14 @@ contract DefaultInflationManager is
         address treasury_,
         address owner_
     ) external initializer {
+        if (
+            token_ == address(0) ||
+            migration_ == address(0) ||
+            stakeManager_ == address(0) ||
+            treasury_ == address(0) ||
+            owner_ == address(0)
+        ) revert InvalidAddress();
+
         token = IPolygon(token_);
         migration = IPolygonMigration(migration_);
         stakeManager = stakeManager_;

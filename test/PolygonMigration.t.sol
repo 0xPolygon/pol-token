@@ -42,6 +42,16 @@ contract PolygonMigrationTest is Test {
         assertEq(migration.owner(), governance);
     }
 
+    function test_InvalidDeployment() external {
+        PolygonMigration temp;
+        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
+        temp = new PolygonMigration(address(matic), address(0));
+        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
+        temp = new PolygonMigration(address(0), governance);
+        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
+        temp = new PolygonMigration(address(0), address(0));
+    }
+
     function test_Migrate(address user, uint256 amount) external {
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&

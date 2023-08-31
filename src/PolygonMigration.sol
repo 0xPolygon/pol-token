@@ -30,6 +30,9 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
     }
 
     constructor(address matic_, address owner_) {
+        if (matic_ == address(0) || owner_ == address(0))
+            revert InvalidAddress();
+
         matic = IERC20(matic_);
         releaseTimestamp = block.timestamp + (365 days * 4); // 4 years
 

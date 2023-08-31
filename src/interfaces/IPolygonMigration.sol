@@ -6,6 +6,7 @@ interface IPolygonMigration {
     error InvalidAddressOrAlreadySet();
     error InvalidTimestamp();
     error MigrationNotOver();
+    error InvalidAddress();
 
     function migrate(uint256 amount) external;
 

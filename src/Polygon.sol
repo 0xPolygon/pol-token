@@ -17,6 +17,9 @@ contract Polygon is ERC20Permit, IPolygon {
         address migration_,
         address inflationManager_
     ) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+        if (migration_ == address(0) || inflationManager_ == address(0))
+            revert InvalidAddress();
+
         inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
     }

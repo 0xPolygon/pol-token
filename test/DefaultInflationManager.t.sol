@@ -10,6 +10,7 @@ import {Test} from "forge-std/Test.sol";
 
 contract DefaultInflationManagerTest is Test {
     error MintPerSecondTooHigh();
+    error InvalidAddress();
 
     ERC20PresetMinterPauser public matic;
     Polygon public polygon;
@@ -76,6 +77,33 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.treasuryMintPerSecond(), 3170979198376458650);
         assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.owner(), governance);
+    }
+
+    function test_InvalidDeployment(uint256 seed) external {
+        address[5] memory params = [
+            makeAddr("polygon"),
+            makeAddr("migration"),
+            makeAddr("stakeManager"),
+            makeAddr("treasury"),
+            makeAddr("governance")
+        ];
+        params[seed % params.length] = address(0); // any one is zero addr
+
+        address proxy = address(
+            new TransparentUpgradeableProxy(
+                address(new DefaultInflationManager()),
+                msg.sender,
+                ""
+            )
+        );
+        vm.expectRevert(InvalidAddress.selector);
+        DefaultInflationManager(proxy).initialize(
+            params[0],
+            params[1],
+            params[2],
+            params[3],
+            params[4]
+        );
     }
 
     function test_ImplementationCannotBeInitialized() external {
