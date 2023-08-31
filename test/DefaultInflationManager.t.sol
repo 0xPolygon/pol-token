@@ -10,7 +10,6 @@ import {Test} from "forge-std/Test.sol";
 
 contract DefaultInflationManagerTest is Test {
     error InvalidAddress();
-    error NotEnoughMint();
 
     ERC20PresetMinterPauser public matic;
     Polygon public polygon;
@@ -133,7 +132,6 @@ contract DefaultInflationManagerTest is Test {
     }
 
     function test_Mint() external {
-        vm.expectRevert(NotEnoughMint.selector);
         inflationManager.mint();
         // timeElapsed is zero, so no minting
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -149,7 +147,6 @@ contract DefaultInflationManagerTest is Test {
 
         skip(delay);
 
-        if (delay == 0) vm.expectRevert(NotEnoughMint.selector);
         inflationManager.mint();
 
         inputs[2] = vm.toString(elapsedTime);

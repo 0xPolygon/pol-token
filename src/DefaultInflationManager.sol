@@ -22,7 +22,6 @@ contract DefaultInflationManager is
     using SafeERC20 for IPolygon;
 
     error InvalidAddress();
-    error NotEnoughMint();
 
     // log2(2%pa continuously compounded inflation per second) in 18 decimals(Wad), see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_SECOND_LOG2 = 0.000000000914951192e18;
@@ -76,13 +75,8 @@ contract DefaultInflationManager is
         uint256 newSupply = _inflatedSupplyAfter(
             block.timestamp - startTimestamp // time elapsed since deployment
         );
-        uint256 amountToMint;
-        unchecked {
-            // currentSupply is always less than newSupply because POL token is strictly inflationary,
-            // _burn method is not exposed
-            amountToMint = newSupply - currentSupply;
-        }
-        if (amountToMint == 0) revert NotEnoughMint();
+        uint256 amountToMint = newSupply - currentSupply;
+        if (amountToMint == 0) return; // no minting required
 
         uint256 treasuryAmt = amountToMint / 2;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
