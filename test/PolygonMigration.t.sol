@@ -28,8 +28,10 @@ contract PolygonMigrationTest is Test {
         polygon = new Polygon(address(migration), address(inflationManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
+        migration.setPolygonToken(address(polygon)); // deployer sets token
+        migration.transferOwnership(governance); // deployer transfers ownership
         vm.prank(governance);
-        migration.setPolygonToken(address(polygon));
+        migration.acceptOwnership(); // governance accepts ownership
     }
 
     function test_Deployment() external {

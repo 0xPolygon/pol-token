@@ -35,8 +35,6 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
 
         matic = IERC20(matic_);
         releaseTimestamp = block.timestamp + (365 days * 4); // 4 years
-
-        _transferOwnership(owner_);
     }
 
     /// @notice This function allows owner/governance to set POL token address *only once*
