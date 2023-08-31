@@ -38,6 +38,6 @@ jobs:
         id: build
 
       - name: Run Forge tests
-        run: |
-          FOUNDRY_PROFILE=intense forge test -vvv
+        # ! revert back to FOUNDRY_PROFILE=intense forge test -vvv
+        run: forge test -vvv
         id: test
