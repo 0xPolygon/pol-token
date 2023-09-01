@@ -16,12 +16,8 @@ contract Polygon is ERC20Permit, IPolygon {
     uint256 public constant mintPerSecondCap = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     uint256 public lastMint;
 
-    constructor(
-        address migration_,
-        address inflationManager_
-    ) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
-        if (migration_ == address(0) || inflationManager_ == address(0))
-            revert InvalidAddress();
+    constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+        if (migration_ == address(0) || inflationManager_ == address(0)) revert InvalidAddress();
 
         inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
@@ -34,14 +30,10 @@ contract Polygon is ERC20Permit, IPolygon {
     function mint(address to, uint256 amount) external {
         if (msg.sender != inflationManager) revert OnlyInflationManager();
         uint256 lastMintCache = lastMint;
-        if (lastMintCache == 0)
-            lastMintCache = IDefaultInflationManager(inflationManager)
-                .startTimestamp();
+        if (lastMintCache == 0) lastMintCache = IDefaultInflationManager(inflationManager).startTimestamp();
 
         uint256 timeElapsedSinceLastMint = block.timestamp - lastMintCache;
-        uint256 maxMint = (timeElapsedSinceLastMint *
-            mintPerSecondCap *
-            totalSupply()) / 1e18;
+        uint256 maxMint = (timeElapsedSinceLastMint * mintPerSecondCap * totalSupply()) / 1e18;
         if (amount > maxMint) revert MaxMintExceeded(maxMint, amount);
 
         lastMint = block.timestamp;

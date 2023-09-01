@@ -51,13 +51,7 @@ contract PolygonMigrationTest is Test {
 
     function test_InvalidDeployment() external {
         PolygonMigration temp = PolygonMigration(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(new PolygonMigration()),
-                    msg.sender,
-                    ""
-                )
-            )
+            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), msg.sender, ""))
         );
         vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
         temp.initialize(address(0));
@@ -68,10 +62,7 @@ contract PolygonMigrationTest is Test {
 
     function test_Migrate(address user, uint256 amount) external {
         vm.assume(
-            amount <= 10000000000 * 10 ** 18 &&
-                user != address(0) &&
-                user != address(migration) &&
-                user != governance
+            amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -98,11 +89,7 @@ contract PolygonMigrationTest is Test {
         vm.stopPrank();
     }
 
-    function test_Unmigrate(
-        address user,
-        uint256 amount,
-        uint256 amount2
-    ) external {
+    function test_Unmigrate(address user, uint256 amount, uint256 amount2) external {
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount &&
@@ -130,10 +117,7 @@ contract PolygonMigrationTest is Test {
     function testRevert_Unmigrate(address user, uint256 amount) external {
         bool unmigrationLock = true;
         vm.assume(
-            amount <= 10000000000 * 10 ** 18 &&
-                user != address(0) &&
-                user != address(migration) &&
-                user != governance
+            amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -153,12 +137,7 @@ contract PolygonMigrationTest is Test {
         vm.stopPrank();
     }
 
-    function test_UnmigrateTo(
-        address user,
-        address migrateTo,
-        uint256 amount,
-        uint256 amount2
-    ) external {
+    function test_UnmigrateTo(address user, address migrateTo, uint256 amount, uint256 amount2) external {
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount &&
@@ -187,16 +166,11 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(migrateTo), amount2);
     }
 
-    function test_UnmigrateWithPermit(
-        uint256 privKey,
-        uint256 amount,
-        uint256 amount2
-    ) external {
+    function test_UnmigrateWithPermit(uint256 privKey, uint256 amount, uint256 amount2) external {
         address user;
         vm.assume(
             privKey != 0 &&
-                privKey <
-                115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
+                privKey < 115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
                 (user = vm.addr(privKey)) != address(migration) &&
                 user != governance &&
                 amount <= 10000000000 * 10 ** 18 &&

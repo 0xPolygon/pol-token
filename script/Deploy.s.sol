@@ -15,12 +15,7 @@ contract Deploy is Script {
         deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     }
 
-    function run(
-        address matic,
-        address governance,
-        address treasury,
-        address stakeManager
-    ) public {
+    function run(address matic, address governance, address treasury, address stakeManager) public {
         vm.startBroadcast(deployerPrivateKey);
 
         address migrationImplementation = address(new PolygonMigration());
@@ -33,21 +28,12 @@ contract Deploy is Script {
             )
         );
 
-        address inflationManagerImplementation = address(
-            new DefaultInflationManager()
-        );
+        address inflationManagerImplementation = address(new DefaultInflationManager());
         address inflationManagerProxy = address(
-            new TransparentUpgradeableProxy(
-                address(inflationManagerImplementation),
-                governance,
-                ""
-            )
+            new TransparentUpgradeableProxy(address(inflationManagerImplementation), governance, "")
         );
 
-        Polygon polygonToken = new Polygon(
-            migrationProxy,
-            inflationManagerProxy
-        );
+        Polygon polygonToken = new Polygon(migrationProxy, inflationManagerProxy);
 
         DefaultInflationManager(inflationManagerProxy).initialize(
             address(polygonToken),

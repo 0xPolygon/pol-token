@@ -39,8 +39,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @notice This function allows owner/governance to set POL token address *only once*
     /// @param polygon_ Address of deployed POL token
     function setPolygonToken(address polygon_) external onlyOwner {
-        if (polygon_ == address(0) || address(polygon) != address(0))
-            revert InvalidAddressOrAlreadySet();
+        if (polygon_ == address(0) || address(polygon) != address(0)) revert InvalidAddressOrAlreadySet();
         polygon = IERC20(polygon_);
     }
 
@@ -66,10 +65,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
     /// @param amount Amount of POL to migrate
     /// @param account Address to receive MATIC tokens
-    function unmigrateTo(
-        address account,
-        uint256 amount
-    ) external onlyUnmigrationUnlocked {
+    function unmigrateTo(address account, uint256 amount) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
@@ -87,15 +83,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     ) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 
-        IERC20Permit(address(polygon)).safePermit(
-            msg.sender,
-            address(this),
-            amount,
-            deadline,
-            v,
-            r,
-            s
-        );
+        IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
         polygon.safeTransferFrom(msg.sender, address(this), amount);
         matic.safeTransfer(msg.sender, amount);
     }

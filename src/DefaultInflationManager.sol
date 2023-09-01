@@ -14,11 +14,7 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
-contract DefaultInflationManager is
-    Initializable,
-    Ownable2StepUpgradeable,
-    IDefaultInflationManager
-{
+contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDefaultInflationManager {
     using SafeERC20 for IPolygon;
 
     // log2(2%pa continuously compounded inflation per year) in 18 decimals, see _inflatedSupplyAfter
@@ -94,12 +90,8 @@ contract DefaultInflationManager is
     /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
     /// log2(interestRatePerYear) = 0.028569152196770894 with 18 decimals, as the interest rate does not change, hard code the value
     /// @return supply total supply from compounded inflation after timeElapsed
-    function _inflatedSupplyAfter(
-        uint256 timeElapsed
-    ) private pure returns (uint256 supply) {
-        uint256 supplyFactor = PowUtil.exp2(
-            (INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days
-        );
+    function _inflatedSupplyAfter(uint256 timeElapsed) private pure returns (uint256 supply) {
+        uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
         supply = (supplyFactor * START_SUPPLY) / 1e18;
     }
 

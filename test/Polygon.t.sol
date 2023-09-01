@@ -22,22 +22,10 @@ contract PolygonTest is Test {
         stakeManager = makeAddr("stakeManager");
         matic = makeAddr("matic");
         inflationManager = DefaultInflationManager(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(new DefaultInflationManager()),
-                    msg.sender,
-                    ""
-                )
-            )
+            address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, ""))
         );
         polygon = new Polygon(migration, address(inflationManager));
-        inflationManager.initialize(
-            address(polygon),
-            migration,
-            stakeManager,
-            treasury,
-            msg.sender
-        );
+        inflationManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
     function test_Deployment() external {
@@ -61,11 +49,7 @@ contract PolygonTest is Test {
         token = new Polygon(address(0), address(0));
     }
 
-    function testRevert_Mint(
-        address user,
-        address to,
-        uint256 amount
-    ) external {
+    function testRevert_Mint(address user, address to, uint256 amount) external {
         vm.assume(user != address(inflationManager));
         vm.startPrank(user);
         vm.expectRevert(IPolygon.OnlyInflationManager.selector);
@@ -74,40 +58,20 @@ contract PolygonTest is Test {
 
     function test_Mint(address to, uint256 amount) external {
         skip(1e8); // delay needed for a max mint of 10B
-        vm.assume(
-            to != address(0) &&
-                amount <= 10000000000 * 10 ** 18 &&
-                to != migration
-        );
+        vm.assume(to != address(0) && amount <= 10000000000 * 10 ** 18 && to != migration);
         vm.prank(address(inflationManager));
         polygon.mint(to, amount);
 
         assertEq(polygon.balanceOf(to), amount);
     }
 
-    function test_MintMaxExceeded(
-        address to,
-        uint256 amount,
-        uint256 delay
-    ) external {
-        vm.assume(
-            to != address(0) &&
-                amount <= 10000000000 * 10 ** 18 &&
-                to != migration &&
-                delay < 10 * 365 days
-        );
+    function test_MintMaxExceeded(address to, uint256 amount, uint256 delay) external {
+        vm.assume(to != address(0) && amount <= 10000000000 * 10 ** 18 && to != migration && delay < 10 * 365 days);
         skip(++delay); // avoid delay == 0
 
-        uint256 maxMint = (mintPerSecondCap * delay * polygon.totalSupply()) /
-            1e18;
+        uint256 maxMint = (mintPerSecondCap * delay * polygon.totalSupply()) / 1e18;
         if (amount > maxMint)
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    IPolygon.MaxMintExceeded.selector,
-                    maxMint,
-                    amount
-                )
-            );
+            vm.expectRevert(abi.encodeWithSelector(IPolygon.MaxMintExceeded.selector, maxMint, amount));
         vm.prank(address(inflationManager));
         polygon.mint(to, amount);
 
