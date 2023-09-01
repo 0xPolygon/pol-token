@@ -10,7 +10,7 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {PowUtil} from "./lib/PowUtil.sol";
 
 /// @title Default Inflation Manager
-/// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
 /// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint *each* per year (compounded every second) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
@@ -61,7 +61,7 @@ contract DefaultInflationManager is
         assert(START_SUPPLY == token.totalSupply());
 
         token.safeApprove(migration_, type(uint256).max);
-
+        // initial ownership setup bypassing 2 step ownership transfer process
         _transferOwnership(owner_);
     }
 

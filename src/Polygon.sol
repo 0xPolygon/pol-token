@@ -6,7 +6,7 @@ import {IPolygon} from "./interfaces/IPolygon.sol";
 import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 
 /// @title Polygon ERC20 token
-/// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
 /// @notice This is the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1-to-1 representation between $POL and $MATIC and allows for additional inflation based
 /// on hub and treasury requirements

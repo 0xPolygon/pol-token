@@ -8,7 +8,7 @@ import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 
 /// @title Polygon Migration
-/// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
 /// @notice This is the migration contract for Matic <-> Polygon ERC20 token on Ethereum L1
 /// @dev The contract allows for a 1-to-1 conversion from $MATIC into $POL and vice-versa
 /// @custom:security-contact security@polygon.technology
