@@ -27,13 +27,11 @@ contract Deploy is Script {
 
         address migrationProxy = address(
             new TransparentUpgradeableProxy(
-                address(migrationImplementation),
+                migrationImplementation,
                 governance,
-                ""
+                abi.encodeCall(PolygonMigration.initialize, matic)
             )
         );
-
-        PolygonMigration(migrationProxy).initialize(matic);
 
         address inflationManagerImplementation = address(
             new DefaultInflationManager()
@@ -47,13 +45,13 @@ contract Deploy is Script {
         );
 
         Polygon polygonToken = new Polygon(
-            address(migrationProxy),
-            address(inflationManagerProxy)
+            migrationProxy,
+            inflationManagerProxy
         );
 
         DefaultInflationManager(inflationManagerProxy).initialize(
             address(polygonToken),
-            address(migrationProxy),
+            migrationProxy,
             stakeManager,
             treasury,
             governance

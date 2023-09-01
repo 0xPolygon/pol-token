@@ -30,11 +30,10 @@ contract PolygonMigrationTest is Test {
                 new TransparentUpgradeableProxy(
                     address(new PolygonMigration()),
                     msg.sender,
-                    ""
+                    abi.encodeCall(PolygonMigration.initialize, address(matic))
                 )
             )
         );
-        migration.initialize(address(matic));
         polygon = new Polygon(address(migration), address(inflationManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
@@ -62,6 +61,9 @@ contract PolygonMigrationTest is Test {
         );
         vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
         temp.initialize(address(0));
+        temp.initialize(address(matic));
+        vm.expectRevert("Initializable: contract is already initialized");
+        temp.initialize(address(1));
     }
 
     function test_Migrate(address user, uint256 amount) external {
