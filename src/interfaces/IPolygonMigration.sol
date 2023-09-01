@@ -8,6 +8,12 @@ interface IPolygonMigration {
     error MigrationNotOver();
     error InvalidAddress();
 
+    event Migrated(address indexed account, uint256 amount);
+    event Unmigrated(address indexed account, uint256 amount);
+    event UnmigrationLockUpdated(uint256 lock);
+    event ReleaseTimestampUpdated(uint256 timestamp);
+    event Released(uint256 polAmount, uint256 maticAmount);
+
     function migrate(uint256 amount) external;
 
     function unmigrate(uint256 amount) external;

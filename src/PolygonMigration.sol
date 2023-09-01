@@ -21,9 +21,6 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
     uint256 public releaseTimestamp;
     uint256 public unmigrationLock;
 
-    event Migrated(address indexed account, uint256 amount);
-    event Unmigrated(address indexed account, uint256 amount);
-
     modifier ifUnmigrationUnlocked() {
         if (unmigrationLock != 0) revert UnmigrationLocked();
         _;
@@ -107,6 +104,7 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
     function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
         if (timestamp_ < block.timestamp) revert InvalidTimestamp();
         releaseTimestamp = timestamp_;
+        emit ReleaseTimestampUpdated(timestamp_);
     }
 
     /// @notice Allows governance to lock or unlock the unmigration process
@@ -116,16 +114,20 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
         uint256 unmigrationLock_
     ) external onlyOwner {
         unmigrationLock = unmigrationLock_;
+        emit UnmigrationLockUpdated(unmigrationLock_);
     }
 
     /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
     /// @dev In case any MATIC was sent out of process, it will be sent to the dead address
     function release() external onlyOwner {
         if (block.timestamp < releaseTimestamp) revert MigrationNotOver();
-        polygon.safeTransfer(msg.sender, polygon.balanceOf(address(this)));
+        uint256 polAmount = polygon.balanceOf(address(this));
+        uint256 maticAmount = matic.balanceOf(address(this));
+        polygon.safeTransfer(msg.sender, polAmount);
         matic.safeTransfer(
             0x000000000000000000000000000000000000dEaD,
-            matic.balanceOf(address(this))
+            maticAmount
         );
+        emit Released(polAmount, maticAmount);
     }
 }

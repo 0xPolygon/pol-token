@@ -83,6 +83,8 @@ contract DefaultInflationManager is
         token.transfer(treasury, treasuryAmt);
         // backconvert POL to MATIC before sending to StakeManager
         migration.unmigrateTo(stakeManagerAmt, stakeManager);
+
+        emit TokenMint(amountToMint, msg.sender);
     }
 
     /// @notice Returns total supply from compounded inflation after timeElapsed from startTimestamp (deployment)
