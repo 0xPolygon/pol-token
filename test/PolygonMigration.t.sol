@@ -64,7 +64,11 @@ contract PolygonMigrationTest is Test {
 
     function test_Migrate(address user, uint256 amount) external {
         vm.assume(
-            amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance
+            amount <= 10000000000 * 10 ** 18 &&
+                user != address(0) &&
+                user != address(migration) &&
+                user != governance &&
+                user != address(admin)
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -97,7 +101,8 @@ contract PolygonMigrationTest is Test {
                 amount2 <= amount &&
                 user != address(0) &&
                 user != address(migration) &&
-                user != governance
+                user != governance &&
+                user != address(admin)
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -117,11 +122,14 @@ contract PolygonMigrationTest is Test {
     }
 
     function testRevert_Unmigrate(address user, uint256 amount) external {
-        vm.assume(user != address(admin));
-        bool unmigrationLock = true;
         vm.assume(
-            amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance
+            amount <= 10000000000 * 10 ** 18 &&
+                user != address(0) &&
+                user != address(migration) &&
+                user != governance &&
+                user != address(admin)
         );
+        bool unmigrationLock = true;
         matic.mint(user, amount);
         vm.startPrank(user);
         matic.approve(address(migration), amount);
@@ -148,6 +156,7 @@ contract PolygonMigrationTest is Test {
                 user != address(migration) &&
                 user != governance &&
                 user != migrateTo &&
+                user != address(admin) &&
                 migrateTo != address(0) &&
                 migrateTo != address(migration)
         );
@@ -175,6 +184,7 @@ contract PolygonMigrationTest is Test {
             privKey != 0 &&
                 privKey < 115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
                 (user = vm.addr(privKey)) != address(migration) &&
+                user != address(admin) &&
                 user != governance &&
                 amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount
