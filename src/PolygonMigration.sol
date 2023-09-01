@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import {IERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/IERC20Permit.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import {Ownable2Step} from "openzeppelin-contracts/contracts/access/Ownable2Step.sol";
+import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 
 /// @title Polygon Migration
@@ -12,13 +12,12 @@ import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 /// @notice This is the migration contract for Matic <-> Polygon ERC20 token on Ethereum L1
 /// @dev The contract allows for a 1-to-1 conversion from $MATIC into $POL and vice-versa
 /// @custom:security-contact security@polygon.technology
-contract PolygonMigration is Ownable2Step, IPolygonMigration {
+contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC20Permit;
 
     IERC20 public polygon;
-    IERC20 public immutable matic;
-    uint256 public releaseTimestamp;
+    IERC20 public matic;
     bool public unmigrationLocked;
 
     modifier onlyUnmigrationUnlocked() {
@@ -26,12 +25,15 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
         _;
     }
 
-    constructor(address matic_, address owner_) {
-        if (matic_ == address(0) || owner_ == address(0))
-            revert InvalidAddress();
+    constructor() {
+        // so that the implementation contract cannot be initialized
+        _disableInitializers();
+    }
 
+    function initialize(address matic_) external initializer {
+        __Ownable_init();
+        if (matic_ == address(0)) revert InvalidAddress();
         matic = IERC20(matic_);
-        releaseTimestamp = block.timestamp + (365 days * 4); // 4 years
     }
 
     /// @notice This function allows owner/governance to set POL token address *only once*
@@ -98,15 +100,6 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
         matic.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice Allows governance to update the release timestamp if required
-    /// @dev The function does not do any validation since governance can correct the timestamp if required
-    /// @param timestamp_ New release timestamp
-    function updateReleaseTimestamp(uint256 timestamp_) external onlyOwner {
-        if (timestamp_ < block.timestamp) revert InvalidTimestamp();
-        releaseTimestamp = timestamp_;
-        emit ReleaseTimestampUpdated(timestamp_);
-    }
-
     /// @notice Allows governance to lock or unlock the unmigration process
     /// @dev The function does not do any validation since governance can update the unmigration process if required
     /// @param unmigrationLocked_ New unmigration lock status
@@ -115,17 +108,10 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
         emit UnmigrationLockUpdated(unmigrationLocked_);
     }
 
-    /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed
-    /// @dev In case any MATIC was sent out of process, it will be sent to the dead address
-    function release() external onlyOwner {
-        if (block.timestamp < releaseTimestamp) revert MigrationNotOver();
-        uint256 polAmount = polygon.balanceOf(address(this));
-        uint256 maticAmount = matic.balanceOf(address(this));
-        polygon.safeTransfer(msg.sender, polAmount);
-        matic.safeTransfer(
-            0x000000000000000000000000000000000000dEaD,
-            maticAmount
-        );
-        emit Released(polAmount, maticAmount);
-    }
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
 }

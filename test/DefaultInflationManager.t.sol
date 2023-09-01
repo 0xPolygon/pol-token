@@ -42,7 +42,16 @@ contract DefaultInflationManagerTest is Test {
             )
         );
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration = new PolygonMigration(address(matic), governance);
+        migration = PolygonMigration(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new PolygonMigration()),
+                    msg.sender,
+                    ""
+                )
+            )
+        );
+        migration.initialize(address(matic));
         polygon = new Polygon(address(migration), address(inflationManager));
         migration.setPolygonToken(address(polygon)); // deployer sets token
         migration.transferOwnership(governance);

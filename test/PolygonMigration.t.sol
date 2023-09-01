@@ -5,6 +5,7 @@ import {Polygon} from "src/Polygon.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
 import {IPolygonMigration} from "src/interfaces/IPolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {SigUtils} from "test/SigUtils.t.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -24,7 +25,16 @@ contract PolygonMigrationTest is Test {
         inflationManager = makeAddr("inflationManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration = new PolygonMigration(address(matic), governance);
+        migration = PolygonMigration(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new PolygonMigration()),
+                    msg.sender,
+                    ""
+                )
+            )
+        );
+        migration.initialize(address(matic));
         polygon = new Polygon(address(migration), address(inflationManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
@@ -37,21 +47,21 @@ contract PolygonMigrationTest is Test {
     function test_Deployment() external {
         assertEq(address(migration.polygon()), address(polygon));
         assertEq(address(migration.matic()), address(matic));
-        assertEq(
-            migration.releaseTimestamp(),
-            block.timestamp + (365 days * 4)
-        );
         assertEq(migration.owner(), governance);
     }
 
     function test_InvalidDeployment() external {
-        PolygonMigration temp;
+        PolygonMigration temp = PolygonMigration(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new PolygonMigration()),
+                    msg.sender,
+                    ""
+                )
+            )
+        );
         vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
-        temp = new PolygonMigration(address(matic), address(0));
-        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
-        temp = new PolygonMigration(address(0), governance);
-        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
-        temp = new PolygonMigration(address(0), address(0));
+        temp.initialize(address(0));
     }
 
     function test_Migrate(address user, uint256 amount) external {
@@ -209,54 +219,5 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount - amount2);
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
         assertEq(matic.balanceOf(user), amount2);
-    }
-
-    function testRevert_UpdateReleaseTimestampOnlyGovernance(
-        address user,
-        uint256 timestamp
-    ) external {
-        vm.assume(timestamp >= block.timestamp && user != governance);
-        vm.expectRevert("Ownable: caller is not the owner");
-        migration.updateReleaseTimestamp(timestamp);
-    }
-
-    function testRevert_UpdateReleaseTimestampTooEarly(
-        uint256 timestamp
-    ) external {
-        vm.assume(timestamp < block.timestamp);
-        vm.startPrank(governance);
-        vm.expectRevert(IPolygonMigration.InvalidTimestamp.selector);
-        migration.updateReleaseTimestamp(timestamp);
-    }
-
-    function test_UpdateReleaseTimestamp(uint256 timestamp) external {
-        vm.assume(timestamp >= block.timestamp);
-        vm.startPrank(governance);
-        migration.updateReleaseTimestamp(timestamp);
-
-        assertEq(migration.releaseTimestamp(), timestamp);
-    }
-
-    function testRevert_ReleaseOnlyGovernance() external {
-        vm.expectRevert("Ownable: caller is not the owner");
-        migration.release();
-    }
-
-    function testRevert_ReleaseTooEarly(uint256 timestamp) external {
-        vm.assume(timestamp < migration.releaseTimestamp());
-        vm.startPrank(governance);
-        vm.expectRevert(IPolygonMigration.MigrationNotOver.selector);
-        migration.release();
-    }
-
-    function test_Release(uint256 timestamp) external {
-        vm.assume(timestamp >= migration.releaseTimestamp());
-        vm.warp(timestamp);
-        uint256 balance = polygon.balanceOf(address(migration));
-        vm.startPrank(governance);
-        migration.release();
-
-        assertEq(polygon.balanceOf(address(migration)), 0);
-        assertEq(polygon.balanceOf(governance), balance);
     }
 }

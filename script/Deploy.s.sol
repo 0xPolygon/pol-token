@@ -23,7 +23,17 @@ contract Deploy is Script {
     ) public {
         vm.startBroadcast(deployerPrivateKey);
 
-        PolygonMigration migration = new PolygonMigration(matic, governance);
+        address migrationImplementation = address(new PolygonMigration());
+
+        address migrationProxy = address(
+            new TransparentUpgradeableProxy(
+                address(migrationImplementation),
+                governance,
+                ""
+            )
+        );
+
+        PolygonMigration(migrationProxy).initialize(matic);
 
         address inflationManagerImplementation = address(
             new DefaultInflationManager()
@@ -37,21 +47,21 @@ contract Deploy is Script {
         );
 
         Polygon polygonToken = new Polygon(
-            address(migration),
+            address(migrationProxy),
             address(inflationManagerProxy)
         );
 
         DefaultInflationManager(inflationManagerProxy).initialize(
             address(polygonToken),
-            address(migration),
+            address(migrationProxy),
             stakeManager,
             treasury,
             governance
         );
 
-        migration.setPolygonToken(address(polygonToken));
+        PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
-        migration.transferOwnership(governance); // governance needs to accept the ownership transfer
+        PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
 
         vm.stopBroadcast();
     }
