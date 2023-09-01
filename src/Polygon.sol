@@ -33,11 +33,12 @@ contract Polygon is ERC20Permit, IPolygon {
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external {
         if (msg.sender != inflationManager) revert OnlyInflationManager();
-        if (lastMint == 0)
-            lastMint = IDefaultInflationManager(inflationManager)
+        uint256 lastMintCache = lastMint;
+        if (lastMintCache == 0)
+            lastMintCache = IDefaultInflationManager(inflationManager)
                 .startTimestamp();
 
-        uint256 timeElapsedSinceLastMint = block.timestamp - lastMint;
+        uint256 timeElapsedSinceLastMint = block.timestamp - lastMintCache;
         uint256 maxMint = (timeElapsedSinceLastMint *
             mintPerSecondCap *
             totalSupply()) / 1e18;
