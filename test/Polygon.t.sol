@@ -14,6 +14,7 @@ contract PolygonTest is Test {
     address public treasury;
     address public stakeManager;
     DefaultInflationManager public inflationManager;
+    uint256 public constant mintPerSecondCap = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
 
     function setUp() external {
         migration = makeAddr("migration");
@@ -97,7 +98,7 @@ contract PolygonTest is Test {
         );
         skip(++delay); // avoid delay == 0
 
-        uint256 maxMint = (0.00000001e18 * delay * polygon.totalSupply()) /
+        uint256 maxMint = (mintPerSecondCap * delay * polygon.totalSupply()) /
             1e18;
         if (amount > maxMint)
             vm.expectRevert(
