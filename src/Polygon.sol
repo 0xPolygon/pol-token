@@ -6,22 +6,18 @@ import {IPolygon} from "./interfaces/IPolygon.sol";
 import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 
 /// @title Polygon ERC20 token
-/// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
 /// @notice This is the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1-to-1 representation between $POL and $MATIC and allows for additional inflation based
 /// on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit, IPolygon {
+    uint256 public constant MINT_PER_SECOND_CAP = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     address public immutable inflationManager;
-    uint256 public constant mintPerSecondCap = 0.00000001e18; // 0.00000001% of POL Supply per second, in 18 deciamls
     uint256 public lastMint;
 
-    constructor(
-        address migration_,
-        address inflationManager_
-    ) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
-        if (migration_ == address(0) || inflationManager_ == address(0))
-            revert InvalidAddress();
+    constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+        if (migration_ == address(0) || inflationManager_ == address(0)) revert InvalidAddress();
 
         inflationManager = inflationManager_;
         _mint(migration_, 10_000_000_000e18);
@@ -33,14 +29,11 @@ contract Polygon is ERC20Permit, IPolygon {
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external {
         if (msg.sender != inflationManager) revert OnlyInflationManager();
-        if (lastMint == 0)
-            lastMint = IDefaultInflationManager(inflationManager)
-                .startTimestamp();
+        uint256 lastMintCache = lastMint;
+        if (lastMintCache == 0) lastMintCache = IDefaultInflationManager(inflationManager).startTimestamp();
 
-        uint256 timeElapsedSinceLastMint = block.timestamp - lastMint;
-        uint256 maxMint = (timeElapsedSinceLastMint *
-            mintPerSecondCap *
-            totalSupply()) / 1e18;
+        uint256 timeElapsedSinceLastMint = block.timestamp - lastMintCache;
+        uint256 maxMint = (timeElapsedSinceLastMint * MINT_PER_SECOND_CAP * totalSupply()) / 1e18;
         if (amount > maxMint) revert MaxMintExceeded(maxMint, amount);
 
         lastMint = block.timestamp;

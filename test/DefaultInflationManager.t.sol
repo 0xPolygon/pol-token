@@ -20,10 +20,8 @@ contract DefaultInflationManagerTest is Test {
     DefaultInflationManager public inflationManager;
     DefaultInflationManager public inflationManagerImplementation;
 
-    uint256 private constant _INTEREST_PER_SECOND_LOG2 =
-        0.000000000914951192e18;
-    // precision accurary due to log2 approximation is upto the first 9 digits
-    uint256 private constant _MAX_PRECISION_DELTA = 1e21;
+    // precision accuracy due to log2 approximation is up to the first 5 digits
+    uint256 private constant _MAX_PRECISION_DELTA = 1e13;
 
     string[] internal inputs = new string[](4);
 
@@ -33,28 +31,19 @@ contract DefaultInflationManagerTest is Test {
         governance = makeAddr("governance");
         inflationManagerImplementation = new DefaultInflationManager();
         inflationManager = DefaultInflationManager(
-            address(
-                new TransparentUpgradeableProxy(
-                    address(inflationManagerImplementation),
-                    msg.sender,
-                    ""
-                )
-            )
+            address(new TransparentUpgradeableProxy(address(inflationManagerImplementation), msg.sender, ""))
         );
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration = new PolygonMigration(address(matic), governance);
+        migration = PolygonMigration(
+            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), msg.sender, ""))
+        );
+        migration.initialize(address(matic));
         polygon = new Polygon(address(migration), address(inflationManager));
         migration.setPolygonToken(address(polygon)); // deployer sets token
         migration.transferOwnership(governance);
         vm.prank(governance);
         migration.acceptOwnership();
-        inflationManager.initialize(
-            address(polygon),
-            address(migration),
-            stakeManager,
-            treasury,
-            governance
-        );
+        inflationManager.initialize(address(polygon), address(migration), stakeManager, treasury, governance);
         // POL being inflationary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
@@ -68,13 +57,7 @@ contract DefaultInflationManagerTest is Test {
 
     function testRevert_Initialize() external {
         vm.expectRevert("Initializable: contract is already initialized");
-        inflationManager.initialize(
-            address(0),
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        );
+        inflationManager.initialize(address(0), address(0), address(0), address(0), address(0));
     }
 
     function test_Deployment() external {
@@ -82,10 +65,7 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.stakeManager(), stakeManager);
         assertEq(inflationManager.treasury(), treasury);
         assertEq(inflationManager.owner(), governance);
-        assertEq(
-            polygon.allowance(address(inflationManager), address(migration)),
-            type(uint256).max
-        );
+        assertEq(polygon.allowance(address(inflationManager), address(migration)), type(uint256).max);
         assertEq(inflationManager.START_SUPPLY(), 10_000_000_000e18);
         assertEq(polygon.totalSupply(), 10_000_000_000e18);
     }
@@ -101,32 +81,21 @@ contract DefaultInflationManagerTest is Test {
         params[seed % params.length] = address(0); // any one is zero addr
 
         address proxy = address(
-            new TransparentUpgradeableProxy(
-                address(new DefaultInflationManager()),
-                msg.sender,
-                ""
-            )
+            new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, "")
         );
         vm.expectRevert(InvalidAddress.selector);
-        DefaultInflationManager(proxy).initialize(
-            params[0],
-            params[1],
-            params[2],
-            params[3],
-            params[4]
-        );
+        DefaultInflationManager(proxy).initialize(params[0], params[1], params[2], params[3], params[4]);
     }
 
     function test_ImplementationCannotBeInitialized() external {
         vm.expectRevert("Initializable: contract is already initialized");
-        DefaultInflationManager(address(inflationManagerImplementation))
-            .initialize(
-                address(0),
-                address(0),
-                address(0),
-                address(0),
-                address(0)
-            );
+        DefaultInflationManager(address(inflationManagerImplementation)).initialize(
+            address(0),
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        );
         vm.expectRevert("Initializable: contract is already initialized");
         DefaultInflationManager(address(inflationManager)).initialize(
             address(0),
@@ -148,51 +117,35 @@ contract DefaultInflationManagerTest is Test {
     function test_MintDelay(uint128 delay) external {
         vm.assume(delay <= 10 * 365 days);
 
-        uint256 elapsedTime = block.timestamp + delay;
         uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
 
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime);
+        inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(initialTotalSupply);
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-        assertApproxEqAbs(
-            newSupply,
-            polygon.totalSupply(),
-            _MAX_PRECISION_DELTA
-        );
-        assertEq(
-            matic.balanceOf(stakeManager),
-            (polygon.totalSupply() - initialTotalSupply) / 2
-        );
+        assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
+        assertEq(matic.balanceOf(stakeManager), (polygon.totalSupply() - initialTotalSupply) / 2);
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(
-            polygon.balanceOf(treasury),
-            (polygon.totalSupply() - initialTotalSupply) / 2
-        );
+        assertEq(polygon.balanceOf(treasury), (polygon.totalSupply() - initialTotalSupply) / 2);
     }
 
     function test_MintDelayTwice(uint128 delay) external {
         vm.assume(delay <= 5 * 365 days && delay > 0);
 
-        uint256 elapsedTime = block.timestamp + delay;
         uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime);
+        inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(initialTotalSupply);
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-        assertApproxEqAbs(
-            newSupply,
-            polygon.totalSupply(),
-            _MAX_PRECISION_DELTA
-        );
+        assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 2;
         assertEq(matic.balanceOf(stakeManager), balance);
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -202,15 +155,11 @@ contract DefaultInflationManagerTest is Test {
         skip(delay);
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime + delay);
+        inputs[2] = vm.toString(delay * 2);
         inputs[3] = vm.toString(initialTotalSupply);
         newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-        assertApproxEqAbs(
-            newSupply,
-            polygon.totalSupply(),
-            _MAX_PRECISION_DELTA
-        );
+        assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         balance += (polygon.totalSupply() - initialTotalSupply) / 2;
         assertEq(matic.balanceOf(stakeManager), balance);
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -218,28 +167,21 @@ contract DefaultInflationManagerTest is Test {
     }
 
     function test_MintDelayAfterNCycles(uint128 delay, uint8 cycles) external {
-        vm.assume(
-            delay * uint256(cycles) <= 10 * 365 days && delay > 0 && cycles < 30
-        );
+        vm.assume(delay * uint256(cycles) <= 10 * 365 days && delay > 0 && cycles < 30);
 
         uint256 balance;
 
         for (uint256 cycle; cycle < cycles; cycle++) {
-            uint256 elapsedTime = block.timestamp + delay;
             uint256 initialTotalSupply = polygon.totalSupply();
 
             skip(delay);
             inflationManager.mint();
 
-            inputs[2] = vm.toString(elapsedTime);
+            inputs[2] = vm.toString(delay * (cycle + 1));
             inputs[3] = vm.toString(initialTotalSupply);
             uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-            assertApproxEqAbs(
-                newSupply,
-                polygon.totalSupply(),
-                _MAX_PRECISION_DELTA
-            );
+            assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
             balance += (polygon.totalSupply() - initialTotalSupply) / 2;
             assertEq(matic.balanceOf(stakeManager), balance);
             assertEq(polygon.balanceOf(stakeManager), 0);

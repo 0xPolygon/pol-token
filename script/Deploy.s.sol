@@ -15,43 +15,37 @@ contract Deploy is Script {
         deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     }
 
-    function run(
-        address matic,
-        address governance,
-        address treasury,
-        address stakeManager
-    ) public {
+    function run(address matic, address governance, address treasury, address stakeManager) public {
         vm.startBroadcast(deployerPrivateKey);
 
-        PolygonMigration migration = new PolygonMigration(matic, governance);
+        address migrationImplementation = address(new PolygonMigration());
 
-        address inflationManagerImplementation = address(
-            new DefaultInflationManager()
-        );
-        address inflationManagerProxy = address(
+        address migrationProxy = address(
             new TransparentUpgradeableProxy(
-                address(inflationManagerImplementation),
+                migrationImplementation,
                 governance,
-                ""
+                abi.encodeCall(PolygonMigration.initialize, matic)
             )
         );
 
-        Polygon polygonToken = new Polygon(
-            address(migration),
-            address(inflationManagerProxy)
+        address inflationManagerImplementation = address(new DefaultInflationManager());
+        address inflationManagerProxy = address(
+            new TransparentUpgradeableProxy(address(inflationManagerImplementation), governance, "")
         );
+
+        Polygon polygonToken = new Polygon(migrationProxy, inflationManagerProxy);
 
         DefaultInflationManager(inflationManagerProxy).initialize(
             address(polygonToken),
-            address(migration),
+            migrationProxy,
             stakeManager,
             treasury,
             governance
         );
 
-        migration.setPolygonToken(address(polygonToken));
+        PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
-        migration.transferOwnership(governance); // governance needs to accept the ownership transfer
+        PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
 
         vm.stopBroadcast();
     }
