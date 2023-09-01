@@ -5,7 +5,7 @@ import {Polygon} from "src/Polygon.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract DefaultInflationManagerTest is Test {
@@ -30,12 +30,13 @@ contract DefaultInflationManagerTest is Test {
         stakeManager = makeAddr("stakeManager");
         governance = makeAddr("governance");
         inflationManagerImplementation = new DefaultInflationManager();
+        ProxyAdmin admin = new ProxyAdmin();
         inflationManager = DefaultInflationManager(
-            address(new TransparentUpgradeableProxy(address(inflationManagerImplementation), msg.sender, ""))
+            address(new TransparentUpgradeableProxy(address(inflationManagerImplementation), address(admin), ""))
         );
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
         migration = PolygonMigration(
-            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), msg.sender, ""))
+            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), address(admin), ""))
         );
         migration.initialize(address(matic));
         polygon = new Polygon(address(migration), address(inflationManager));

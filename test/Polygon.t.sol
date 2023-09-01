@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import {Polygon} from "src/Polygon.sol";
 import {IPolygon} from "src/interfaces/IPolygon.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
-import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {TransparentUpgradeableProxy, ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract PolygonTest is Test {
@@ -21,8 +21,9 @@ contract PolygonTest is Test {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         matic = makeAddr("matic");
+        ProxyAdmin admin = new ProxyAdmin();
         inflationManager = DefaultInflationManager(
-            address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, ""))
+            address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), address(admin), ""))
         );
         polygon = new Polygon(migration, address(inflationManager));
         inflationManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
