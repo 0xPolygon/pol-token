@@ -210,4 +210,34 @@ contract DefaultInflationManagerTest is Test {
         assertEq(polygon.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), balance);
     }
+
+    function test_MintDelayAfterNCycles(uint128 delay, uint8 cycles) external {
+        vm.assume(
+            delay * uint256(cycles) <= 10 * 365 days && delay > 0 && cycles < 30
+        );
+
+        uint256 balance;
+
+        for (uint256 cycle; cycle < cycles; cycle++) {
+            uint256 elapsedTime = block.timestamp + delay;
+            uint256 initialTotalSupply = polygon.totalSupply();
+
+            skip(delay);
+            inflationManager.mint();
+
+            inputs[2] = vm.toString(elapsedTime);
+            inputs[3] = vm.toString(initialTotalSupply);
+            uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
+
+            assertApproxEqAbs(
+                newSupply,
+                polygon.totalSupply(),
+                _MAX_PRECISION_DELTA
+            );
+            balance += (polygon.totalSupply() - initialTotalSupply) / 2;
+            assertEq(matic.balanceOf(stakeManager), balance);
+            assertEq(polygon.balanceOf(stakeManager), 0);
+            assertEq(polygon.balanceOf(treasury), balance);
+        }
+    }
 }
