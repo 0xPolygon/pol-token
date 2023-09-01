@@ -12,7 +12,7 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @title Default Inflation Manager
 /// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
 /// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
-/// @dev The contract allows for a 1% mint *each* per year (compounded every second) to the stakeManager and treasury contracts
+/// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is
     Initializable,
@@ -21,8 +21,8 @@ contract DefaultInflationManager is
 {
     using SafeERC20 for IPolygon;
 
-    // log2(2%pa continuously compounded inflation per second) in 18 decimals(Wad), see _inflatedSupplyAfter
-    uint256 public constant INTEREST_PER_SECOND_LOG2 = 0.000000000914951192e18;
+    // log2(2%pa continuously compounded inflation per year) in 18 decimals, see _inflatedSupplyAfter
+    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
 
     IPolygon public token;
@@ -89,16 +89,16 @@ contract DefaultInflationManager is
 
     /// @notice Returns total supply from compounded inflation after timeElapsed from startTimestamp (deployment)
     /// @param timeElapsed The time elapsed since startTimestamp
-    /// @dev interestRatePerSecond = 1.000000000634195839; 2% per year in seconds with 18 decimals
-    /// approximate the compounded interest rate per second using x^y = 2^(log2(x)*y)
-    /// where x is the interest rate per second and y is the number of seconds elapsed since deployment
-    /// log2(interestRatePerSecond) = 0.000000000914951192 with 18 decimals, as the interest rate does not change, hard code the value
+    /// @dev interestRatePerYear = 1.02; 2% per year
+    /// approximate the compounded interest rate using x^y = 2^(log2(x)*y)
+    /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
+    /// log2(interestRatePerYear) = 0.028569152196770894 with 18 decimals, as the interest rate does not change, hard code the value
     /// @return supply total supply from compounded inflation after timeElapsed
     function _inflatedSupplyAfter(
         uint256 timeElapsed
     ) private pure returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2(
-            INTEREST_PER_SECOND_LOG2 * timeElapsed
+            (INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days
         );
         supply = (supplyFactor * START_SUPPLY) / 1e18;
     }
