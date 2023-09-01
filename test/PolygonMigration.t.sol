@@ -5,7 +5,7 @@ import {Polygon} from "src/Polygon.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
 import {IPolygonMigration} from "src/interfaces/IPolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {TransparentUpgradeableProxy, ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {SigUtils} from "test/SigUtils.t.sol";
 import {Test} from "forge-std/Test.sol";
 
@@ -14,6 +14,7 @@ contract PolygonMigrationTest is Test {
     Polygon public polygon;
     PolygonMigration public migration;
     SigUtils public sigUtils;
+    ProxyAdmin public admin;
     address public treasury;
     address public stakeManager;
     address public inflationManager;
@@ -25,11 +26,12 @@ contract PolygonMigrationTest is Test {
         inflationManager = makeAddr("inflationManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
+        admin = new ProxyAdmin();
         migration = PolygonMigration(
             address(
                 new TransparentUpgradeableProxy(
                     address(new PolygonMigration()),
-                    msg.sender,
+                    address(admin),
                     abi.encodeCall(PolygonMigration.initialize, address(matic))
                 )
             )
@@ -115,6 +117,7 @@ contract PolygonMigrationTest is Test {
     }
 
     function testRevert_Unmigrate(address user, uint256 amount) external {
+        vm.assume(user != address(admin));
         bool unmigrationLock = true;
         vm.assume(
             amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance

@@ -3,7 +3,7 @@ pragma solidity 0.8.21;
 
 import {Script} from "forge-std/Script.sol";
 
-import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Polygon} from "../src/Polygon.sol";
 import {DefaultInflationManager} from "../src/DefaultInflationManager.sol";
 import {PolygonMigration} from "../src/PolygonMigration.sol";
@@ -18,19 +18,22 @@ contract Deploy is Script {
     function run(address matic, address governance, address treasury, address stakeManager) public {
         vm.startBroadcast(deployerPrivateKey);
 
+        ProxyAdmin admin = new ProxyAdmin();
+        admin.transferOwnership(governance);
+
         address migrationImplementation = address(new PolygonMigration());
 
         address migrationProxy = address(
             new TransparentUpgradeableProxy(
                 migrationImplementation,
-                governance,
+                address(admin),
                 abi.encodeCall(PolygonMigration.initialize, matic)
             )
         );
 
         address inflationManagerImplementation = address(new DefaultInflationManager());
         address inflationManagerProxy = address(
-            new TransparentUpgradeableProxy(address(inflationManagerImplementation), governance, "")
+            new TransparentUpgradeableProxy(address(inflationManagerImplementation), address(admin), "")
         );
 
         Polygon polygonToken = new Polygon(migrationProxy, inflationManagerProxy);
