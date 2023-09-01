@@ -3,6 +3,7 @@ pragma solidity 0.8.21;
 
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
+import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 
 /// @title Polygon ERC20 token
 /// @author QEDK <qedk.en@gmail.com> (https://polygon.technology)
@@ -12,6 +13,8 @@ import {IPolygon} from "./interfaces/IPolygon.sol";
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit, IPolygon {
     address public immutable inflationManager;
+    uint256 public constant mintPerSecondCap = 0.00000001e18; // 0.00000001% of POL Supply per second, in 18 deciamls
+    uint256 public lastMint;
 
     constructor(
         address migration_,
@@ -30,7 +33,17 @@ contract Polygon is ERC20Permit, IPolygon {
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external {
         if (msg.sender != inflationManager) revert OnlyInflationManager();
+        if (lastMint == 0)
+            lastMint = IDefaultInflationManager(inflationManager)
+                .startTimestamp();
 
+        uint256 timeElapsedSinceLastMint = block.timestamp - lastMint;
+        uint256 maxMint = (timeElapsedSinceLastMint *
+            mintPerSecondCap *
+            totalSupply()) / 1e18;
+        if (amount > maxMint) revert MaxMintExceeded(maxMint, amount);
+
+        lastMint = block.timestamp;
         _mint(to, amount);
     }
 }

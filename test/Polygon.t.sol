@@ -72,14 +72,44 @@ contract PolygonTest is Test {
     }
 
     function test_Mint(address to, uint256 amount) external {
+        skip(1e8); // delay needed for a max mint of 10B
         vm.assume(
             to != address(0) &&
                 amount <= 10000000000 * 10 ** 18 &&
                 to != migration
         );
-        vm.startPrank(address(inflationManager));
+        vm.prank(address(inflationManager));
         polygon.mint(to, amount);
 
         assertEq(polygon.balanceOf(to), amount);
+    }
+
+    function test_MintMaxExceeded(
+        address to,
+        uint256 amount,
+        uint256 delay
+    ) external {
+        vm.assume(
+            to != address(0) &&
+                amount <= 10000000000 * 10 ** 18 &&
+                to != migration &&
+                delay < 10 * 365 days
+        );
+        skip(++delay); // avoid delay == 0
+
+        uint256 maxMint = (0.00000001e18 * delay * polygon.totalSupply()) /
+            1e18;
+        if (amount > maxMint)
+            vm.expectRevert(
+                abi.encodeWithSelector(
+                    IPolygon.MaxMintExceeded.selector,
+                    maxMint,
+                    amount
+                )
+            );
+        vm.prank(address(inflationManager));
+        polygon.mint(to, amount);
+
+        if (amount <= maxMint) assertEq(polygon.balanceOf(to), amount);
     }
 }
