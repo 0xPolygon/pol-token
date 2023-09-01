@@ -82,6 +82,12 @@ contract DefaultInflationManagerTest is Test {
         assertEq(inflationManager.stakeManager(), stakeManager);
         assertEq(inflationManager.treasury(), treasury);
         assertEq(inflationManager.owner(), governance);
+        assertEq(
+            polygon.allowance(address(inflationManager), address(migration)),
+            type(uint256).max
+        );
+        assertEq(inflationManager.START_SUPPLY(), 10_000_000_000e18);
+        assertEq(polygon.totalSupply(), 10_000_000_000e18);
     }
 
     function test_InvalidDeployment(uint256 seed) external {
