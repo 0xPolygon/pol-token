@@ -19,10 +19,10 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
     IERC20 public polygon;
     IERC20 public immutable matic;
     uint256 public releaseTimestamp;
-    uint256 public unmigrationLock;
+    bool public unmigrationLocked;
 
     modifier ifUnmigrationUnlocked() {
-        if (unmigrationLock != 0) revert UnmigrationLocked();
+        if (unmigrationLocked) revert UnmigrationLocked();
         _;
     }
 
@@ -109,12 +109,10 @@ contract PolygonMigration is Ownable2Step, IPolygonMigration {
 
     /// @notice Allows governance to lock or unlock the unmigration process
     /// @dev The function does not do any validation since governance can update the unmigration process if required
-    /// @param unmigrationLock_ New unmigration lock status
-    function updateUnmigrationLock(
-        uint256 unmigrationLock_
-    ) external onlyOwner {
-        unmigrationLock = unmigrationLock_;
-        emit UnmigrationLockUpdated(unmigrationLock_);
+    /// @param unmigrationLocked_ New unmigration lock status
+    function updateUnmigrationLock(bool unmigrationLocked_) external onlyOwner {
+        unmigrationLocked = unmigrationLocked_;
+        emit UnmigrationLockUpdated(unmigrationLocked_);
     }
 
     /// @notice Allows governance to release the remaining POL tokens after the migration period has elapsed

@@ -113,16 +113,12 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), amount2);
     }
 
-    function testRevert_Unmigrate(
-        address user,
-        uint256 amount,
-        uint256 unmigrationLock
-    ) external {
+    function testRevert_Unmigrate(address user, uint256 amount) external {
+        bool unmigrationLock = true;
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&
                 user != address(0) &&
-                user != address(migration) &&
-                unmigrationLock != 0
+                user != address(migration)
         );
         matic.mint(user, amount);
         vm.startPrank(user);
