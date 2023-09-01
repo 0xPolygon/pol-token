@@ -20,10 +20,8 @@ contract DefaultInflationManagerTest is Test {
     DefaultInflationManager public inflationManager;
     DefaultInflationManager public inflationManagerImplementation;
 
-    uint256 private constant _INTEREST_PER_SECOND_LOG2 =
-        0.000000000914951192e18;
-    // precision accurary due to log2 approximation is upto the first 9 digits
-    uint256 private constant _MAX_PRECISION_DELTA = 1e21;
+    // precision accuracy due to log2 approximation is up to the first 5 digits
+    uint256 private constant _MAX_PRECISION_DELTA = 1e13;
 
     string[] internal inputs = new string[](4);
 
@@ -157,14 +155,13 @@ contract DefaultInflationManagerTest is Test {
     function test_MintDelay(uint128 delay) external {
         vm.assume(delay <= 10 * 365 days);
 
-        uint256 elapsedTime = block.timestamp + delay;
         uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
 
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime);
+        inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(initialTotalSupply);
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
@@ -187,13 +184,12 @@ contract DefaultInflationManagerTest is Test {
     function test_MintDelayTwice(uint128 delay) external {
         vm.assume(delay <= 5 * 365 days && delay > 0);
 
-        uint256 elapsedTime = block.timestamp + delay;
         uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime);
+        inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(initialTotalSupply);
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
@@ -211,7 +207,7 @@ contract DefaultInflationManagerTest is Test {
         skip(delay);
         inflationManager.mint();
 
-        inputs[2] = vm.toString(elapsedTime + delay);
+        inputs[2] = vm.toString(delay * 2);
         inputs[3] = vm.toString(initialTotalSupply);
         newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
@@ -234,13 +230,12 @@ contract DefaultInflationManagerTest is Test {
         uint256 balance;
 
         for (uint256 cycle; cycle < cycles; cycle++) {
-            uint256 elapsedTime = block.timestamp + delay;
             uint256 initialTotalSupply = polygon.totalSupply();
 
             skip(delay);
             inflationManager.mint();
 
-            inputs[2] = vm.toString(elapsedTime);
+            inputs[2] = vm.toString(delay * (cycle + 1));
             inputs[3] = vm.toString(initialTotalSupply);
             uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
