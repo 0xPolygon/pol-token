@@ -1,167 +1,249 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IPolygon} from "src/interfaces/IPolygon.sol";
 import {Polygon} from "src/Polygon.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
-import {TransparentUpgradeableProxy} from
-    "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import {PolygonMigration} from "src/PolygonMigration.sol";
+import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import {Test} from "forge-std/Test.sol";
-import "forge-std/console.sol";
 
 contract DefaultInflationManagerTest is Test {
+    error InvalidAddress();
+
+    ERC20PresetMinterPauser public matic;
     Polygon public polygon;
-    address public migration;
+    PolygonMigration public migration;
     address public treasury;
-    address public hub;
+    address public stakeManager;
     address public governance;
     DefaultInflationManager public inflationManager;
+    DefaultInflationManager public inflationManagerImplementation;
+
+    uint256 private constant _INTEREST_PER_SECOND_LOG2 =
+        0.000000000914951192e18;
+    // precision accurary due to log2 approximation is upto the first 9 digits
+    uint256 private constant _MAX_PRECISION_DELTA = 1e21;
+
+    string[] internal inputs = new string[](4);
 
     function setUp() external {
-        migration = makeAddr("migration");
         treasury = makeAddr("treasury");
-        hub = makeAddr("hub");
+        stakeManager = makeAddr("stakeManager");
         governance = makeAddr("governance");
+        inflationManagerImplementation = new DefaultInflationManager();
         inflationManager = DefaultInflationManager(
-            address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), msg.sender, ""))
+            address(
+                new TransparentUpgradeableProxy(
+                    address(inflationManagerImplementation),
+                    msg.sender,
+                    ""
+                )
+            )
         );
-        polygon = new Polygon(migration, address(inflationManager));
-        inflationManager.initialize(IPolygon(address(polygon)), hub, treasury, governance);
+        matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
+        migration = new PolygonMigration(address(matic), governance);
+        polygon = new Polygon(address(migration), address(inflationManager));
+        migration.setPolygonToken(address(polygon)); // deployer sets token
+        migration.transferOwnership(governance);
+        vm.prank(governance);
+        migration.acceptOwnership();
+        inflationManager.initialize(
+            address(polygon),
+            address(migration),
+            stakeManager,
+            treasury,
+            governance
+        );
+        // POL being inflationary, while MATIC having a constant supply,
+        // the requirement of unmigrating POL to MATIC for StakeManager on each mint
+        // is satisfied by a one-time transfer of MATIC to the migration contract
+        // from POS bridge
+        // note: this requirement will be changed in the future after the hub's launch
+        matic.mint(address(migration), 3_000_000_000e18);
+
+        inputs[0] = "node";
+        inputs[1] = "test/util/calc.js";
     }
 
     function testRevert_Initialize() external {
         vm.expectRevert("Initializable: contract is already initialized");
-        inflationManager.initialize(IPolygon(address(0)), address(0), address(0), address(0));
+        inflationManager.initialize(
+            address(0),
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        );
     }
 
     function test_Deployment() external {
         assertEq(address(inflationManager.token()), address(polygon));
-        assertEq(inflationManager.hub(), hub);
+        assertEq(inflationManager.stakeManager(), stakeManager);
         assertEq(inflationManager.treasury(), treasury);
-        assertEq(inflationManager.hubMintPerSecond(), 3170979198376458650);
-        assertEq(inflationManager.treasuryMintPerSecond(), 3170979198376458650);
-        assertEq(inflationManager.lastMint(), block.timestamp);
         assertEq(inflationManager.owner(), governance);
+        assertEq(
+            polygon.allowance(address(inflationManager), address(migration)),
+            type(uint256).max
+        );
+        assertEq(inflationManager.START_SUPPLY(), 10_000_000_000e18);
+        assertEq(polygon.totalSupply(), 10_000_000_000e18);
+    }
+
+    function test_InvalidDeployment(uint256 seed) external {
+        address[5] memory params = [
+            makeAddr("polygon"),
+            makeAddr("migration"),
+            makeAddr("stakeManager"),
+            makeAddr("treasury"),
+            makeAddr("governance")
+        ];
+        params[seed % params.length] = address(0); // any one is zero addr
+
+        address proxy = address(
+            new TransparentUpgradeableProxy(
+                address(new DefaultInflationManager()),
+                msg.sender,
+                ""
+            )
+        );
+        vm.expectRevert(InvalidAddress.selector);
+        DefaultInflationManager(proxy).initialize(
+            params[0],
+            params[1],
+            params[2],
+            params[3],
+            params[4]
+        );
+    }
+
+    function test_ImplementationCannotBeInitialized() external {
+        vm.expectRevert("Initializable: contract is already initialized");
+        DefaultInflationManager(address(inflationManagerImplementation))
+            .initialize(
+                address(0),
+                address(0),
+                address(0),
+                address(0),
+                address(0)
+            );
+        vm.expectRevert("Initializable: contract is already initialized");
+        DefaultInflationManager(address(inflationManager)).initialize(
+            address(0),
+            address(0),
+            address(0),
+            address(0),
+            address(0)
+        );
     }
 
     function test_Mint() external {
         inflationManager.mint();
-
-        assertEq(polygon.balanceOf(hub), 0);
+        // timeElapsed is zero, so no minting
+        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(matic.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), 0);
-        assertEq(inflationManager.lastMint(), block.timestamp);
     }
 
     function test_MintDelay(uint128 delay) external {
+        vm.assume(delay <= 10 * 365 days);
+
+        uint256 elapsedTime = block.timestamp + delay;
+        uint256 initialTotalSupply = polygon.totalSupply();
+
         skip(delay);
-        uint256 lastMint = inflationManager.lastMint();
+
         inflationManager.mint();
 
-        assertEq(polygon.balanceOf(hub), (block.timestamp - lastMint) * 3170979198376458650);
-        assertEq(polygon.balanceOf(treasury), (block.timestamp - lastMint) * 3170979198376458650);
-        assertEq(inflationManager.lastMint(), block.timestamp);
+        inputs[2] = vm.toString(elapsedTime);
+        inputs[3] = vm.toString(initialTotalSupply);
+        uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
+
+        assertApproxEqAbs(
+            newSupply,
+            polygon.totalSupply(),
+            _MAX_PRECISION_DELTA
+        );
+        assertEq(
+            matic.balanceOf(stakeManager),
+            (polygon.totalSupply() - initialTotalSupply) / 2
+        );
+        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(
+            polygon.balanceOf(treasury),
+            (polygon.totalSupply() - initialTotalSupply) / 2
+        );
     }
 
     function test_MintDelayTwice(uint128 delay) external {
-        skip(delay);
-        uint256 lastMint = inflationManager.lastMint();
-        inflationManager.mint();
+        vm.assume(delay <= 5 * 365 days && delay > 0);
 
-        uint256 balance = (block.timestamp - lastMint) * 3170979198376458650;
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-        assertEq(inflationManager.lastMint(), block.timestamp);
-
-        lastMint = inflationManager.lastMint();
+        uint256 elapsedTime = block.timestamp + delay;
+        uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
         inflationManager.mint();
 
-        balance += (block.timestamp - lastMint) * 3170979198376458650;
+        inputs[2] = vm.toString(elapsedTime);
+        inputs[3] = vm.toString(initialTotalSupply);
+        uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-        assertEq(polygon.balanceOf(hub), balance);
-        assertEq(polygon.balanceOf(treasury), balance);
-        assertEq(inflationManager.lastMint(), block.timestamp);
-    }
-
-    function testRevert_UpdateInflationRates(uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond >= 3170979198376458650 || treasuryMintPerSecond >= 3170979198376458650);
-        vm.startPrank(governance);
-        vm.expectRevert("DefaultInflationManager: mint per second too high");
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
-    }
-
-    function test_UpdateInflationRates(uint256 hubMintPerSecond, uint256 treasuryMintPerSecond) external {
-        vm.assume(hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650);
-        vm.startPrank(governance);
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
-
-        assertEq(inflationManager.hubMintPerSecond(), hubMintPerSecond);
-        assertEq(inflationManager.treasuryMintPerSecond(), treasuryMintPerSecond);
-    }
-
-    function test_UpdateInflationRatesAndMint(
-        uint128 timestamp,
-        uint256 hubMintPerSecond,
-        uint256 treasuryMintPerSecond
-    ) external {
-        vm.assume(
-            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-                && timestamp > block.timestamp
+        assertApproxEqAbs(
+            newSupply,
+            polygon.totalSupply(),
+            _MAX_PRECISION_DELTA
         );
-        vm.startPrank(governance);
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
+        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 2;
+        assertEq(matic.balanceOf(stakeManager), balance);
+        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(treasury), balance);
 
-        assertEq(inflationManager.hubMintPerSecond(), hubMintPerSecond);
-        assertEq(inflationManager.treasuryMintPerSecond(), treasuryMintPerSecond);
-
-        vm.warp(timestamp);
-        vm.startPrank(governance);
-
-        uint256 lastMint = inflationManager.lastMint();
+        initialTotalSupply = polygon.totalSupply(); // for the new run
+        skip(delay);
         inflationManager.mint();
 
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), (block.timestamp - lastMint) * hubMintPerSecond);
-        assertEq(polygon.balanceOf(treasury), (block.timestamp - lastMint) * treasuryMintPerSecond);
+        inputs[2] = vm.toString(elapsedTime + delay);
+        inputs[3] = vm.toString(initialTotalSupply);
+        newSupply = abi.decode(vm.ffi(inputs), (uint256));
+
+        assertApproxEqAbs(
+            newSupply,
+            polygon.totalSupply(),
+            _MAX_PRECISION_DELTA
+        );
+        balance += (polygon.totalSupply() - initialTotalSupply) / 2;
+        assertEq(matic.balanceOf(stakeManager), balance);
+        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(treasury), balance);
     }
 
-    function test_UpdateInflationRatesAndMintTwice(
-        uint128 timestamp,
-        uint64 delay,
-        uint256 hubMintPerSecond,
-        uint256 treasuryMintPerSecond
-    ) external {
+    function test_MintDelayAfterNCycles(uint128 delay, uint8 cycles) external {
         vm.assume(
-            hubMintPerSecond < 3170979198376458650 && treasuryMintPerSecond < 3170979198376458650
-                && timestamp > block.timestamp
+            delay * uint256(cycles) <= 10 * 365 days && delay > 0 && cycles < 30
         );
-        vm.startPrank(governance);
-        inflationManager.updateInflationRates(hubMintPerSecond, treasuryMintPerSecond);
 
-        assertEq(inflationManager.hubMintPerSecond(), hubMintPerSecond);
-        assertEq(inflationManager.treasuryMintPerSecond(), treasuryMintPerSecond);
+        uint256 balance;
 
-        vm.warp(timestamp);
-        vm.startPrank(governance);
+        for (uint256 cycle; cycle < cycles; cycle++) {
+            uint256 elapsedTime = block.timestamp + delay;
+            uint256 initialTotalSupply = polygon.totalSupply();
 
-        uint256 lastMint = inflationManager.lastMint();
-        inflationManager.mint();
+            skip(delay);
+            inflationManager.mint();
 
-        uint256 hubBalance = (block.timestamp - lastMint) * hubMintPerSecond;
-        uint256 treasuryBalance = (block.timestamp - lastMint) * treasuryMintPerSecond;
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), hubBalance);
-        assertEq(polygon.balanceOf(treasury), treasuryBalance);
+            inputs[2] = vm.toString(elapsedTime);
+            inputs[3] = vm.toString(initialTotalSupply);
+            uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
-        skip(delay);
-        lastMint = inflationManager.lastMint();
-        inflationManager.mint();
-
-        hubBalance += ((block.timestamp - lastMint) * hubMintPerSecond);
-        treasuryBalance += ((block.timestamp - lastMint) * treasuryMintPerSecond);
-        assertEq(inflationManager.lastMint(), block.timestamp);
-        assertEq(polygon.balanceOf(hub), hubBalance);
-        assertEq(polygon.balanceOf(treasury), treasuryBalance);
+            assertApproxEqAbs(
+                newSupply,
+                polygon.totalSupply(),
+                _MAX_PRECISION_DELTA
+            );
+            balance += (polygon.totalSupply() - initialTotalSupply) / 2;
+            assertEq(matic.balanceOf(stakeManager), balance);
+            assertEq(polygon.balanceOf(stakeManager), 0);
+            assertEq(polygon.balanceOf(treasury), balance);
+        }
     }
 }
