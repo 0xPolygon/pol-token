@@ -68,7 +68,8 @@ contract PolygonMigrationTest is Test {
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&
                 user != address(0) &&
-                user != address(migration)
+                user != address(migration) &&
+                user != governance
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -104,7 +105,8 @@ contract PolygonMigrationTest is Test {
             amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount &&
                 user != address(0) &&
-                user != address(migration)
+                user != address(migration) &&
+                user != governance
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -128,7 +130,8 @@ contract PolygonMigrationTest is Test {
         vm.assume(
             amount <= 10000000000 * 10 ** 18 &&
                 user != address(0) &&
-                user != address(migration)
+                user != address(migration) &&
+                user != governance
         );
         matic.mint(user, amount);
         vm.startPrank(user);
@@ -159,6 +162,7 @@ contract PolygonMigrationTest is Test {
                 amount2 <= amount &&
                 user != address(0) &&
                 user != address(migration) &&
+                user != governance &&
                 user != migrateTo &&
                 migrateTo != address(0) &&
                 migrateTo != address(migration)
@@ -192,6 +196,7 @@ contract PolygonMigrationTest is Test {
                 privKey <
                 115792089237316195423570985008687907852837564279074904382605163141518161494337 &&
                 (user = vm.addr(privKey)) != address(migration) &&
+                user != governance &&
                 amount <= 10000000000 * 10 ** 18 &&
                 amount2 <= amount
         );
