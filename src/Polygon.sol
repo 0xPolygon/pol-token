@@ -13,7 +13,7 @@ import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.so
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit, IPolygon {
     address public immutable inflationManager;
-    uint256 public constant mintPerSecondCap = 0.00000001e18; // 0.00000001% of POL Supply per second, in 18 deciamls
+    uint256 public constant mintPerSecondCap = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     uint256 public lastMint;
 
     constructor(
