@@ -14,7 +14,7 @@ interface IPolygonMigration {
 
     function unmigrate(uint256 amount) external;
 
-    function unmigrateTo(uint256 amount, address account) external;
+    function unmigrateTo(address account, uint256 amount) external;
 
     function unmigrateWithPermit(
         uint256 amount,

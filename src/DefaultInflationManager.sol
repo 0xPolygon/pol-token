@@ -82,7 +82,7 @@ contract DefaultInflationManager is
         token.mint(address(this), amountToMint);
         token.transfer(treasury, treasuryAmt);
         // backconvert POL to MATIC before sending to StakeManager
-        migration.unmigrateTo(stakeManagerAmt, stakeManager);
+        migration.unmigrateTo(stakeManager, stakeManagerAmt);
 
         emit TokenMint(amountToMint, msg.sender);
     }

@@ -67,8 +67,8 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @param amount Amount of POL to migrate
     /// @param account Address to receive MATIC tokens
     function unmigrateTo(
-        uint256 amount,
-        address account
+        address account,
+        uint256 amount
     ) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, amount);
 

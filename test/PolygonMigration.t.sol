@@ -179,7 +179,7 @@ contract PolygonMigrationTest is Test {
         assertEq(polygon.balanceOf(user), amount);
 
         polygon.approve(address(migration), amount2);
-        migration.unmigrateTo(amount2, migrateTo);
+        migration.unmigrateTo(migrateTo, amount2);
 
         assertEq(polygon.balanceOf(user), amount - amount2);
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
