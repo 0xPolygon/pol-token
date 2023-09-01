@@ -75,12 +75,12 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
         uint256 treasuryAmt = amountToMint / 2;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
+        emit TokenMint(amountToMint, msg.sender);
+
         token.mint(address(this), amountToMint);
-        token.transfer(treasury, treasuryAmt);
+        token.safeTransfer(treasury, treasuryAmt);
         // backconvert POL to MATIC before sending to StakeManager
         migration.unmigrateTo(stakeManager, stakeManagerAmt);
-
-        emit TokenMint(amountToMint, msg.sender);
     }
 
     /// @notice Returns total supply from compounded inflation after timeElapsed from startTimestamp (deployment)

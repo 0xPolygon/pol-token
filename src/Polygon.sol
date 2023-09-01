@@ -12,8 +12,8 @@ import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.so
 /// on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit, IPolygon {
+    uint256 public constant MINT_PER_SECOND_CAP = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     address public immutable inflationManager;
-    uint256 public constant mintPerSecondCap = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     uint256 public lastMint;
 
     constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
@@ -33,7 +33,7 @@ contract Polygon is ERC20Permit, IPolygon {
         if (lastMintCache == 0) lastMintCache = IDefaultInflationManager(inflationManager).startTimestamp();
 
         uint256 timeElapsedSinceLastMint = block.timestamp - lastMintCache;
-        uint256 maxMint = (timeElapsedSinceLastMint * mintPerSecondCap * totalSupply()) / 1e18;
+        uint256 maxMint = (timeElapsedSinceLastMint * MINT_PER_SECOND_CAP * totalSupply()) / 1e18;
         if (amount > maxMint) revert MaxMintExceeded(maxMint, amount);
 
         lastMint = block.timestamp;
