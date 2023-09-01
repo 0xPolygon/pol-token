@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IMinter} from "./interfaces/IMinter.sol";
 import {IPolygon} from "./interfaces/IPolygon.sol";
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
+import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -17,11 +17,9 @@ import {PowUtil} from "./lib/PowUtil.sol";
 contract DefaultInflationManager is
     Initializable,
     Ownable2StepUpgradeable,
-    IMinter
+    IDefaultInflationManager
 {
     using SafeERC20 for IPolygon;
-
-    error InvalidAddress();
 
     // log2(2%pa continuously compounded inflation per second) in 18 decimals(Wad), see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_SECOND_LOG2 = 0.000000000914951192e18;
@@ -81,9 +79,9 @@ contract DefaultInflationManager is
         uint256 treasuryAmt = amountToMint / 2;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
-        token.mint(treasury, treasuryAmt);
+        token.mint(address(this), amountToMint);
+        token.transfer(treasury, treasuryAmt);
         // backconvert POL to MATIC before sending to StakeManager
-        token.mint(address(this), stakeManagerAmt);
         migration.unmigrateTo(stakeManagerAmt, stakeManager);
     }
 
