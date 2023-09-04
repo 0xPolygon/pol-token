@@ -20,6 +20,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
     // log2(2%pa continuously compounded inflation per year) in 18 decimals, see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
+    address private immutable DEPLOYER;
 
     IPolygon public token;
     IPolygonMigration public migration;
@@ -29,6 +30,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
     uint256 public startTimestamp;
 
     constructor() {
+        DEPLOYER = msg.sender;
         // so that the implementation contract cannot be initialized
         _disableInitializers();
     }
@@ -40,6 +42,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
         address treasury_,
         address owner_
     ) external initializer {
+        require(DEPLOYER == msg.sender, "ONLY_DEPLOYER");
         if (
             token_ == address(0) ||
             migration_ == address(0) ||
