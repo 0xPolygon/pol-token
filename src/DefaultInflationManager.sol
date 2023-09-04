@@ -42,7 +42,8 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
         address treasury_,
         address owner_
     ) external initializer {
-        require(DEPLOYER == msg.sender, "ONLY_DEPLOYER");
+        // prevent front-running since we can't initialize on proxy deployment
+        if (DEPLOYER != msg.sender) revert();
         if (
             token_ == address(0) ||
             migration_ == address(0) ||

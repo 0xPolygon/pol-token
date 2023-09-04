@@ -85,7 +85,7 @@ contract DefaultInflationManagerTest is Test {
         );
 
         vm.prank(address(seed));
-        vm.expectRevert("ONLY_DEPLOYER");
+        vm.expectRevert();
         DefaultInflationManager(proxy).initialize(params[0], params[1], params[2], params[3], params[4]);
 
         params[seed % params.length] = address(0); // any one is zero addr
