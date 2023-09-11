@@ -13,7 +13,6 @@ import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.so
 /// @custom:security-contact security@polygon.technology
 contract Polygon is ERC20Permit, IPolygon {
     address public immutable inflationManager;
-    uint256 public lastMint;
 
     constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
         if (migration_ == address(0) || inflationManager_ == address(0)) revert InvalidAddress();
@@ -28,10 +27,6 @@ contract Polygon is ERC20Permit, IPolygon {
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external {
         if (msg.sender != inflationManager) revert OnlyInflationManager();
-        uint256 lastMintCache = lastMint;
-        if (lastMintCache == 0) lastMintCache = IDefaultInflationManager(inflationManager).startTimestamp();
-
-        lastMint = block.timestamp;
         _mint(to, amount);
     }
 }
