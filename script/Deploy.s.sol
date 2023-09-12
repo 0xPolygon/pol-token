@@ -4,7 +4,7 @@ pragma solidity 0.8.21;
 import {Script} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
-import {Polygon} from "../src/Polygon.sol";
+import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
 import {DefaultInflationManager} from "../src/DefaultInflationManager.sol";
 import {PolygonMigration} from "../src/PolygonMigration.sol";
 
@@ -36,7 +36,7 @@ contract Deploy is Script {
             new TransparentUpgradeableProxy(address(inflationManagerImplementation), address(admin), "")
         );
 
-        Polygon polygonToken = new Polygon(migrationProxy, inflationManagerProxy);
+        PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(migrationProxy, inflationManagerProxy);
 
         DefaultInflationManager(inflationManagerProxy).initialize(
             address(polygonToken),

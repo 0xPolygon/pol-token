@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Polygon} from "src/Polygon.sol";
-import {IPolygon} from "src/interfaces/IPolygon.sol";
+import {PolygonEcosystemToken} from "src/PolygonEcosystemToken.sol";
+import {IPolygonEcosystemToken} from "src/interfaces/IPolygonEcosystemToken.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
 import {TransparentUpgradeableProxy, ProxyAdmin} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract PolygonTest is Test {
-    Polygon public polygon;
+    PolygonEcosystemToken public polygon;
     address public matic;
     address public migration;
     address public treasury;
@@ -25,12 +25,12 @@ contract PolygonTest is Test {
         inflationManager = DefaultInflationManager(
             address(new TransparentUpgradeableProxy(address(new DefaultInflationManager()), address(admin), ""))
         );
-        polygon = new Polygon(migration, address(inflationManager));
+        polygon = new PolygonEcosystemToken(migration, address(inflationManager));
         inflationManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
     function test_Deployment() external {
-        assertEq(polygon.name(), "Polygon");
+        assertEq(polygon.name(), "Polygon Ecosystem Token");
         assertEq(polygon.symbol(), "POL");
         assertEq(polygon.decimals(), 18);
         assertEq(polygon.totalSupply(), 10000000000 * 10 ** 18);
@@ -41,19 +41,19 @@ contract PolygonTest is Test {
     }
 
     function test_InvalidDeployment() external {
-        Polygon token;
-        vm.expectRevert(IPolygon.InvalidAddress.selector);
-        token = new Polygon(makeAddr("migration"), address(0));
-        vm.expectRevert(IPolygon.InvalidAddress.selector);
-        token = new Polygon(address(0), makeAddr("inflationManager"));
-        vm.expectRevert(IPolygon.InvalidAddress.selector);
-        token = new Polygon(address(0), address(0));
+        PolygonEcosystemToken token;
+        vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
+        token = new PolygonEcosystemToken(makeAddr("migration"), address(0));
+        vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
+        token = new PolygonEcosystemToken(address(0), makeAddr("inflationManager"));
+        vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
+        token = new PolygonEcosystemToken(address(0), address(0));
     }
 
     function testRevert_Mint(address user, address to, uint256 amount) external {
         vm.assume(user != address(inflationManager));
         vm.startPrank(user);
-        vm.expectRevert(IPolygon.OnlyInflationManager.selector);
+        vm.expectRevert(IPolygonEcosystemToken.OnlyInflationManager.selector);
         polygon.mint(to, amount);
     }
 
@@ -72,7 +72,7 @@ contract PolygonTest is Test {
 
         uint256 maxMint = (mintPerSecondCap * delay * polygon.totalSupply()) / 1e18;
         if (amount > maxMint)
-            vm.expectRevert(abi.encodeWithSelector(IPolygon.MaxMintExceeded.selector, maxMint, amount));
+            vm.expectRevert(abi.encodeWithSelector(IPolygonEcosystemToken.MaxMintExceeded.selector, maxMint, amount));
         vm.prank(address(inflationManager));
         polygon.mint(to, amount);
 

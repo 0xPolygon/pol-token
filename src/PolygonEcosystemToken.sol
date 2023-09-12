@@ -2,7 +2,7 @@
 pragma solidity 0.8.21;
 
 import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
-import {IPolygon} from "./interfaces/IPolygon.sol";
+import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 
 /// @title Polygon ERC20 token
@@ -11,12 +11,15 @@ import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.so
 /// @dev The contract allows for a 1-to-1 representation between $POL and $MATIC and allows for additional inflation based
 /// on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
-contract Polygon is ERC20Permit, IPolygon {
+contract PolygonEcosystemToken is ERC20Permit, IPolygonEcosystemToken {
     uint256 public constant MINT_PER_SECOND_CAP = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
     address public immutable inflationManager;
     uint256 public lastMint;
 
-    constructor(address migration_, address inflationManager_) ERC20("Polygon", "POL") ERC20Permit("Polygon") {
+    constructor(
+        address migration_,
+        address inflationManager_
+    ) ERC20("Polygon Ecosystem Token", "POL") ERC20Permit("Polygon") {
         if (migration_ == address(0) || inflationManager_ == address(0)) revert InvalidAddress();
 
         inflationManager = inflationManager_;

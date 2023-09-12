@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Polygon} from "src/Polygon.sol";
+import {PolygonEcosystemToken} from "src/PolygonEcosystemToken.sol";
 import {DefaultInflationManager} from "src/DefaultInflationManager.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -12,7 +12,7 @@ contract DefaultInflationManagerTest is Test {
     error InvalidAddress();
 
     ERC20PresetMinterPauser public matic;
-    Polygon public polygon;
+    PolygonEcosystemToken public polygon;
     PolygonMigration public migration;
     address public treasury;
     address public stakeManager;
@@ -39,7 +39,7 @@ contract DefaultInflationManagerTest is Test {
             address(new TransparentUpgradeableProxy(address(new PolygonMigration()), address(admin), ""))
         );
         migration.initialize(address(matic));
-        polygon = new Polygon(address(migration), address(inflationManager));
+        polygon = new PolygonEcosystemToken(address(migration), address(inflationManager));
         migration.setPolygonToken(address(polygon)); // deployer sets token
         migration.transferOwnership(governance);
         vm.prank(governance);

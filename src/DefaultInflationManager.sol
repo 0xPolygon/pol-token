@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {IPolygon} from "./interfaces/IPolygon.sol";
+import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
@@ -15,14 +15,14 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
 contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDefaultInflationManager {
-    using SafeERC20 for IPolygon;
+    using SafeERC20 for IPolygonEcosystemToken;
 
     // log2(2%pa continuously compounded inflation per year) in 18 decimals, see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
 
-    IPolygon public token;
+    IPolygonEcosystemToken public token;
     IPolygonMigration public migration;
     address public stakeManager;
     address public treasury;
@@ -52,7 +52,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
             owner_ == address(0)
         ) revert InvalidAddress();
 
-        token = IPolygon(token_);
+        token = IPolygonEcosystemToken(token_);
         migration = IPolygonMigration(migration_);
         stakeManager = stakeManager_;
         treasury = treasury_;
