@@ -5,7 +5,7 @@ import {IERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensi
 import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 interface IPolygonEcosystemToken is IERC20, IERC20Permit {
-    error OnlyInflationManager();
+    error OnlyEmissionManager();
     error InvalidAddress();
     error MaxMintExceeded(uint256 maxMint, uint256 mintRequested);
 

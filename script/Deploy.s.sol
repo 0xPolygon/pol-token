@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
-import {DefaultInflationManager} from "../src/DefaultInflationManager.sol";
+import {DefaultEmissionManager} from "../src/DefaultEmissionManager.sol";
 import {PolygonMigration} from "../src/PolygonMigration.sol";
 
 contract Deploy is Script {
@@ -31,14 +31,14 @@ contract Deploy is Script {
             )
         );
 
-        address inflationManagerImplementation = address(new DefaultInflationManager());
-        address inflationManagerProxy = address(
-            new TransparentUpgradeableProxy(address(inflationManagerImplementation), address(admin), "")
+        address emissionManagerImplementation = address(new DefaultEmissionManager());
+        address emissionManagerProxy = address(
+            new TransparentUpgradeableProxy(address(emissionManagerImplementation), address(admin), "")
         );
 
-        PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(migrationProxy, inflationManagerProxy);
+        PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(migrationProxy, emissionManagerProxy);
 
-        DefaultInflationManager(inflationManagerProxy).initialize(
+        DefaultEmissionManager(emissionManagerProxy).initialize(
             address(polygonToken),
             migrationProxy,
             stakeManager,

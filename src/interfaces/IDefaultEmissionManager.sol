@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-interface IDefaultInflationManager {
+interface IDefaultEmissionManager {
     error InvalidAddress();
 
     event TokenMint(uint256 amount, address caller);

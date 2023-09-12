@@ -3,21 +3,21 @@ pragma solidity 0.8.21;
 
 import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
-import {IDefaultInflationManager} from "./interfaces/IDefaultInflationManager.sol";
+import {IDefaultEmissionManager} from "./interfaces/IDefaultEmissionManager.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
 import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PowUtil} from "./lib/PowUtil.sol";
 
-/// @title Default Inflation Manager
+/// @title Default Emission Manager
 /// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
-/// @notice A default inflation manager implementation for the Polygon ERC20 token contract on Ethereum L1
+/// @notice A default emission manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
-contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDefaultInflationManager {
+contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
 
-    // log2(2%pa continuously compounded inflation per year) in 18 decimals, see _inflatedSupplyAfter
+    // log2(2%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
@@ -65,7 +65,7 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
         _transferOwnership(owner_);
     }
 
-    /// @notice Allows anyone to mint tokens to the stakeManager and treasury contracts based on current inflation rates
+    /// @notice Allows anyone to mint tokens to the stakeManager and treasury contracts based on current emission rates
     /// @dev Minting is done based on totalSupply diffs between the currentTotalSupply (maintained on POL, which includes any
     /// previous mints) and the newSupply (calculated based on the time elapsed since deployment)
     function mint() external {
@@ -87,13 +87,13 @@ contract DefaultInflationManager is Initializable, Ownable2StepUpgradeable, IDef
         migration.unmigrateTo(stakeManager, stakeManagerAmt);
     }
 
-    /// @notice Returns total supply from compounded inflation after timeElapsed from startTimestamp (deployment)
+    /// @notice Returns total supply from compounded emission after timeElapsed from startTimestamp (deployment)
     /// @param timeElapsed The time elapsed since startTimestamp
     /// @dev interestRatePerYear = 1.02; 2% per year
     /// approximate the compounded interest rate using x^y = 2^(log2(x)*y)
     /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
     /// log2(interestRatePerYear) = 0.028569152196770894 with 18 decimals, as the interest rate does not change, hard code the value
-    /// @return supply total supply from compounded inflation after timeElapsed
+    /// @return supply total supply from compounded emission after timeElapsed
     function _inflatedSupplyAfter(uint256 timeElapsed) private pure returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
         supply = (supplyFactor * START_SUPPLY) / 1e18;

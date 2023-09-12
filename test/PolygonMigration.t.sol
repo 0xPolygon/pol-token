@@ -17,13 +17,13 @@ contract PolygonMigrationTest is Test {
     ProxyAdmin public admin;
     address public treasury;
     address public stakeManager;
-    address public inflationManager;
+    address public emissionManager;
     address public governance;
 
     function setUp() external {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
-        inflationManager = makeAddr("inflationManager");
+        emissionManager = makeAddr("emissionManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
         admin = new ProxyAdmin();
@@ -36,7 +36,7 @@ contract PolygonMigrationTest is Test {
                 )
             )
         );
-        polygon = new PolygonEcosystemToken(address(migration), address(inflationManager));
+        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
         migration.setPolygonToken(address(polygon)); // deployer sets token
