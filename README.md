@@ -1,7 +1,7 @@
 # Polygon Ecosystem Token (POL)
 ![Test Status](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
 
-The Polygon Ecosystem Token is intended as an upgrade to the existing [MATIC token implementation](https://etherscan.io/address/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0). It consists of a [token contract](https://github.com/0xPolygon/indicia/tree/main/src/PolygonToken.sol), [migration contract](https://github.com/0xPolygon/indicia/tree/main/src/PolygonMigratioon.sol), and an [emission manager contract](https://github.com/0xPolygon/indicia/tree/main/src/DefaultInflationManager.sol). Together, this set of contracts is proposed in [PIP-18]() to Polygon Governance as a step forward in functionality for the polygon ecosystem.
+The Polygon Ecosystem Token is intended as an upgrade to the [MATIC token](https://etherscan.io/address/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0). It consists of a [token contract](https://github.com/0xPolygon/indicia/tree/main/src/PolygonToken.sol), [migration contract](https://github.com/0xPolygon/indicia/tree/main/src/PolygonMigratioon.sol), and an [emission manager contract](https://github.com/0xPolygon/indicia/tree/main/src/DefaultInflationManager.sol). Together, this set of contracts is proposed in [PIP-18]() to Polygon Governance as a step forward in functionality for the polygon ecosystem.
 
 ## POL Token Contract
 
@@ -13,7 +13,7 @@ The POL token contract is not upgradable.
 
 ## Migration Contract
 
-The migration contract allows 1-to-1 swaps between MATIC and POL using the `migrate` and `unmigrate` functions respectively. This migration contract is ownable, and the owner has the ability to disable the `ummigrate` functionality. For both actions, [EIP-2612 Permit](https://eips.ethereum.org/EIPS/eip-2612)-style is supported.
+The migration contract allows 1-to-1 migrations between MATIC and POL using the `migrate` and `unmigrate` functions respectively. This migration contract is ownable, and the owner has the ability to disable the `ummigrate` functionality. For both actions, [EIP-2612 Permit](https://eips.ethereum.org/EIPS/eip-2612)-style is supported.
 
 [Source Code](https://github.com/0xPolygon/indicia/tree/main/src/PolygonMigratioon.sol)
 
