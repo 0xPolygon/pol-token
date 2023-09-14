@@ -20,7 +20,7 @@ The migration contract allows 1-to-1 migrations between MATIC and POL using the 
 
 ## Emission Manager Contract
 
-The role of the Emission Manager is to have the exclusive ability to mint new POL tokens. It has the ability to calculate token emissions based upon a yearly rate, and then dispurse them linearly to a configured target `StakeManager`. For safety, there is a cap on the number of tokens mintable per second as defined by [`MAX_MINT_PER_SECOND`](https://github.com/0xPolygon/pol-token/blob/main/src/PolygonEcosystemToken.sol#L15) on the token implementation.
+The role of the Emission Manager is to have the exclusive ability to mint new POL tokens. It has the ability to calculate token emissions based upon a yearly rate, and then dispurse them linearly to a configured target `StakeManager`. For safety, there is a cap on the number of tokens mintable per second as defined by [`mintPerSecondCap`](https://github.com/0xPolygon/pol-token/blob/main/src/PolygonEcosystemToken.sol#L16) on the token implementation.
 
 A default implementation is included and this contract will be proxy upgradable by Polygon Governance.
 
