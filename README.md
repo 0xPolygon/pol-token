@@ -2,7 +2,7 @@
 
 ![Test Status](https://github.com/github/docs/actions/workflows/test.yml/badge.svg)
 
-The Polygon Ecosystem Token is intended as an upgrade to the [MATIC token](https://etherscan.io/address/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0). It consists of a [token contract](https://github.com/0xPolygon/pol-token/tree/main/src/PolygonEcosystemToken.sol), [migration contract](https://github.com/0xPolygon/pol-token/tree/main/src/PolygonMigration.sol), and an [emission manager contract](https://github.com/0xPolygon/pol-token/tree/main/src/DefaultEmissionManager.sol). Together, this set of contracts is proposed in [PIP-18]() to Polygon Governance as a step forward in functionality for the polygon ecosystem.
+The Polygon Ecosystem Token is intended as an upgrade to the [MATIC token](https://etherscan.io/address/0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0). It consists of a [token contract](https://github.com/0xPolygon/pol-token/tree/main/src/PolygonEcosystemToken.sol), [migration contract](https://github.com/0xPolygon/pol-token/tree/main/src/PolygonMigration.sol), and an [emission manager contract](https://github.com/0xPolygon/pol-token/tree/main/src/DefaultEmissionManager.sol). Together, this set of contracts is proposed in [PIP-17](https://github.com/maticnetwork/Polygon-Improvement-Proposals/blob/main/PIPs/PIP-17.md) to Polygon Governance as a step forward in functionality for the polygon ecosystem.
 
 ## POL Token Contract
 
