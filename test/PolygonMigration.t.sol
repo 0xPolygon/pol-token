@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Polygon} from "src/Polygon.sol";
+import {PolygonEcosystemToken} from "src/PolygonEcosystemToken.sol";
 import {PolygonMigration} from "src/PolygonMigration.sol";
 import {IPolygonMigration} from "src/interfaces/IPolygonMigration.sol";
 import {ERC20PresetMinterPauser} from "openzeppelin-contracts/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
@@ -11,19 +11,19 @@ import {Test} from "forge-std/Test.sol";
 
 contract PolygonMigrationTest is Test {
     ERC20PresetMinterPauser public matic;
-    Polygon public polygon;
+    PolygonEcosystemToken public polygon;
     PolygonMigration public migration;
     SigUtils public sigUtils;
     ProxyAdmin public admin;
     address public treasury;
     address public stakeManager;
-    address public inflationManager;
+    address public emissionManager;
     address public governance;
 
     function setUp() external {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
-        inflationManager = makeAddr("inflationManager");
+        emissionManager = makeAddr("emissionManager");
         governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
         admin = new ProxyAdmin();
@@ -36,7 +36,7 @@ contract PolygonMigrationTest is Test {
                 )
             )
         );
-        polygon = new Polygon(address(migration), address(inflationManager));
+        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager));
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
         migration.setPolygonToken(address(polygon)); // deployer sets token
