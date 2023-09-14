@@ -86,7 +86,7 @@ contract PolygonTest is Test {
     }
 
     function test_Mint(address to, uint256 amount) external {
-        skip(1e8); // delay needed for a max mint of 10B
+        skip(1e9); // delay needed for a max mint of 10B
         vm.assume(to != address(0) && amount <= 10000000000 * 10 ** 18 && to != migration);
         vm.prank(address(emissionManager));
         polygon.mint(to, amount);
