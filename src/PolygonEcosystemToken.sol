@@ -14,7 +14,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     bytes32 public constant EMISSION_ROLE = keccak256("EMISSION_ROLE");
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
     uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
-    uint256 public mintPerSecondCap = 10e18; // ~315M tokens per year => 45 POL tokens per second
+    uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
     uint256 public lastMint;
 
     constructor(
@@ -38,7 +38,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     /// @param amount Amount to mint
     function mint(address to, uint256 amount) external onlyRole(EMISSION_ROLE) {
         uint256 timeElapsedSinceLastMint = block.timestamp - lastMint;
-        uint256 maxMint = (timeElapsedSinceLastMint * mintPerSecondCap * totalSupply()) / 1e18;
+        uint256 maxMint = timeElapsedSinceLastMint * mintPerSecondCap;
         if (amount > maxMint) revert MaxMintExceeded(maxMint, amount);
 
         lastMint = block.timestamp;

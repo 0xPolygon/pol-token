@@ -15,7 +15,7 @@ contract PolygonTest is Test {
     address public stakeManager;
     address public ecosystemCouncil; // timelocked multisig - responsible for changing max mint cap
     DefaultEmissionManager public emissionManager;
-    uint256 public constant mintPerSecondCap = 10e18; // ~315M tokens per year => 45 POL tokens per second
+    uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
     uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
 
     function setUp() external {
@@ -98,7 +98,7 @@ contract PolygonTest is Test {
         vm.assume(to != address(0) && amount <= 10000000000 * 10 ** 18 && to != migration && delay < 10 * 365 days);
         skip(++delay); // avoid delay == 0
 
-        uint256 maxMint = (mintPerSecondCap * delay * polygon.totalSupply()) / 1e18;
+        uint256 maxMint = delay * mintPerSecondCap;
         if (amount > maxMint)
             vm.expectRevert(abi.encodeWithSelector(IPolygonEcosystemToken.MaxMintExceeded.selector, maxMint, amount));
         vm.prank(address(emissionManager));
