@@ -8,9 +8,9 @@ import {IAccessControlEnumerable} from "openzeppelin-contracts/contracts/access/
 interface IPolygonEcosystemToken is IERC20, IERC20Permit, IAccessControlEnumerable {
     event MintCapUpdated(uint256 oldCap, uint256 newCap);
 
-    error OnlyEmissionManager();
     error InvalidAddress();
     error MaxMintExceeded(uint256 maxMint, uint256 mintRequested);
+    error InvalidMintCapUpdate();
 
     function mint(address to, uint256 amount) external;
 
