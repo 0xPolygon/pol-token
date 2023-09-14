@@ -36,7 +36,11 @@ contract Deploy is Script {
             new TransparentUpgradeableProxy(address(emissionManagerImplementation), address(admin), "")
         );
 
-        PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(migrationProxy, emissionManagerProxy);
+        PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(
+            migrationProxy,
+            emissionManagerProxy,
+            governance
+        );
 
         DefaultEmissionManager(emissionManagerProxy).initialize(
             address(polygonToken),
