@@ -56,20 +56,20 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens
     /// @param amount Amount of POL to migrate
     function unmigrate(uint256 amount) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+        emit Unmigrated(msg.sender, msg.sender, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
         matic.safeTransfer(msg.sender, amount);
     }
 
     /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
+    /// @param recipient Address to receive MATIC tokens
     /// @param amount Amount of POL to migrate
-    /// @param account Address to receive MATIC tokens
-    function unmigrateTo(address account, uint256 amount) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+    function unmigrateTo(address recipient, uint256 amount) external onlyUnmigrationUnlocked {
+        emit Unmigrated(msg.sender, recipient, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
-        matic.safeTransfer(account, amount);
+        matic.safeTransfer(recipient, amount);
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
@@ -81,7 +81,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         bytes32 r,
         bytes32 s
     ) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+        emit Unmigrated(msg.sender, msg.sender, amount);
 
         IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
         polygon.safeTransferFrom(msg.sender, address(this), amount);
