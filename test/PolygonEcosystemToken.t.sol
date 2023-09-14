@@ -16,7 +16,6 @@ contract PolygonTest is Test {
     address public governance;
     DefaultEmissionManager public emissionManager;
     uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
-    uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
 
     function setUp() external {
         migration = makeAddr("migration");
@@ -62,13 +61,6 @@ contract PolygonTest is Test {
         token = new PolygonEcosystemToken(address(0), address(0), makeAddr("governance"));
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
         token = new PolygonEcosystemToken(address(0), address(0), address(0));
-    }
-
-    function testUpdateMintCap(uint256 newCap) external {
-        vm.prank(governance);
-        if (newCap > MAX_MINT_PER_SECOND) vm.expectRevert(IPolygonEcosystemToken.InvalidMintCapUpdate.selector);
-        polygon.updateMintCap(newCap);
-        if (newCap <= MAX_MINT_PER_SECOND) assertEq(polygon.mintPerSecondCap(), newCap);
     }
 
     function testRevert_UpdateMintCap(uint256 newCap, address caller) external {

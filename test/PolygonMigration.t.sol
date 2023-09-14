@@ -19,14 +19,12 @@ contract PolygonMigrationTest is Test {
     address public governance;
     address public stakeManager;
     address public emissionManager;
-    address public governance;
 
     function setUp() external {
         treasury = makeAddr("treasury");
         governance = makeAddr("governance");
         stakeManager = makeAddr("stakeManager");
         emissionManager = makeAddr("emissionManager");
-        governance = makeAddr("governance");
         matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
         admin = new ProxyAdmin();
         migration = PolygonMigration(

@@ -13,7 +13,6 @@ import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygonEcosystemToken {
     bytes32 public constant EMISSION_ROLE = keccak256("EMISSION_ROLE");
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
-    uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
     uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
     uint256 public lastMint;
 
@@ -48,7 +47,6 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     /// @notice Update the limit of tokens that can be minted per second
     /// @param newCap the amount of tokens in 18 decimals as an absolute value
     function updateMintCap(uint256 newCap) external onlyRole(CAP_MANAGER_ROLE) {
-        if (newCap > MAX_MINT_PER_SECOND) revert InvalidMintCapUpdate();
         emit MintCapUpdated(mintPerSecondCap, newCap);
         mintPerSecondCap = newCap;
     }

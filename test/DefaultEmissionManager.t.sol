@@ -17,7 +17,6 @@ contract DefaultEmissionManagerTest is Test {
     address public treasury;
     address public governance;
     address public stakeManager;
-    address public governance;
     DefaultEmissionManager public emissionManager;
     DefaultEmissionManager public emissionManagerImplementation;
 
@@ -29,7 +28,6 @@ contract DefaultEmissionManagerTest is Test {
     function setUp() external {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
-        governance = makeAddr("governance");
         governance = makeAddr("governance");
         emissionManagerImplementation = new DefaultEmissionManager();
         ProxyAdmin admin = new ProxyAdmin();
