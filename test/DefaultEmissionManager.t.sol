@@ -193,4 +193,12 @@ contract DefaultEmissionManagerTest is Test {
             assertEq(polygon.balanceOf(treasury), balance);
         }
     }
+
+    function test_InflatedSupplyAfter(uint256 delay) external {
+        vm.assume(delay != 0 && delay <= 10 * 365 days);
+        inputs[2] = vm.toString(delay);
+        inputs[3] = vm.toString(polygon.totalSupply());
+        uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
+        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(block.timestamp + delay), 1e19);
+    }
 }
