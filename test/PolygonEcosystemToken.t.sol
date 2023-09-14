@@ -13,7 +13,7 @@ contract PolygonTest is Test {
     address public migration;
     address public treasury;
     address public stakeManager;
-    address public ecosystemCouncil; // timelocked multisig - responsible for changing max mint cap
+    address public governance;
     DefaultEmissionManager public emissionManager;
     uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
     uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
@@ -23,12 +23,12 @@ contract PolygonTest is Test {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         matic = makeAddr("matic");
-        ecosystemCouncil = makeAddr("ecosystemCouncil");
+        governance = makeAddr("governance");
         ProxyAdmin admin = new ProxyAdmin();
         emissionManager = DefaultEmissionManager(
             address(new TransparentUpgradeableProxy(address(new DefaultEmissionManager()), address(admin), ""))
         );
-        polygon = new PolygonEcosystemToken(migration, address(emissionManager), ecosystemCouncil);
+        polygon = new PolygonEcosystemToken(migration, address(emissionManager), governance);
         emissionManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
@@ -41,11 +41,11 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
 
-        // only ecosystemCouncil has DEFAULT_ADMIN_ROLE
-        assertTrue(polygon.hasRole(polygon.DEFAULT_ADMIN_ROLE(), ecosystemCouncil));
+        // only governance has DEFAULT_ADMIN_ROLE
+        assertTrue(polygon.hasRole(polygon.DEFAULT_ADMIN_ROLE(), governance));
         assertEq(polygon.getRoleMemberCount(polygon.DEFAULT_ADMIN_ROLE()), 1, "DEFAULT_ADMIN_ROLE incorrect assignees");
-        // only ecosystemCouncil has CAP_MANAGER_ROLE
-        assertTrue(polygon.hasRole(polygon.CAP_MANAGER_ROLE(), ecosystemCouncil));
+        // only governance has CAP_MANAGER_ROLE
+        assertTrue(polygon.hasRole(polygon.CAP_MANAGER_ROLE(), governance));
         assertEq(polygon.getRoleMemberCount(polygon.CAP_MANAGER_ROLE()), 1, "CAP_MANAGER_ROLE incorrect assignees");
         // only emissionManager has EMISSION_ROLE
         assertTrue(polygon.hasRole(polygon.EMISSION_ROLE(), address(emissionManager)));
@@ -59,20 +59,20 @@ contract PolygonTest is Test {
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
         token = new PolygonEcosystemToken(address(0), makeAddr("emissionManager"), address(0));
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), address(0), makeAddr("ecosystemCouncil"));
+        token = new PolygonEcosystemToken(address(0), address(0), makeAddr("governance"));
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
         token = new PolygonEcosystemToken(address(0), address(0), address(0));
     }
 
     function testUpdateMintCap(uint256 newCap) external {
-        vm.prank(ecosystemCouncil);
+        vm.prank(governance);
         if (newCap > MAX_MINT_PER_SECOND) vm.expectRevert(IPolygonEcosystemToken.InvalidMintCapUpdate.selector);
         polygon.updateMintCap(newCap);
         if (newCap <= MAX_MINT_PER_SECOND) assertEq(polygon.mintPerSecondCap(), newCap);
     }
 
     function testRevert_UpdateMintCap(uint256 newCap, address caller) external {
-        vm.assume(caller != ecosystemCouncil);
+        vm.assume(caller != governance);
         vm.prank(caller);
         vm.expectRevert();
         polygon.updateMintCap(newCap);

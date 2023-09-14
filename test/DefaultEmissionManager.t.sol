@@ -15,7 +15,7 @@ contract DefaultEmissionManagerTest is Test {
     PolygonEcosystemToken public polygon;
     PolygonMigration public migration;
     address public treasury;
-    address public ecosystemCouncil;
+    address public governance;
     address public stakeManager;
     address public governance;
     DefaultEmissionManager public emissionManager;
@@ -30,7 +30,7 @@ contract DefaultEmissionManagerTest is Test {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         governance = makeAddr("governance");
-        ecosystemCouncil = makeAddr("ecosystemCouncil");
+        governance = makeAddr("governance");
         emissionManagerImplementation = new DefaultEmissionManager();
         ProxyAdmin admin = new ProxyAdmin();
         emissionManager = DefaultEmissionManager(
@@ -41,7 +41,7 @@ contract DefaultEmissionManagerTest is Test {
             address(new TransparentUpgradeableProxy(address(new PolygonMigration()), address(admin), ""))
         );
         migration.initialize(address(matic));
-        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager), ecosystemCouncil);
+        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager), governance);
         migration.setPolygonToken(address(polygon)); // deployer sets token
         migration.transferOwnership(governance);
         vm.prank(governance);

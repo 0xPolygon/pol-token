@@ -16,14 +16,14 @@ contract PolygonMigrationTest is Test {
     SigUtils public sigUtils;
     ProxyAdmin public admin;
     address public treasury;
-    address public ecosystemCouncil;
+    address public governance;
     address public stakeManager;
     address public emissionManager;
     address public governance;
 
     function setUp() external {
         treasury = makeAddr("treasury");
-        ecosystemCouncil = makeAddr("ecosystemCouncil");
+        governance = makeAddr("governance");
         stakeManager = makeAddr("stakeManager");
         emissionManager = makeAddr("emissionManager");
         governance = makeAddr("governance");
@@ -38,7 +38,7 @@ contract PolygonMigrationTest is Test {
                 )
             )
         );
-        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager), ecosystemCouncil);
+        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager), governance);
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
         migration.setPolygonToken(address(polygon)); // deployer sets token
