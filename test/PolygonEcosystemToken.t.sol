@@ -13,19 +13,22 @@ contract PolygonTest is Test {
     address public migration;
     address public treasury;
     address public stakeManager;
+    address public ecosystemCouncil; // timelocked multisig - responsible for changing max mint cap
     DefaultEmissionManager public emissionManager;
-    uint256 public constant mintPerSecondCap = 0.0000000420e18; // 0.0000042% of POL Supply per second, in 18 decimals
+    uint256 public constant mintPerSecondCap = 10e18; // ~315M tokens per year => 45 POL tokens per second
+    uint256 internal constant MAX_MINT_PER_SECOND = 10e18;
 
     function setUp() external {
         migration = makeAddr("migration");
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         matic = makeAddr("matic");
+        ecosystemCouncil = makeAddr("ecosystemCouncil");
         ProxyAdmin admin = new ProxyAdmin();
         emissionManager = DefaultEmissionManager(
             address(new TransparentUpgradeableProxy(address(new DefaultEmissionManager()), address(admin), ""))
         );
-        polygon = new PolygonEcosystemToken(migration, address(emissionManager));
+        polygon = new PolygonEcosystemToken(migration, address(emissionManager), ecosystemCouncil);
         emissionManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
@@ -37,23 +40,48 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(migration), 10000000000 * 10 ** 18);
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(polygon.emissionManager(), address(emissionManager));
+
+        // only ecosystemCouncil has DEFAULT_ADMIN_ROLE
+        assertTrue(polygon.hasRole(polygon.DEFAULT_ADMIN_ROLE(), ecosystemCouncil));
+        assertEq(polygon.getRoleMemberCount(polygon.DEFAULT_ADMIN_ROLE()), 1, "DEFAULT_ADMIN_ROLE incorrect assignees");
+        // only ecosystemCouncil has CAP_MANAGER_ROLE
+        assertTrue(polygon.hasRole(polygon.CAP_MANAGER_ROLE(), ecosystemCouncil));
+        assertEq(polygon.getRoleMemberCount(polygon.CAP_MANAGER_ROLE()), 1, "CAP_MANAGER_ROLE incorrect assignees");
+        // only emissionManager has EMISSION_ROLE
+        assertTrue(polygon.hasRole(polygon.EMISSION_ROLE(), address(emissionManager)));
+        assertEq(polygon.getRoleMemberCount(polygon.EMISSION_ROLE()), 1, "EMISSION_ROLE incorrect assignees");
     }
 
     function test_InvalidDeployment() external {
         PolygonEcosystemToken token;
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(makeAddr("migration"), address(0));
+        token = new PolygonEcosystemToken(makeAddr("migration"), address(0), address(0));
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), makeAddr("emissionManager"));
+        token = new PolygonEcosystemToken(address(0), makeAddr("emissionManager"), address(0));
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), address(0));
+        token = new PolygonEcosystemToken(address(0), address(0), makeAddr("ecosystemCouncil"));
+        vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
+        token = new PolygonEcosystemToken(address(0), address(0), address(0));
+    }
+
+    function testUpdateMintCap(uint256 newCap) external {
+        vm.prank(ecosystemCouncil);
+        if (newCap > MAX_MINT_PER_SECOND) vm.expectRevert(IPolygonEcosystemToken.InvalidMintCapUpdate.selector);
+        polygon.updateMintCap(newCap);
+        if (newCap <= MAX_MINT_PER_SECOND) assertEq(polygon.mintPerSecondCap(), newCap);
+    }
+
+    function testRevert_UpdateMintCap(uint256 newCap, address caller) external {
+        vm.assume(caller != ecosystemCouncil);
+        vm.prank(caller);
+        vm.expectRevert();
+        polygon.updateMintCap(newCap);
     }
 
     function testRevert_Mint(address user, address to, uint256 amount) external {
         vm.assume(user != address(emissionManager));
         vm.startPrank(user);
-        vm.expectRevert(IPolygonEcosystemToken.OnlyEmissionManager.selector);
+        vm.expectRevert();
         polygon.mint(to, amount);
     }
 
