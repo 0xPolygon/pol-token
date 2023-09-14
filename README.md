@@ -6,7 +6,7 @@ The Polygon Ecosystem Token is intended as an upgrade to the [MATIC token](https
 
 ## POL Token Contract
 
-POL is broadly based on the MIT-licensed OpenZeppelin ERC-20 implementations which provide support for the default ERC-20 standard, along with some non-standard functions for allowance modifications. The implementation also provides support for [EIP-2612: Signature-Based Permit Approvals]((https://eips.ethereum.org/EIPS/eip-2612)-style is supported).
+POL is broadly based on the MIT-licensed OpenZeppelin ERC-20 implementations which provide support for the default ERC-20 standard, along with some non-standard functions for allowance modifications. The implementation also provides support for [EIP-2612: Signature-Based Permit Approvals](https://eips.ethereum.org/EIPS/eip-2612)-style is supported).
 
 The POL token contract is not upgradable.
 
