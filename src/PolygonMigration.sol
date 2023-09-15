@@ -80,6 +80,10 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
     /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param amount Amount of POL to migrate
+    /// @param deadline Deadline for the permit
+    /// @param v v value of the permit signature
+    /// @param r r value of the permit signature
+    /// @param s s value of the permit signature
     function unmigrateWithPermit(
         uint256 amount,
         uint256 deadline,
