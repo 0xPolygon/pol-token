@@ -77,6 +77,8 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param amount Amount of POL to migrate
     function unmigrateWithPermit(
         uint256 amount,
