@@ -54,6 +54,8 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param amount Amount of POL to migrate
     function unmigrate(uint256 amount) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, msg.sender, amount);
@@ -63,6 +65,8 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param recipient Address to receive MATIC tokens
     /// @param amount Amount of POL to migrate
     function unmigrateTo(address recipient, uint256 amount) external onlyUnmigrationUnlocked {
