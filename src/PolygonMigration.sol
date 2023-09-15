@@ -16,6 +16,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC20Permit;
 
+    string public constant VERSION = "1.0.0";
     IERC20 public polygon;
     IERC20 public matic;
     bool public unmigrationLocked;

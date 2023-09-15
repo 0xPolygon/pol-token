@@ -20,6 +20,7 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
     // log2(2%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
+    string public constant VERSION = "1.0.0";
     address private immutable DEPLOYER;
 
     IPolygonEcosystemToken public token;
