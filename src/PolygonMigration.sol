@@ -96,6 +96,15 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         emit UnmigrationLockUpdated(unmigrationLocked_);
     }
 
+    /// @notice Allows governance to burn `amount` of POL tokens
+    /// @dev This functions burns POL by sending to dead address
+    /// @dev does not change totalSupply in the internal accounting of POL
+    /// @param amount Amount of POL to burn
+
+    function burn(uint256 amount) external onlyOwner {
+        polygon.safeTransfer(0x000000000000000000000000000000000000dEaD, amount);
+    }
+
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
      * variables without shifting down storage in the inheritance chain.
