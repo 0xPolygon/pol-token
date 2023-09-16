@@ -100,11 +100,10 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
     }
 
     /// @notice Returns the implementation version
-    /// @return Version number
-    function getVersion() external pure returns(uint256) {
-        return 1;
+    /// @return Version string
+    function getVersion() external pure returns(string memory) {
+        return "1.0.0";
     }
-
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
