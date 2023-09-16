@@ -20,7 +20,6 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
     // log2(2%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
     uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
-    string public constant VERSION = "1.0.0";
     address private immutable DEPLOYER;
 
     IPolygonEcosystemToken public token;
@@ -99,6 +98,13 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
         supply = (supplyFactor * START_SUPPLY) / 1e18;
     }
+
+    /// @notice Returns the implementation version
+    /// @return Version number
+    function getVersion() external pure returns(uint256) {
+        return 1;
+    }
+
 
     /**
      * @dev This empty reserved space is put in place to allow future versions to add new
