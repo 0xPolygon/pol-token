@@ -214,4 +214,20 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(address(migration)), amount - amount2);
         assertEq(matic.balanceOf(user), amount2);
     }
+
+    function testRevert_Burn(address caller, uint256 amount) external {
+        vm.assume(caller != governance);
+        vm.prank(caller);
+        vm.expectRevert("Ownable: caller is not the owner");
+        migration.burn(amount);
+    }
+
+    function test_Burn(uint256 amount) external {
+        amount = bound(amount, 1, 1e28 /* 10B */);
+        assertEq(polygon.balanceOf(address(migration)), 1e28);
+        vm.prank(governance);
+        migration.burn(amount);
+        assertEq(polygon.balanceOf(address(migration)), 1e28 - amount);
+        assertEq(polygon.balanceOf(0x000000000000000000000000000000000000dEaD), amount);
+    }
 }
