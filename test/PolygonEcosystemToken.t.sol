@@ -8,6 +8,8 @@ import {TransparentUpgradeableProxy, ProxyAdmin} from "openzeppelin-contracts/co
 import {Test} from "forge-std/Test.sol";
 
 contract PolygonTest is Test {
+    event Permit2Revoked();
+
     PolygonEcosystemToken public polygon;
     address public matic;
     address public migration;
@@ -31,7 +33,7 @@ contract PolygonTest is Test {
         emissionManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
-    function test_Deployment() external {
+    function test_Deployment(address owner) external {
         assertEq(polygon.name(), "Polygon Ecosystem Token");
         assertEq(polygon.symbol(), "POL");
         assertEq(polygon.decimals(), 18);
@@ -39,6 +41,8 @@ contract PolygonTest is Test {
         assertEq(polygon.balanceOf(migration), 10000000000 * 10 ** 18);
         assertEq(polygon.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
+        assertTrue(polygon.permit2Enabled());
+        assertEq(polygon.allowance(owner, polygon.PERMIT2()), type(uint256).max);
 
         // only governance has DEFAULT_ADMIN_ROLE
         assertTrue(polygon.hasRole(polygon.DEFAULT_ADMIN_ROLE(), governance));
@@ -49,6 +53,13 @@ contract PolygonTest is Test {
         // only emissionManager has EMISSION_ROLE
         assertTrue(polygon.hasRole(polygon.EMISSION_ROLE(), address(emissionManager)));
         assertEq(polygon.getRoleMemberCount(polygon.EMISSION_ROLE()), 1, "EMISSION_ROLE incorrect assignees");
+        // only governance has PERMIT2_REVOKER_ROLE
+        assertTrue(polygon.hasRole(polygon.PERMIT2_REVOKER_ROLE(), governance));
+        assertEq(
+            polygon.getRoleMemberCount(polygon.PERMIT2_REVOKER_ROLE()),
+            1,
+            "PERMIT2_REVOKER_ROLE incorrect assignees"
+        );
     }
 
     function test_InvalidDeployment() external {
@@ -84,6 +95,23 @@ contract PolygonTest is Test {
         polygon.mint(to, amount);
 
         assertEq(polygon.balanceOf(to), amount);
+    }
+
+    function testRevert_Permit2Revoke(address user) external {
+        vm.assume(user != governance);
+        vm.startPrank(user);
+        vm.expectRevert();
+        polygon.revokePermit2Allowance();
+    }
+
+    function test_RevokePermit2Allowance(address owner) external {
+        assertEq(polygon.allowance(owner, polygon.PERMIT2()), type(uint256).max);
+        vm.prank(governance);
+        vm.expectEmit(true, true, true, true);
+        emit Permit2Revoked();
+        polygon.revokePermit2Allowance();
+        assertFalse(polygon.permit2Enabled());
+        assertEq(polygon.allowance(owner, polygon.PERMIT2()), 0);
     }
 
     function test_MintMaxExceeded(address to, uint256 amount, uint256 delay) external {
