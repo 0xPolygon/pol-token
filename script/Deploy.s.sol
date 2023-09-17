@@ -15,7 +15,13 @@ contract Deploy is Script {
         deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     }
 
-    function run(address matic, address governance, address treasury, address stakeManager) public {
+    function run(
+        address matic,
+        address governance,
+        address treasury,
+        address stakeManager,
+        address permit2revoker
+    ) public {
         vm.startBroadcast(deployerPrivateKey);
 
         ProxyAdmin admin = new ProxyAdmin();
@@ -39,7 +45,8 @@ contract Deploy is Script {
         PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(
             migrationProxy,
             emissionManagerProxy,
-            governance
+            governance,
+            permit2revoker
         );
 
         DefaultEmissionManager(emissionManagerProxy).initialize(

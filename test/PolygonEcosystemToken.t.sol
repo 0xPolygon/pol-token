@@ -16,6 +16,7 @@ contract PolygonTest is Test {
     address public treasury;
     address public stakeManager;
     address public governance;
+    address public permit2revoker;
     DefaultEmissionManager public emissionManager;
     uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
 
@@ -25,11 +26,12 @@ contract PolygonTest is Test {
         stakeManager = makeAddr("stakeManager");
         matic = makeAddr("matic");
         governance = makeAddr("governance");
+        permit2revoker = makeAddr("permit2revoker");
         ProxyAdmin admin = new ProxyAdmin();
         emissionManager = DefaultEmissionManager(
             address(new TransparentUpgradeableProxy(address(new DefaultEmissionManager()), address(admin), ""))
         );
-        polygon = new PolygonEcosystemToken(migration, address(emissionManager), governance);
+        polygon = new PolygonEcosystemToken(migration, address(emissionManager), governance, permit2revoker);
         emissionManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
     }
 
@@ -54,7 +56,7 @@ contract PolygonTest is Test {
         assertTrue(polygon.hasRole(polygon.EMISSION_ROLE(), address(emissionManager)));
         assertEq(polygon.getRoleMemberCount(polygon.EMISSION_ROLE()), 1, "EMISSION_ROLE incorrect assignees");
         // only governance has PERMIT2_REVOKER_ROLE
-        assertTrue(polygon.hasRole(polygon.PERMIT2_REVOKER_ROLE(), governance));
+        assertTrue(polygon.hasRole(polygon.PERMIT2_REVOKER_ROLE(), permit2revoker));
         assertEq(
             polygon.getRoleMemberCount(polygon.PERMIT2_REVOKER_ROLE()),
             1,
@@ -65,13 +67,33 @@ contract PolygonTest is Test {
     function test_InvalidDeployment() external {
         PolygonEcosystemToken token;
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(makeAddr("migration"), address(0), address(0));
+        token = new PolygonEcosystemToken(
+            address(0),
+            makeAddr("emissionManager"),
+            makeAddr("governance"),
+            makeAddr("revoker")
+        );
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), makeAddr("emissionManager"), address(0));
+        token = new PolygonEcosystemToken(
+            makeAddr("migration"),
+            address(0),
+            makeAddr("governance"),
+            makeAddr("revoker")
+        );
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), address(0), makeAddr("governance"));
+        token = new PolygonEcosystemToken(
+            makeAddr("migration"),
+            makeAddr("emissionManager"),
+            address(0),
+            makeAddr("revoker")
+        );
         vm.expectRevert(IPolygonEcosystemToken.InvalidAddress.selector);
-        token = new PolygonEcosystemToken(address(0), address(0), address(0));
+        token = new PolygonEcosystemToken(
+            makeAddr("migration"),
+            makeAddr("emissionManager"),
+            makeAddr("governance"),
+            address(0)
+        );
     }
 
     function testRevert_UpdateMintCap(uint256 newCap, address caller) external {
@@ -98,7 +120,7 @@ contract PolygonTest is Test {
     }
 
     function testRevert_Permit2Revoke(address user) external {
-        vm.assume(user != governance);
+        vm.assume(user != permit2revoker);
         vm.startPrank(user);
         vm.expectRevert();
         polygon.revokePermit2Allowance();
@@ -106,7 +128,7 @@ contract PolygonTest is Test {
 
     function test_RevokePermit2Allowance(address owner) external {
         assertEq(polygon.allowance(owner, polygon.PERMIT2()), type(uint256).max);
-        vm.prank(governance);
+        vm.prank(permit2revoker);
         vm.expectEmit(true, true, true, true);
         emit Permit2Revoked();
         polygon.revokePermit2Allowance();

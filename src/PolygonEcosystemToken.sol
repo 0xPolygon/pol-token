@@ -22,14 +22,19 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     constructor(
         address migration,
         address emissionManager,
-        address governance
+        address governance,
+        address permit2Revoker
     ) ERC20("Polygon Ecosystem Token", "POL") ERC20Permit("Polygon Ecosystem Token") {
-        if (migration == address(0) || emissionManager == address(0) || governance == address(0))
-            revert InvalidAddress();
+        if (
+            migration == address(0) ||
+            emissionManager == address(0) ||
+            governance == address(0) ||
+            permit2Revoker == address(0)
+        ) revert InvalidAddress();
         _grantRole(DEFAULT_ADMIN_ROLE, governance);
         _grantRole(EMISSION_ROLE, emissionManager);
         _grantRole(CAP_MANAGER_ROLE, governance);
-        _grantRole(PERMIT2_REVOKER_ROLE, governance);
+        _grantRole(PERMIT2_REVOKER_ROLE, permit2Revoker);
         _mint(migration, 10_000_000_000e18);
         // we can safely set lastMint here since the emission manager is initialised after the token and won't hit the cap.
         lastMint = block.timestamp;
