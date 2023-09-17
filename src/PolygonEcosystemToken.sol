@@ -38,7 +38,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
         _mint(migration, 10_000_000_000e18);
         // we can safely set lastMint here since the emission manager is initialised after the token and won't hit the cap.
         lastMint = block.timestamp;
-        permit2Enabled = true;
+        _updatePermit2Allowance(true);
     }
 
     /// @notice Mint token entrypoint for the emission manager contract
@@ -61,15 +61,20 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
         mintPerSecondCap = newCap;
     }
 
-    /// @notice Revokes the default max approval to the permit2 contract
-    function revokePermit2Allowance() external onlyRole(PERMIT2_REVOKER_ROLE) {
-        permit2Enabled = false;
-        emit Permit2Revoked();
+    /// @notice Manages the default max approval to the permit2 contract
+    /// @param enabled If true, the permit2 contract has full approval by default, if false, it has no approval by default
+    function updatePermit2Allowance(bool enabled) external onlyRole(PERMIT2_REVOKER_ROLE) {
+        _updatePermit2Allowance(enabled);
     }
 
     /// @notice The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.
     function allowance(address owner, address spender) public view override(ERC20, IERC20) returns (uint256) {
         if (spender == PERMIT2 && permit2Enabled) return type(uint256).max;
         return super.allowance(owner, spender);
+    }
+
+    function _updatePermit2Allowance(bool enabled) private {
+        permit2Enabled = enabled;
+        emit Permit2AllowanceUpdated(enabled);
     }
 }

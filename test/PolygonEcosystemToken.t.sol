@@ -8,7 +8,7 @@ import {TransparentUpgradeableProxy, ProxyAdmin} from "openzeppelin-contracts/co
 import {Test} from "forge-std/Test.sol";
 
 contract PolygonTest is Test {
-    event Permit2Revoked();
+    event Permit2AllowanceUpdated(bool enabled);
 
     PolygonEcosystemToken public polygon;
     address public matic;
@@ -123,15 +123,15 @@ contract PolygonTest is Test {
         vm.assume(user != permit2revoker);
         vm.startPrank(user);
         vm.expectRevert();
-        polygon.revokePermit2Allowance();
+        polygon.updatePermit2Allowance(false);
     }
 
     function test_RevokePermit2Allowance(address owner) external {
         assertEq(polygon.allowance(owner, polygon.PERMIT2()), type(uint256).max);
         vm.prank(permit2revoker);
         vm.expectEmit(true, true, true, true);
-        emit Permit2Revoked();
-        polygon.revokePermit2Allowance();
+        emit Permit2AllowanceUpdated(false);
+        polygon.updatePermit2Allowance(false);
         assertFalse(polygon.permit2Enabled());
         assertEq(polygon.allowance(owner, polygon.PERMIT2()), 0);
     }
