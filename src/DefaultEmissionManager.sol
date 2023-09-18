@@ -70,7 +70,7 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
     /// previous mints) and the newSupply (calculated based on the time elapsed since deployment)
     function mint() external {
         uint256 currentSupply = token.totalSupply(); // totalSupply after the last mint
-        uint256 newSupply = _inflatedSupplyAfter(
+        uint256 newSupply = inflatedSupplyAfter(
             block.timestamp - startTimestamp // time elapsed since deployment
         );
         uint256 amountToMint = newSupply - currentSupply;
@@ -94,9 +94,15 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
     /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
     /// log2(interestRatePerYear) = 0.028569152196770894 with 18 decimals, as the interest rate does not change, hard code the value
     /// @return supply total supply from compounded emission after timeElapsed
-    function _inflatedSupplyAfter(uint256 timeElapsed) private pure returns (uint256 supply) {
+    function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
         supply = (supplyFactor * START_SUPPLY) / 1e18;
+    }
+
+    /// @notice Returns the implementation version
+    /// @return Version string
+    function getVersion() external pure returns(string memory) {
+        return "1.0.0";
     }
 
     /**

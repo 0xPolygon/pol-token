@@ -54,26 +54,36 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param amount Amount of POL to migrate
     function unmigrate(uint256 amount) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+        emit Unmigrated(msg.sender, msg.sender, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
         matic.safeTransfer(msg.sender, amount);
     }
 
     /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
+    /// @param recipient Address to receive MATIC tokens
     /// @param amount Amount of POL to migrate
-    /// @param account Address to receive MATIC tokens
-    function unmigrateTo(address account, uint256 amount) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+    function unmigrateTo(address recipient, uint256 amount) external onlyUnmigrationUnlocked {
+        emit Unmigrated(msg.sender, recipient, amount);
 
         polygon.safeTransferFrom(msg.sender, address(this), amount);
-        matic.safeTransfer(account, amount);
+        matic.safeTransfer(recipient, amount);
     }
 
     /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
+    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
+    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
     /// @param amount Amount of POL to migrate
+    /// @param deadline Deadline for the permit
+    /// @param v v value of the permit signature
+    /// @param r r value of the permit signature
+    /// @param s s value of the permit signature
     function unmigrateWithPermit(
         uint256 amount,
         uint256 deadline,
@@ -81,7 +91,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         bytes32 r,
         bytes32 s
     ) external onlyUnmigrationUnlocked {
-        emit Unmigrated(msg.sender, amount);
+        emit Unmigrated(msg.sender, msg.sender, amount);
 
         IERC20Permit(address(polygon)).safePermit(msg.sender, address(this), amount, deadline, v, r, s);
         polygon.safeTransferFrom(msg.sender, address(this), amount);
@@ -96,11 +106,16 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         emit UnmigrationLockUpdated(unmigrationLocked_);
     }
 
+    /// @notice Returns the implementation version
+    /// @return Version string
+    function getVersion() external pure returns(string memory) {
+        return "1.0.0";
+    }
+
     /// @notice Allows governance to burn `amount` of POL tokens
     /// @dev This functions burns POL by sending to dead address
     /// @dev does not change totalSupply in the internal accounting of POL
     /// @param amount Amount of POL to burn
-
     function burn(uint256 amount) external onlyOwner {
         polygon.safeTransfer(0x000000000000000000000000000000000000dEaD, amount);
     }

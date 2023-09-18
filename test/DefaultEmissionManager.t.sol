@@ -48,7 +48,6 @@ contract DefaultEmissionManagerTest is Test {
         // POL being emissionary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
-        // from POS bridge
         // note: this requirement will be changed in the future after the hub's launch
         matic.mint(address(migration), 3_000_000_000e18);
 
@@ -192,5 +191,13 @@ contract DefaultEmissionManagerTest is Test {
             assertEq(polygon.balanceOf(stakeManager), 0);
             assertEq(polygon.balanceOf(treasury), balance);
         }
+    }
+
+    function test_InflatedSupplyAfter(uint256 delay) external {
+        vm.assume(delay != 0 && delay <= 10 * 365 days);
+        inputs[2] = vm.toString(delay);
+        inputs[3] = vm.toString(polygon.totalSupply());
+        uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
+        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(block.timestamp + delay), 1e19);
     }
 }
