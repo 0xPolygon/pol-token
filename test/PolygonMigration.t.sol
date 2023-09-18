@@ -36,7 +36,12 @@ contract PolygonMigrationTest is Test {
                 )
             )
         );
-        polygon = new PolygonEcosystemToken(address(migration), address(emissionManager), governance);
+        polygon = new PolygonEcosystemToken(
+            address(migration),
+            address(emissionManager),
+            governance,
+            makeAddr("permit2revoker")
+        );
         sigUtils = new SigUtils(polygon.DOMAIN_SEPARATOR());
 
         migration.setPolygonToken(address(polygon)); // deployer sets token

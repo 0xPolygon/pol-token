@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {ERC20, ERC20Permit} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
+import {ERC20, ERC20Permit, IERC20} from "openzeppelin-contracts/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {AccessControlEnumerable} from "openzeppelin-contracts/contracts/access/AccessControlEnumerable.sol";
 import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 
@@ -13,22 +13,32 @@ import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygonEcosystemToken {
     bytes32 public constant EMISSION_ROLE = keccak256("EMISSION_ROLE");
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
+    bytes32 public constant PERMIT2_REVOKER_ROLE = keccak256("PERMIT2_REVOKER_ROLE");
+    address public constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
     uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
     uint256 public lastMint;
+    bool public permit2Enabled;
 
     constructor(
         address migration,
         address emissionManager,
-        address governance
+        address governance,
+        address permit2Revoker
     ) ERC20("Polygon Ecosystem Token", "POL") ERC20Permit("Polygon Ecosystem Token") {
-        if (migration == address(0) || emissionManager == address(0) || governance == address(0))
-            revert InvalidAddress();
+        if (
+            migration == address(0) ||
+            emissionManager == address(0) ||
+            governance == address(0) ||
+            permit2Revoker == address(0)
+        ) revert InvalidAddress();
         _grantRole(DEFAULT_ADMIN_ROLE, governance);
         _grantRole(EMISSION_ROLE, emissionManager);
         _grantRole(CAP_MANAGER_ROLE, governance);
+        _grantRole(PERMIT2_REVOKER_ROLE, permit2Revoker);
         _mint(migration, 10_000_000_000e18);
         // we can safely set lastMint here since the emission manager is initialised after the token and won't hit the cap.
         lastMint = block.timestamp;
+        _updatePermit2Allowance(true);
     }
 
     /// @notice Mint token entrypoint for the emission manager contract
@@ -49,5 +59,22 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     function updateMintCap(uint256 newCap) external onlyRole(CAP_MANAGER_ROLE) {
         emit MintCapUpdated(mintPerSecondCap, newCap);
         mintPerSecondCap = newCap;
+    }
+
+    /// @notice Manages the default max approval to the permit2 contract
+    /// @param enabled If true, the permit2 contract has full approval by default, if false, it has no approval by default
+    function updatePermit2Allowance(bool enabled) external onlyRole(PERMIT2_REVOKER_ROLE) {
+        _updatePermit2Allowance(enabled);
+    }
+
+    /// @notice The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.
+    function allowance(address owner, address spender) public view override(ERC20, IERC20) returns (uint256) {
+        if (spender == PERMIT2 && permit2Enabled) return type(uint256).max;
+        return super.allowance(owner, spender);
+    }
+
+    function _updatePermit2Allowance(bool enabled) private {
+        permit2Enabled = enabled;
+        emit Permit2AllowanceUpdated(enabled);
     }
 }
