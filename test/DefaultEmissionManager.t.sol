@@ -48,7 +48,6 @@ contract DefaultEmissionManagerTest is Test {
         // POL being emissionary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
-        // from POS bridge
         // note: this requirement will be changed in the future after the hub's launch
         matic.mint(address(migration), 3_000_000_000e18);
 
