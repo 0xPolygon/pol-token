@@ -74,7 +74,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     }
 
     function _updatePermit2Allowance(bool enabled) private {
-        permit2Enabled = enabled;
         emit Permit2AllowanceUpdated(enabled);
+        permit2Enabled = enabled;
     }
 }
