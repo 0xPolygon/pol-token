@@ -221,7 +221,7 @@ contract PolygonMigrationTest is Test {
     }
 
     function testRevert_Burn(address caller, uint256 amount) external {
-        vm.assume(caller != governance);
+        vm.assume(caller != governance && caller != address(admin));
         vm.prank(caller);
         vm.expectRevert("Ownable: caller is not the owner");
         migration.burn(amount);
