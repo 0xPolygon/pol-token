@@ -5,7 +5,6 @@ import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 import {IPolygonMigration} from "./interfaces/IPolygonMigration.sol";
 import {IDefaultEmissionManager} from "./interfaces/IDefaultEmissionManager.sol";
 import {Ownable2StepUpgradeable} from "openzeppelin-contracts-upgradeable/contracts/access/Ownable2StepUpgradeable.sol";
-import {Initializable} from "openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
 import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {PowUtil} from "./lib/PowUtil.sol";
 
@@ -14,7 +13,7 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @notice A default emission manager implementation for the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
 /// @custom:security-contact security@polygon.technology
-contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefaultEmissionManager {
+contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
 
     // log2(2%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
@@ -101,7 +100,7 @@ contract DefaultEmissionManager is Initializable, Ownable2StepUpgradeable, IDefa
 
     /// @notice Returns the implementation version
     /// @return Version string
-    function getVersion() external pure returns(string memory) {
+    function getVersion() external pure returns (string memory) {
         return "1.0.0";
     }
 
