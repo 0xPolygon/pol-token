@@ -80,8 +80,9 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
         emit TokenMint(amountToMint, msg.sender);
 
-        token.mint(address(this), amountToMint);
-        token.safeTransfer(treasury, treasuryAmt);
+        IPolygonEcosystemToken _token = token;
+        _token.mint(address(this), amountToMint);
+        _token.safeTransfer(treasury, treasuryAmt);
         // backconvert POL to MATIC before sending to StakeManager
         migration.unmigrateTo(stakeManager, stakeManagerAmt);
     }
