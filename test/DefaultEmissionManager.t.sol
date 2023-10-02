@@ -29,16 +29,21 @@ contract DefaultEmissionManagerTest is Test {
         treasury = makeAddr("treasury");
         stakeManager = makeAddr("stakeManager");
         governance = makeAddr("governance");
-        emissionManagerImplementation = new DefaultEmissionManager();
         ProxyAdmin admin = new ProxyAdmin();
+        matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
+        migration = PolygonMigration(
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new PolygonMigration(address(matic))),
+                    address(admin),
+                    abi.encodeWithSelector(PolygonMigration.initialize.selector)
+                )
+            )
+        );
+        emissionManagerImplementation = new DefaultEmissionManager(address(migration), stakeManager, treasury);
         emissionManager = DefaultEmissionManager(
             address(new TransparentUpgradeableProxy(address(emissionManagerImplementation), address(admin), ""))
         );
-        matic = new ERC20PresetMinterPauser("Matic Token", "MATIC");
-        migration = PolygonMigration(
-            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), address(admin), ""))
-        );
-        migration.initialize(address(matic));
         polygon = new PolygonEcosystemToken(
             address(migration),
             address(emissionManager),
@@ -49,7 +54,7 @@ contract DefaultEmissionManagerTest is Test {
         migration.transferOwnership(governance);
         vm.prank(governance);
         migration.acceptOwnership();
-        emissionManager.initialize(address(polygon), address(migration), stakeManager, treasury, governance);
+        emissionManager.initialize(address(polygon), governance);
         // POL being emissionary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
@@ -62,7 +67,7 @@ contract DefaultEmissionManagerTest is Test {
 
     function testRevert_Initialize() external {
         vm.expectRevert("Initializable: contract is already initialized");
-        emissionManager.initialize(address(0), address(0), address(0), address(0), address(0));
+        emissionManager.initialize(address(0), address(0));
     }
 
     function test_Deployment() external {
@@ -75,44 +80,35 @@ contract DefaultEmissionManagerTest is Test {
         assertEq(polygon.totalSupply(), 10_000_000_000e18);
     }
 
-    function test_InvalidDeployment(uint160 seed) external {
-        address[5] memory params = [
-            makeAddr("polygon"),
-            makeAddr("migration"),
-            makeAddr("stakeManager"),
-            makeAddr("treasury"),
-            makeAddr("governance")
-        ];
+    function test_InvalidDeployment() external {
+        address _polygon = makeAddr("polygon");
+        address _governance = makeAddr("governance");
 
-        address proxy = address(new TransparentUpgradeableProxy(address(new DefaultEmissionManager()), msg.sender, ""));
+        address proxy = address(
+            new TransparentUpgradeableProxy(
+                address(new DefaultEmissionManager(address(migration), stakeManager, treasury)),
+                msg.sender,
+                ""
+            )
+        );
 
-        vm.prank(address(seed));
+        vm.prank(address(0x1337));
         vm.expectRevert();
-        DefaultEmissionManager(proxy).initialize(params[0], params[1], params[2], params[3], params[4]);
-
-        params[seed % params.length] = address(0); // any one is zero addr
+        DefaultEmissionManager(proxy).initialize(_polygon, _governance);
 
         vm.expectRevert(InvalidAddress.selector);
-        DefaultEmissionManager(proxy).initialize(params[0], params[1], params[2], params[3], params[4]);
+        DefaultEmissionManager(proxy).initialize(_polygon, address(0));
+        vm.expectRevert(InvalidAddress.selector);
+        DefaultEmissionManager(proxy).initialize(address(0), _governance);
+        vm.expectRevert(InvalidAddress.selector);
+        DefaultEmissionManager(proxy).initialize(address(0), address(0));
     }
 
     function test_ImplementationCannotBeInitialized() external {
         vm.expectRevert("Initializable: contract is already initialized");
-        DefaultEmissionManager(address(emissionManagerImplementation)).initialize(
-            address(0),
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        );
+        DefaultEmissionManager(address(emissionManagerImplementation)).initialize(address(0), address(0));
         vm.expectRevert("Initializable: contract is already initialized");
-        DefaultEmissionManager(address(emissionManager)).initialize(
-            address(0),
-            address(0),
-            address(0),
-            address(0),
-            address(0)
-        );
+        DefaultEmissionManager(address(emissionManager)).initialize(address(0), address(0));
     }
 
     function test_Mint() external {

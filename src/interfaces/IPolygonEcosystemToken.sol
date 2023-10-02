@@ -12,7 +12,15 @@ interface IPolygonEcosystemToken is IERC20, IERC20Permit, IAccessControlEnumerab
     error InvalidAddress();
     error MaxMintExceeded(uint256 maxMint, uint256 mintRequested);
 
+    function mintPerSecondCap() external view returns (uint256 currentMintPerSecondCap);
+
+    function lastMint() external view returns (uint256 lastMintTimestamp);
+
+    function permit2Enabled() external view returns (bool isPermit2Enabled);
+
     function mint(address to, uint256 amount) external;
 
     function updateMintCap(uint256 newCap) external;
+
+    function updatePermit2Allowance(bool enabled) external;
 }

@@ -16,8 +16,8 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     using SafeERC20 for IERC20;
     using SafeERC20 for IERC20Permit;
 
+    IERC20 public immutable matic;
     IERC20 public polygon;
-    IERC20 public matic;
     bool public unmigrationLocked;
 
     modifier onlyUnmigrationUnlocked() {
@@ -25,15 +25,14 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         _;
     }
 
-    constructor() {
+    constructor(address matic_) {
+        matic = IERC20(matic_);
         // so that the implementation contract cannot be initialized
         _disableInitializers();
     }
 
-    function initialize(address matic_) external initializer {
+    function initialize() external initializer {
         __Ownable_init();
-        if (matic_ == address(0)) revert InvalidAddress();
-        matic = IERC20(matic_);
     }
 
     /// @notice This function allows owner/governance to set POL token address *only once*
@@ -102,13 +101,13 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     /// @dev The function does not do any validation since governance can update the unmigration process if required
     /// @param unmigrationLocked_ New unmigration lock status
     function updateUnmigrationLock(bool unmigrationLocked_) external onlyOwner {
-        unmigrationLocked = unmigrationLocked_;
         emit UnmigrationLockUpdated(unmigrationLocked_);
+        unmigrationLocked = unmigrationLocked_;
     }
 
     /// @notice Returns the implementation version
     /// @return Version string
-    function getVersion() external pure returns(string memory) {
+    function getVersion() external pure returns (string memory) {
         return "1.0.0";
     }
 
