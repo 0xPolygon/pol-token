@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, stdJson} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
@@ -9,20 +9,48 @@ import {DefaultEmissionManager} from "../src/DefaultEmissionManager.sol";
 import {PolygonMigration} from "../src/PolygonMigration.sol";
 
 contract Deploy is Script {
+    using stdJson for string;
+
+    string internal constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
     uint256 public deployerPrivateKey;
 
     constructor() {
-        deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        deployerPrivateKey = vm.envOr({name: "PRIVATE_KEY", defaultValue: uint256(0)});
+        if (deployerPrivateKey == 0) {
+            (, deployerPrivateKey) = deriveRememberKey({mnemonic: TEST_MNEMONIC, index: 0});
+        }
     }
 
-    function run(
-        address matic,
-        address governance,
-        address treasury,
-        address stakeManager,
-        address permit2revoker
-    ) public {
+    function _getLatestCommitHash() internal returns (string memory ret) {
+        string[] memory input = new string[](3);
+        input[0] = "git";
+        input[1] = "rev-parse";
+        input[2] = "HEAD";
+        ret = vm.toString(vm.ffi(input));
+    }
+
+    function run() public {
+        string memory config = vm.readFile("script/config.json");
+        string memory latestCommitHash = _getLatestCommitHash();
+        address matic = config.readAddress(".matic");
+        address governance = config.readAddress(".governance");
+        address treasury = config.readAddress(".treasury");
+        address stakeManager = config.readAddress(".stakeManager");
+        address permit2revoker = config.readAddress(".permit2revoker");
+
         vm.startBroadcast(deployerPrivateKey);
+
+        string memory mainObject = "mainObj";
+        vm.serializeUint(mainObject, "chainId", block.chainid);
+        vm.serializeString(mainObject, "commitHash", latestCommitHash);
+        vm.serializeUint(mainObject, "timestamp", block.timestamp);
+
+        string memory inputObject = "inputObj";
+        vm.serializeAddress(inputObject, "matic", matic);
+        vm.serializeAddress(inputObject, "governance", governance);
+        vm.serializeAddress(inputObject, "treasury", treasury);
+        vm.serializeAddress(inputObject, "stakeManager", stakeManager);
+        string memory finalInputJson = vm.serializeAddress(inputObject, "permit2revoker", permit2revoker);
 
         ProxyAdmin admin = new ProxyAdmin();
         admin.transferOwnership(governance);
@@ -56,6 +84,43 @@ contract Deploy is Script {
         PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
         PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
+
+        string memory polygonObject = "polygonObject";
+        vm.serializeAddress(polygonObject, "polygonToken", address(polygonToken));
+        string memory finalPolygonJson = vm.serializeBytes32(
+            polygonObject,
+            "initCodeHash",
+            keccak256(abi.encode(type(PolygonEcosystemToken).creationCode))
+        );
+
+        string memory migrationObject = "migrationObject";
+        vm.serializeAddress(migrationObject, "proxy", migrationProxy);
+        vm.serializeAddress(migrationObject, "implementation", migrationImplementation);
+        vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
+        vm.serializeString(migrationObject, "version", PolygonMigration(migrationProxy).getVersion());
+        string memory finalMigrationJson = vm.serializeBytes32(
+            migrationObject,
+            "initCodeHash",
+            keccak256(abi.encode(type(PolygonMigration).creationCode))
+        );
+
+        string memory emissionObject = "emissionObject";
+        vm.serializeAddress(emissionObject, "proxy", emissionManagerProxy);
+        vm.serializeAddress(emissionObject, "implementation", emissionManagerImplementation);
+        vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
+        vm.serializeString(emissionObject, "version", DefaultEmissionManager(migrationProxy).getVersion());
+        string memory finalEmissionJson = vm.serializeBytes32(
+            emissionObject,
+            "initCodeHash",
+            keccak256(abi.encode(type(DefaultEmissionManager).creationCode))
+        );
+
+        vm.serializeString(mainObject, "input", finalInputJson);
+        vm.serializeString(mainObject, "polygonToken", finalPolygonJson);
+        vm.serializeString(mainObject, "polygonMigration", finalMigrationJson);
+        string memory finalMainJson = vm.serializeString(mainObject, "defaultEmissionManager", finalEmissionJson);
+
+        vm.writeJson(finalMainJson, "output/deploy.json");
 
         vm.stopBroadcast();
     }
