@@ -29,10 +29,16 @@ contract PolygonTest is Test {
         permit2revoker = makeAddr("permit2revoker");
         ProxyAdmin admin = new ProxyAdmin();
         emissionManager = DefaultEmissionManager(
-            address(new TransparentUpgradeableProxy(address(new DefaultEmissionManager()), address(admin), ""))
+            address(
+                new TransparentUpgradeableProxy(
+                    address(new DefaultEmissionManager(migration, stakeManager, treasury)),
+                    address(admin),
+                    ""
+                )
+            )
         );
         polygon = new PolygonEcosystemToken(migration, address(emissionManager), governance, permit2revoker);
-        emissionManager.initialize(address(polygon), migration, stakeManager, treasury, msg.sender);
+        emissionManager.initialize(address(polygon), msg.sender);
     }
 
     function test_Deployment(address owner) external {

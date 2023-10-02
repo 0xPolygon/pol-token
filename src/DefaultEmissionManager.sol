@@ -21,45 +21,34 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
 
-    IPolygonEcosystemToken public token;
-    IPolygonMigration public migration;
-    address public stakeManager;
-    address public treasury;
+    IPolygonMigration public immutable migration;
+    address public immutable stakeManager;
+    address public immutable treasury;
 
+    IPolygonEcosystemToken public token;
     uint256 public startTimestamp;
 
-    constructor() {
+    constructor(address migration_, address stakeManager_, address treasury_) {
         DEPLOYER = msg.sender;
+        migration = IPolygonMigration(migration_);
+        stakeManager = stakeManager_;
+        treasury = treasury_;
+
         // so that the implementation contract cannot be initialized
         _disableInitializers();
     }
 
-    function initialize(
-        address token_,
-        address migration_,
-        address stakeManager_,
-        address treasury_,
-        address owner_
-    ) external initializer {
+    function initialize(address token_, address owner_) external initializer {
         // prevent front-running since we can't initialize on proxy deployment
         if (DEPLOYER != msg.sender) revert();
-        if (
-            token_ == address(0) ||
-            migration_ == address(0) ||
-            stakeManager_ == address(0) ||
-            treasury_ == address(0) ||
-            owner_ == address(0)
-        ) revert InvalidAddress();
+        if (token_ == address(0) || owner_ == address(0)) revert InvalidAddress();
 
         token = IPolygonEcosystemToken(token_);
-        migration = IPolygonMigration(migration_);
-        stakeManager = stakeManager_;
-        treasury = treasury_;
         startTimestamp = block.timestamp;
 
         assert(START_SUPPLY == token.totalSupply());
 
-        token.safeApprove(migration_, type(uint256).max);
+        token.safeApprove(address(migration), type(uint256).max);
         // initial ownership setup bypassing 2 step ownership transfer process
         _transferOwnership(owner_);
     }

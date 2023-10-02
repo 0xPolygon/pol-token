@@ -30,9 +30,9 @@ contract PolygonMigrationTest is Test {
         migration = PolygonMigration(
             address(
                 new TransparentUpgradeableProxy(
-                    address(new PolygonMigration()),
+                    address(new PolygonMigration(address(matic))),
                     address(admin),
-                    abi.encodeCall(PolygonMigration.initialize, address(matic))
+                    abi.encodeWithSelector(PolygonMigration.initialize.selector)
                 )
             )
         );
@@ -58,13 +58,11 @@ contract PolygonMigrationTest is Test {
 
     function test_InvalidDeployment() external {
         PolygonMigration temp = PolygonMigration(
-            address(new TransparentUpgradeableProxy(address(new PolygonMigration()), msg.sender, ""))
+            address(new TransparentUpgradeableProxy(address(new PolygonMigration(address(matic))), msg.sender, ""))
         );
-        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
-        temp.initialize(address(0));
-        temp.initialize(address(matic));
+        temp.initialize();
         vm.expectRevert("Initializable: contract is already initialized");
-        temp.initialize(address(1));
+        temp.initialize();
     }
 
     function test_Migrate(address user, uint256 amount) external {

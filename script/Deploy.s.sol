@@ -27,17 +27,19 @@ contract Deploy is Script {
         ProxyAdmin admin = new ProxyAdmin();
         admin.transferOwnership(governance);
 
-        address migrationImplementation = address(new PolygonMigration());
+        address migrationImplementation = address(new PolygonMigration(matic));
 
         address migrationProxy = address(
             new TransparentUpgradeableProxy(
                 migrationImplementation,
                 address(admin),
-                abi.encodeCall(PolygonMigration.initialize, matic)
+                abi.encodeWithSelector(PolygonMigration.initialize.selector)
             )
         );
 
-        address emissionManagerImplementation = address(new DefaultEmissionManager());
+        address emissionManagerImplementation = address(
+            new DefaultEmissionManager(migrationProxy, stakeManager, treasury)
+        );
         address emissionManagerProxy = address(
             new TransparentUpgradeableProxy(address(emissionManagerImplementation), address(admin), "")
         );
@@ -49,13 +51,7 @@ contract Deploy is Script {
             permit2revoker
         );
 
-        DefaultEmissionManager(emissionManagerProxy).initialize(
-            address(polygonToken),
-            migrationProxy,
-            stakeManager,
-            treasury,
-            governance
-        );
+        DefaultEmissionManager(emissionManagerProxy).initialize(address(polygonToken), governance);
 
         PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
