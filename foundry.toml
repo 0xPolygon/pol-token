@@ -9,7 +9,7 @@ solc = '0.8.21'
 ffi = true
 fs_permissions = [
   { access = "read", path = "script/config.json" },
-  { access = "write", path = "output/deploy.json" },
+  { access = "read-write", path = "output/deploy.json" },
 ]
 
 [profile.intense.fuzz]

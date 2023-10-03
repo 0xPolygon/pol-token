@@ -32,11 +32,12 @@ contract Deploy is Script {
     function run() public {
         string memory config = vm.readFile("script/config.json");
         string memory latestCommitHash = _getLatestCommitHash();
-        address matic = config.readAddress(".matic");
-        address governance = config.readAddress(".governance");
-        address treasury = config.readAddress(".treasury");
-        address stakeManager = config.readAddress(".stakeManager");
-        address permit2revoker = config.readAddress(".permit2revoker");
+        string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
+        address matic = config.readAddress(string(abi.encodePacked(chainIdSlug, ".matic")));
+        address governance = config.readAddress(string(abi.encodePacked(chainIdSlug, ".governance")));
+        address treasury = config.readAddress(string(abi.encodePacked(chainIdSlug, ".treasury")));
+        address stakeManager = config.readAddress(string(abi.encodePacked(chainIdSlug, ".stakeManager")));
+        address permit2revoker = config.readAddress(string(abi.encodePacked(chainIdSlug, ".permit2revoker")));
 
         vm.startBroadcast(deployerPrivateKey);
 
