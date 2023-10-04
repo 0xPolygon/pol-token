@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
+import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+
 interface IPolygonMigration {
     error UnmigrationLocked();
     error InvalidAddressOrAlreadySet();
@@ -11,6 +13,8 @@ interface IPolygonMigration {
     event UnmigrationLockUpdated(bool lock);
 
     function unmigrationLocked() external view returns (bool isUnmigrationLocked);
+
+    function polygon() external view returns(IERC20 polygonEcosystemToken);
 
     function getVersion() external pure returns (string memory version);
 
