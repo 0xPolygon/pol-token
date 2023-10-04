@@ -83,6 +83,9 @@ contract DefaultEmissionManagerTest is Test {
     function test_InvalidDeployment() external {
         address _polygon = makeAddr("polygon");
         address _governance = makeAddr("governance");
+        address _migration = makeAddr("migration");
+        address _treasury = makeAddr("treasury");
+        address _stakeManager = makeAddr("stakeManager");
 
         address proxy = address(
             new TransparentUpgradeableProxy(
@@ -102,6 +105,13 @@ contract DefaultEmissionManagerTest is Test {
         DefaultEmissionManager(proxy).initialize(address(0), _governance);
         vm.expectRevert(InvalidAddress.selector);
         DefaultEmissionManager(proxy).initialize(address(0), address(0));
+
+        vm.expectRevert(InvalidAddress.selector);
+        new DefaultEmissionManager(_migration, address(0), _treasury);
+        vm.expectRevert(InvalidAddress.selector);
+        new DefaultEmissionManager(address(0), _stakeManager, _treasury);
+        vm.expectRevert(InvalidAddress.selector);
+        new DefaultEmissionManager(_migration, _stakeManager, address(0));
     }
 
     function test_ImplementationCannotBeInitialized() external {
