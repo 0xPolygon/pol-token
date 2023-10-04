@@ -29,6 +29,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     uint256 public startTimestamp;
 
     constructor(address migration_, address stakeManager_, address treasury_) {
+        if (migration_ == address(0) || stakeManager_ == address(0) || treasury_ == address(0)) revert InvalidAddress();
         DEPLOYER = msg.sender;
         migration = IPolygonMigration(migration_);
         stakeManager = stakeManager_;

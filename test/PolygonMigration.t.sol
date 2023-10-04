@@ -63,6 +63,9 @@ contract PolygonMigrationTest is Test {
         temp.initialize();
         vm.expectRevert("Initializable: contract is already initialized");
         temp.initialize();
+
+        vm.expectRevert(IPolygonMigration.InvalidAddress.selector);
+        new PolygonMigration(address(0));
     }
 
     function test_Migrate(address user, uint256 amount) external {

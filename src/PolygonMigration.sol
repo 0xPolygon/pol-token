@@ -26,6 +26,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     constructor(address matic_) {
+        if (matic_ == address(0)) revert InvalidAddress();
         matic = IERC20(matic_);
         // so that the implementation contract cannot be initialized
         _disableInitializers();

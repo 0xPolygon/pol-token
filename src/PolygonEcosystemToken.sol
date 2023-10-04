@@ -73,6 +73,14 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
         return super.allowance(owner, spender);
     }
 
+    /// @notice Returns the implementation version
+    /// @dev This is to support our dev pipeline, and is present despite
+    /// this contract not being behind a proxy
+    /// @return Version string
+    function getVersion() external pure returns (string memory) {
+        return "1.0.0";
+    }
+
     function _updatePermit2Allowance(bool enabled) private {
         emit Permit2AllowanceUpdated(enabled);
         permit2Enabled = enabled;
