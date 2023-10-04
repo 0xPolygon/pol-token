@@ -36,7 +36,7 @@ contract Deploy is Script {
         input[2] = vm.toString(block.chainid);
         bytes memory out = vm.ffi(input);
         if (out.length == 0) console.log("extractBroadcastAndUpdate successful");
-        else console.log("extractBroadcastAndUpdate:", vm.toString(out));
+        else console.log("extractBroadcastAndUpdate:", string(out));
     }
 
     modifier postHook() {

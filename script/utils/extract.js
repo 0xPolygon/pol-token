@@ -52,7 +52,10 @@ function main() {
   }, {});
 
   const outPath = join(__dirname, `../../output/${chainId}.json`);
-  const out = existsSync(outPath) ? JSON.parse(readFileSync(outPath, "utf-8")) : { chainId, latest: {}, history: [] };
+  const out = JSON.parse(
+    (existsSync(outPath) && readFileSync(outPath, "utf-8"))
+    || JSON.stringify({ chainId, latest: {}, history: [] })
+  );
 
   // only update if there are changes to specific contracts from history
   if (Object.keys(out.latest).length != 0) {
@@ -68,7 +71,7 @@ function main() {
     contracts,
     input: JSON.parse(readFileSync(join(__dirname, "../config.json"), "utf-8"))[chainId],
     commitHash,
-    timestamp: Date.now(),
+    timestamp: data.timestamp,
   };
 
   console.log({ out });
