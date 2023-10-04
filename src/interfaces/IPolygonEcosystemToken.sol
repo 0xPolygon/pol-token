@@ -13,7 +13,7 @@ interface IPolygonEcosystemToken is IERC20, IERC20Permit, IAccessControlEnumerab
     error MaxMintExceeded(uint256 maxMint, uint256 mintRequested);
 
     function mintPerSecondCap() external view returns (uint256 currentMintPerSecondCap);
-  
+
     function getVersion() external pure returns (string memory version);
 
     function lastMint() external view returns (uint256 lastMintTimestamp);

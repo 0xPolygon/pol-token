@@ -41,8 +41,7 @@ async function main() {
     deployments
       .filter(
         ({ contractName }) =>
-          contractName !== "TransparentUpgradeableProxy" &&
-          !proxies.find((p) => p.contractName === contractName)
+          contractName !== "TransparentUpgradeableProxy" && !proxies.find((p) => p.contractName === contractName)
       )
       .map(async ({ contractName, contractAddress, transaction: { data } }) => ({
         address: contractAddress,
@@ -70,8 +69,10 @@ async function main() {
   }
   // overwrite latest with changed contracts
   out.latest = {
-    ...out.latest,
-    contracts,
+    contracts: {
+      ...out.latest?.contracts,
+      ...contracts,
+    },
     input: config[chainId],
     commitHash,
     timestamp: data.timestamp,
@@ -106,7 +107,7 @@ async function getVersion(contractAddress, rpcUrl) {
     if (res.error) throw new Error(res.error.message);
     return { version: hexToAscii(res.result)?.trim() || res.result };
   } catch (e) {
-    if (e.message === "execution reverted") return null; // contract does implement getVersion()
+    if (e.message === "execution reverted") return null; // contract does not implement getVersion()
     console.log("getVersion error:", rpcUrl, e.message);
     return { version: undefined };
   }
