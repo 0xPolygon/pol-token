@@ -14,7 +14,7 @@ interface IPolygonMigration {
 
     function unmigrationLocked() external view returns (bool isUnmigrationLocked);
 
-    function polygon() external view returns(IERC20 polygonEcosystemToken);
+    function polygon() external view returns (IERC20 polygonEcosystemToken);
 
     function getVersion() external pure returns (string memory version);
 

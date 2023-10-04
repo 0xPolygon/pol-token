@@ -41,8 +41,7 @@ async function main() {
     deployments
       .filter(
         ({ contractName }) =>
-          contractName !== "TransparentUpgradeableProxy" &&
-          !proxies.find((p) => p.contractName === contractName)
+          contractName !== "TransparentUpgradeableProxy" && !proxies.find((p) => p.contractName === contractName)
       )
       .map(async ({ contractName, contractAddress, transaction: { data } }) => ({
         address: contractAddress,
@@ -70,8 +69,10 @@ async function main() {
   }
   // overwrite latest with changed contracts
   out.latest = {
-    ...out.latest,
-    contracts,
+    contracts: {
+      ...out.latest?.contracts,
+      ...contracts,
+    },
     input: config[chainId],
     commitHash,
     timestamp: data.timestamp,
