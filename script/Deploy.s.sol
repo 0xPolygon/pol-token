@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, stdJson, console2 as console} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
@@ -9,19 +9,35 @@ import {DefaultEmissionManager} from "../src/DefaultEmissionManager.sol";
 import {PolygonMigration} from "../src/PolygonMigration.sol";
 
 contract Deploy is Script {
+    using stdJson for string;
+
+    string internal constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
     uint256 public deployerPrivateKey;
 
     constructor() {
-        deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        deployerPrivateKey = vm.envOr({name: "PRIVATE_KEY", defaultValue: uint256(0)});
+        if (deployerPrivateKey == 0) {
+            (, deployerPrivateKey) = deriveRememberKey({mnemonic: TEST_MNEMONIC, index: 0});
+        }
     }
 
-    function run(
-        address matic,
-        address governance,
-        address treasury,
-        address stakeManager,
-        address permit2revoker
-    ) public {
+    function _getLatestCommitHash() internal returns (string memory ret) {
+        string[] memory input = new string[](3);
+        input[0] = "git";
+        input[1] = "rev-parse";
+        input[2] = "HEAD";
+        ret = vm.toString(vm.ffi(input));
+    }
+
+    function run() public {
+        string memory config = vm.readFile("script/config.json");
+        string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
+        address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
+        address governance = config.readAddress(string.concat(chainIdSlug, ".governance"));
+        address treasury = config.readAddress(string.concat(chainIdSlug, ".treasury"));
+        address stakeManager = config.readAddress(string.concat(chainIdSlug, ".stakeManager"));
+        address permit2revoker = config.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
+
         vm.startBroadcast(deployerPrivateKey);
 
         ProxyAdmin admin = new ProxyAdmin();

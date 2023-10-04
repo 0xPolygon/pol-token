@@ -4,3 +4,7 @@
 /coverage
 lcov.info
 .DS_Store
+broadcast/
+.env
+
+output/31337.json
