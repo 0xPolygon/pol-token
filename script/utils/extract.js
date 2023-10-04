@@ -107,7 +107,7 @@ async function getVersion(contractAddress, rpcUrl) {
     if (res.error) throw new Error(res.error.message);
     return { version: hexToAscii(res.result)?.trim() || res.result };
   } catch (e) {
-    if (e.message === "execution reverted") return null; // contract does implement getVersion()
+    if (e.message === "execution reverted") return null; // contract does not implement getVersion()
     console.log("getVersion error:", rpcUrl, e.message);
     return { version: undefined };
   }
