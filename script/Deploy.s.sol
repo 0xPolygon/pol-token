@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.21;
 
-import {Script, stdJson} from "forge-std/Script.sol";
+import {Script, stdJson, console2 as console} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
@@ -29,15 +29,30 @@ contract Deploy is Script {
         ret = vm.toString(vm.ffi(input));
     }
 
-    function run() public {
+    function _extractBroadcastAndUpdate() internal {
+        string[] memory input = new string[](3);
+        input[0] = "node";
+        input[1] = "script/utils/extract.js";
+        input[2] = vm.toString(block.chainid);
+        bytes memory out = vm.ffi(input);
+        if (out.length == 0) console.log("extractBroadcastAndUpdate successful");
+        else console.log("extractBroadcastAndUpdate:", vm.toString(out));
+    }
+
+    modifier postHook() {
+        _;
+        _extractBroadcastAndUpdate();
+    }
+
+    function run() public postHook {
         string memory config = vm.readFile("script/config.json");
         string memory latestCommitHash = _getLatestCommitHash();
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
-        address matic = config.readAddress(string(abi.encodePacked(chainIdSlug, ".matic")));
-        address governance = config.readAddress(string(abi.encodePacked(chainIdSlug, ".governance")));
-        address treasury = config.readAddress(string(abi.encodePacked(chainIdSlug, ".treasury")));
-        address stakeManager = config.readAddress(string(abi.encodePacked(chainIdSlug, ".stakeManager")));
-        address permit2revoker = config.readAddress(string(abi.encodePacked(chainIdSlug, ".permit2revoker")));
+        address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
+        address governance = config.readAddress(string.concat(chainIdSlug, ".governance"));
+        address treasury = config.readAddress(string.concat(chainIdSlug, ".treasury"));
+        address stakeManager = config.readAddress(string.concat(chainIdSlug, ".stakeManager"));
+        address permit2revoker = config.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -87,7 +102,8 @@ contract Deploy is Script {
         PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
 
         string memory polygonObject = "polygonObject";
-        vm.serializeAddress(polygonObject, "polygonToken", address(polygonToken));
+        vm.serializeAddress(polygonObject, "address", address(polygonToken));
+        vm.serializeBool(polygonObject, "proxy", false);
         string memory finalPolygonJson = vm.serializeBytes32(
             polygonObject,
             "initCodeHash",
@@ -95,10 +111,11 @@ contract Deploy is Script {
         );
 
         string memory migrationObject = "migrationObject";
-        vm.serializeAddress(migrationObject, "proxy", migrationProxy);
+        vm.serializeAddress(migrationObject, "address", migrationProxy);
         vm.serializeAddress(migrationObject, "implementation", migrationImplementation);
         vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
         vm.serializeString(migrationObject, "version", PolygonMigration(migrationProxy).getVersion());
+        vm.serializeBool(migrationObject, "proxy", true);
         string memory finalMigrationJson = vm.serializeBytes32(
             migrationObject,
             "initCodeHash",
@@ -106,10 +123,11 @@ contract Deploy is Script {
         );
 
         string memory emissionObject = "emissionObject";
-        vm.serializeAddress(emissionObject, "proxy", emissionManagerProxy);
+        vm.serializeAddress(emissionObject, "address", emissionManagerProxy);
         vm.serializeAddress(emissionObject, "implementation", emissionManagerImplementation);
         vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
         vm.serializeString(emissionObject, "version", DefaultEmissionManager(migrationProxy).getVersion());
+        vm.serializeBool(emissionObject, "proxy", true);
         string memory finalEmissionJson = vm.serializeBytes32(
             emissionObject,
             "initCodeHash",
