@@ -26,6 +26,27 @@ A default implementation is included and this contract will be proxy upgradable 
 
 [Source Code](https://github.com/0xPolygon/pol-token/tree/main/src/DefaultEmissionManager.sol)
 
+## Development
+
+# Setup
+
+-   Install foundry: https://book.getfoundry.sh/getting-started/installation
+-   Install Dependencies: `forge install`
+-   Build: `forge build`
+-   Test: `forge test`
+
+# Deployment
+
+1. Ensure .env file is set, `cp .env.example`
+2. Populate Enviornment variables: `source .env`
+
+3. We use a forge script to deploy the contracts, and have an additional extract.js script to store a JSON file with
+
+-   (mainnet): `forge script script/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --private-key $PRIVATE_KEY --etherscan-api-key $ETHERSCAN_API_KEY`
+-   (testnet, goerli for example): `forge script script/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --private-key $PRIVATE_KEY --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
+
+4. Run `node script/util/extract.js` to extract deployment information from forge broadcast output (broadcast/latest-run.json specifically).
+
 ---
 
 Copyright (C) 2023 PT Services DMCC
