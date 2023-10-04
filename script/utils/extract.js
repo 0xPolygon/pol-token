@@ -33,7 +33,7 @@ async function main() {
         address: contractAddress,
         contractName: deployedContractsMap.get(arguments[0]),
         proxy: true,
-        version: await getVersion(contractAddress, rpcUrl),
+        ...(await getVersion(contractAddress, rpcUrl)),
         proxyType: "TransparentUpgradeableProxy",
       }))
   );
@@ -48,7 +48,7 @@ async function main() {
         address: contractAddress,
         contractName,
         proxy: false,
-        version: await getVersion(contractAddress, rpcUrl),
+        ...(await getVersion(contractAddress, rpcUrl)),
       }))
   );
   const contracts = [...proxies, ...nonProxies].reduce((obj, { contractName, ...rest }) => {
@@ -103,11 +103,11 @@ async function getVersion(contractAddress, rpcUrl) {
       })
     ).json();
     if (res.error) throw new Error(res.error.message);
-    return hexToAscii(res.result)?.trim() || "---";
+    return { version: hexToAscii(res.result)?.trim() || res.result };
   } catch (e) {
-    if (e.message === "execution reverted") return ""; // contract does implement getVersion()
+    if (e.message === "execution reverted") return null; // contract does implement getVersion()
     console.log("getVersion error:", rpcUrl, e.message);
-    return "---";
+    return { version: undefined };
   }
 }
 
