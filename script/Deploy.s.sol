@@ -46,7 +46,6 @@ contract Deploy is Script {
 
     function run() public postHook {
         string memory config = vm.readFile("script/config.json");
-        string memory latestCommitHash = _getLatestCommitHash();
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
         address governance = config.readAddress(string.concat(chainIdSlug, ".governance"));
@@ -55,18 +54,6 @@ contract Deploy is Script {
         address permit2revoker = config.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
 
         vm.startBroadcast(deployerPrivateKey);
-
-        string memory mainObject = "mainObj";
-        vm.serializeUint(mainObject, "chainId", block.chainid);
-        vm.serializeString(mainObject, "commitHash", latestCommitHash);
-        vm.serializeUint(mainObject, "timestamp", block.timestamp);
-
-        string memory inputObject = "inputObj";
-        vm.serializeAddress(inputObject, "matic", matic);
-        vm.serializeAddress(inputObject, "governance", governance);
-        vm.serializeAddress(inputObject, "treasury", treasury);
-        vm.serializeAddress(inputObject, "stakeManager", stakeManager);
-        string memory finalInputJson = vm.serializeAddress(inputObject, "permit2revoker", permit2revoker);
 
         ProxyAdmin admin = new ProxyAdmin();
         admin.transferOwnership(governance);
@@ -100,46 +87,6 @@ contract Deploy is Script {
         PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
         PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
-
-        string memory polygonObject = "polygonObject";
-        vm.serializeAddress(polygonObject, "address", address(polygonToken));
-        vm.serializeBool(polygonObject, "proxy", false);
-        string memory finalPolygonJson = vm.serializeBytes32(
-            polygonObject,
-            "initCodeHash",
-            keccak256(abi.encode(type(PolygonEcosystemToken).creationCode))
-        );
-
-        string memory migrationObject = "migrationObject";
-        vm.serializeAddress(migrationObject, "address", migrationProxy);
-        vm.serializeAddress(migrationObject, "implementation", migrationImplementation);
-        vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
-        vm.serializeString(migrationObject, "version", PolygonMigration(migrationProxy).getVersion());
-        vm.serializeBool(migrationObject, "proxy", true);
-        string memory finalMigrationJson = vm.serializeBytes32(
-            migrationObject,
-            "initCodeHash",
-            keccak256(abi.encode(type(PolygonMigration).creationCode))
-        );
-
-        string memory emissionObject = "emissionObject";
-        vm.serializeAddress(emissionObject, "address", emissionManagerProxy);
-        vm.serializeAddress(emissionObject, "implementation", emissionManagerImplementation);
-        vm.serializeAddress(migrationObject, "proxyAdmin", address(admin));
-        vm.serializeString(emissionObject, "version", DefaultEmissionManager(migrationProxy).getVersion());
-        vm.serializeBool(emissionObject, "proxy", true);
-        string memory finalEmissionJson = vm.serializeBytes32(
-            emissionObject,
-            "initCodeHash",
-            keccak256(abi.encode(type(DefaultEmissionManager).creationCode))
-        );
-
-        vm.serializeString(mainObject, "input", finalInputJson);
-        vm.serializeString(mainObject, "polygonToken", finalPolygonJson);
-        vm.serializeString(mainObject, "polygonMigration", finalMigrationJson);
-        string memory finalMainJson = vm.serializeString(mainObject, "defaultEmissionManager", finalEmissionJson);
-
-        vm.writeJson(finalMainJson, "output/deploy.json");
 
         vm.stopBroadcast();
     }
