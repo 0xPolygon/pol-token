@@ -1,4 +1,4 @@
-const { readFileSync, existsSync, writeFileSync } = require("fs");
+const { readFileSync, existsSync, writeFileSync, mkdirSync } = require("fs");
 const { execSync } = require("child_process");
 const { join } = require("path");
 
@@ -57,6 +57,7 @@ async function main() {
   }, {});
 
   const outPath = join(__dirname, `../../output/${chainId}.json`);
+  if (!existsSync(join(__dirname, "../../output/"))) mkdirSync(join(__dirname, "../../output/"));
   const out = JSON.parse(
     (existsSync(outPath) && readFileSync(outPath, "utf-8")) || JSON.stringify({ chainId, latest: {}, history: [] })
   );
