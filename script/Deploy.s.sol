@@ -29,22 +29,7 @@ contract Deploy is Script {
         ret = vm.toString(vm.ffi(input));
     }
 
-    function _extractBroadcastAndUpdate() internal {
-        string[] memory input = new string[](3);
-        input[0] = "node";
-        input[1] = "script/utils/extract.js";
-        input[2] = vm.toString(block.chainid);
-        bytes memory out = vm.ffi(input);
-        if (out.length == 0) console.log("extractBroadcastAndUpdate successful");
-        else console.log("extractBroadcastAndUpdate:", string(out));
-    }
-
-    modifier postHook() {
-        _;
-        _extractBroadcastAndUpdate();
-    }
-
-    function run() public postHook {
+    function run() public {
         string memory config = vm.readFile("script/config.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
