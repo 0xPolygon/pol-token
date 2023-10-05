@@ -46,6 +46,10 @@ A default implementation is included and this contract will be proxy upgradable 
 
 4. Run `node script/util/extract.js <chainId>` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
 
+## Reference Deployments
+
+- Goerli [0x4f34BF3352A701AEc924CE34d6CfC373eABb186c](https://goerli.etherscan.io/address/0x4f34BF3352A701AEc924CE34d6CfC373eABb186c)
+
 ---
 
 Copyright (C) 2023 PT Services DMCC
