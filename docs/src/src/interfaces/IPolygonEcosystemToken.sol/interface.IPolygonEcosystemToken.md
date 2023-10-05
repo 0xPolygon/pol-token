@@ -1,5 +1,5 @@
 # IPolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c05c8984ac856501829862c1f6d199208aa77a8e/src/interfaces/IPolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/interfaces/IPolygonEcosystemToken.sol)
 
 **Inherits:**
 IERC20, IERC20Permit, IAccessControlEnumerable
@@ -11,6 +11,13 @@ IERC20, IERC20Permit, IAccessControlEnumerable
 
 ```solidity
 function mintPerSecondCap() external view returns (uint256 currentMintPerSecondCap);
+```
+
+### getVersion
+
+
+```solidity
+function getVersion() external pure returns (string memory version);
 ```
 
 ### lastMint

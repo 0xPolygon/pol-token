@@ -1,5 +1,5 @@
 # DefaultEmissionManager
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c05c8984ac856501829862c1f6d199208aa77a8e/src/DefaultEmissionManager.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/DefaultEmissionManager.sol)
 
 **Inherits:**
 Ownable2StepUpgradeable, [IDefaultEmissionManager](/src/interfaces/IDefaultEmissionManager.sol/interface.IDefaultEmissionManager.md)
@@ -76,7 +76,7 @@ See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps*
 
 
 ```solidity
-uint256[50] private __gap;
+uint256[48] private __gap;
 ```
 
 

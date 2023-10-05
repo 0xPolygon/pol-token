@@ -1,5 +1,5 @@
 # IDefaultEmissionManager
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c05c8984ac856501829862c1f6d199208aa77a8e/src/interfaces/IDefaultEmissionManager.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/interfaces/IDefaultEmissionManager.sol)
 
 
 ## Functions
@@ -8,6 +8,13 @@
 
 ```solidity
 function getVersion() external pure returns (string memory version);
+```
+
+### token
+
+
+```solidity
+function token() external view returns (IPolygonEcosystemToken polygonEcosystemToken);
 ```
 
 ### startTimestamp

@@ -1,5 +1,5 @@
 # IPolygonMigration
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c05c8984ac856501829862c1f6d199208aa77a8e/src/interfaces/IPolygonMigration.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/interfaces/IPolygonMigration.sol)
 
 
 ## Functions
@@ -8,6 +8,13 @@
 
 ```solidity
 function unmigrationLocked() external view returns (bool isUnmigrationLocked);
+```
+
+### polygon
+
+
+```solidity
+function polygon() external view returns (IERC20 polygonEcosystemToken);
 ```
 
 ### getVersion

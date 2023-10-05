@@ -1,5 +1,5 @@
 # PolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c05c8984ac856501829862c1f6d199208aa77a8e/src/PolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/PolygonEcosystemToken.sol)
 
 **Inherits:**
 ERC20Permit, AccessControlEnumerable, [IPolygonEcosystemToken](/src/interfaces/IPolygonEcosystemToken.sol/interface.IPolygonEcosystemToken.md)
@@ -128,6 +128,24 @@ The permit2 contract has full approval by default. If the approval is revoked, i
 ```solidity
 function allowance(address owner, address spender) public view override(ERC20, IERC20) returns (uint256);
 ```
+
+### getVersion
+
+Returns the implementation version
+
+*This is to support our dev pipeline, and is present despite
+this contract not being behind a proxy*
+
+
+```solidity
+function getVersion() external pure returns (string memory);
+```
+**Returns**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`<none>`|`string`|Version string|
+
 
 ### _updatePermit2Allowance
 
