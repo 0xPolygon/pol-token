@@ -18,7 +18,7 @@ contract PolygonTest is Test {
     address public governance;
     address public permit2revoker;
     DefaultEmissionManager public emissionManager;
-    uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
+    uint256 public mintPerSecondCap = 13.37e18; // 13.37 POL tokens per second
 
     function setUp() external {
         migration = makeAddr("migration");
