@@ -6,7 +6,7 @@ import {AccessControlEnumerable} from "openzeppelin-contracts/contracts/access/A
 import {IPolygonEcosystemToken} from "./interfaces/IPolygonEcosystemToken.sol";
 
 /// @title Polygon ERC20 token
-/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk, @simonDos)
 /// @notice This is the Polygon ERC20 token contract on Ethereum L1
 /// @dev The contract allows for a 1-to-1 representation between $POL and $MATIC and allows for additional emission based on hub and treasury requirements
 /// @custom:security-contact security@polygon.technology
@@ -15,7 +15,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
     bytes32 public constant PERMIT2_REVOKER_ROLE = keccak256("PERMIT2_REVOKER_ROLE");
     address public constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
-    uint256 public mintPerSecondCap = 10e18; // 10 POL tokens per second
+    uint256 public mintPerSecondCap = 13.37e18; // 13.37 POL tokens per second. will limit emission in ~23 years
     uint256 public lastMint;
     bool public permit2Enabled;
 
@@ -78,7 +78,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     /// this contract not being behind a proxy
     /// @return Version string
     function getVersion() external pure returns (string memory) {
-        return "1.0.0";
+        return "1.1.0";
     }
 
     function _updatePermit2Allowance(bool enabled) private {

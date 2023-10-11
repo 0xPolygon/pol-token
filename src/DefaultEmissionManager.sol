@@ -9,15 +9,15 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 import {PowUtil} from "./lib/PowUtil.sol";
 
 /// @title Default Emission Manager
-/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
+/// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk, @simonDos)
 /// @notice A default emission manager implementation for the Polygon ERC20 token contract on Ethereum L1
-/// @dev The contract allows for a 1% mint *each* per year (compounded every year) to the stakeManager and treasury contracts
+/// @dev The contract allows for a 3% mint per year (compounded). 2% stakeManager(Hub) and 1% treasury
 /// @custom:security-contact security@polygon.technology
 contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
 
-    // log2(2%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
-    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.028569152196770894e18;
+    // log2(3%pa continuously compounded emission per year) in 18 decimals, see _inflatedSupplyAfter
+    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.04264433740849372e18;
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
 
@@ -65,7 +65,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
         uint256 amountToMint = newSupply - currentSupply;
         if (amountToMint == 0) return; // no minting required
 
-        uint256 treasuryAmt = amountToMint / 2;
+        uint256 treasuryAmt = amountToMint / 3;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
         emit TokenMint(amountToMint, msg.sender);
@@ -79,10 +79,10 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
     /// @notice Returns total supply from compounded emission after timeElapsed from startTimestamp (deployment)
     /// @param timeElapsed The time elapsed since startTimestamp
-    /// @dev interestRatePerYear = 1.02; 2% per year
+    /// @dev interestRatePerYear = 1.03; 3% per year
     /// approximate the compounded interest rate using x^y = 2^(log2(x)*y)
     /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
-    /// log2(interestRatePerYear) = 0.028569152196770894 with 18 decimals, as the interest rate does not change, hard code the value
+    /// log2(interestRatePerYear) = 0.04264433740849372 with 18 decimals, as the interest rate does not change, hard code the value
     /// @return supply total supply from compounded emission after timeElapsed
     function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
@@ -92,7 +92,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     /// @notice Returns the implementation version
     /// @return Version string
     function getVersion() external pure returns (string memory) {
-        return "1.0.0";
+        return "1.1.0";
     }
 
     /**

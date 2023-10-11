@@ -143,9 +143,12 @@ contract DefaultEmissionManagerTest is Test {
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        assertEq(matic.balanceOf(stakeManager), (polygon.totalSupply() - initialTotalSupply) / 2);
+        uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
+        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+        assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedOneThird);
+        assertEq(matic.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(polygon.balanceOf(treasury), (polygon.totalSupply() - initialTotalSupply) / 2);
+        assertEq(polygon.balanceOf(treasury), totalAmtMintedOneThird);
     }
 
     function test_MintDelayTwice(uint128 delay) external {
@@ -161,8 +164,9 @@ contract DefaultEmissionManagerTest is Test {
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 2;
-        assertEq(matic.balanceOf(stakeManager), balance);
+        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 3;
+        uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
+        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), balance);
 
@@ -175,8 +179,13 @@ contract DefaultEmissionManagerTest is Test {
         newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        balance += (polygon.totalSupply() - initialTotalSupply) / 2;
-        assertEq(matic.balanceOf(stakeManager), balance);
+        uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
+        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+
+        balance += totalAmtMintedOneThird;
+        stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
+
+        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), balance);
     }
@@ -185,6 +194,7 @@ contract DefaultEmissionManagerTest is Test {
         vm.assume(delay * uint256(cycles) <= 10 * 365 days && delay > 0 && cycles < 30);
 
         uint256 balance;
+        uint256 stakeManagerBalance;
 
         for (uint256 cycle; cycle < cycles; cycle++) {
             uint256 initialTotalSupply = polygon.totalSupply();
@@ -197,8 +207,13 @@ contract DefaultEmissionManagerTest is Test {
             uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
             assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-            balance += (polygon.totalSupply() - initialTotalSupply) / 2;
-            assertEq(matic.balanceOf(stakeManager), balance);
+            uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
+            uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+
+            balance += totalAmtMintedOneThird;
+            stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
+
+            assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
             assertEq(polygon.balanceOf(stakeManager), 0);
             assertEq(polygon.balanceOf(treasury), balance);
         }
@@ -209,6 +224,6 @@ contract DefaultEmissionManagerTest is Test {
         inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(polygon.totalSupply());
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
-        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(block.timestamp + delay), 1e19);
+        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(block.timestamp + delay), 1e20);
     }
 }
