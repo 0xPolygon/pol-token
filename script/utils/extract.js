@@ -131,6 +131,7 @@ function generateMarkdown(input) {
           .toLowerCase()})`
     )
     .join("\n\t- ");
+  out += `\n- [Deployment History](#deployment-history)\n`;
   out += `\n ## Summary
   <table>
   <tr>
@@ -283,7 +284,7 @@ Deployed contracts:
         .map(
           ({ contract, contractName }) =>
             `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${getEtherscanLink(chainId, contract.address)})${
-              contract.proxyType ? ` ([implementation](${getEtherscanLink(chainId, contract.implementation)}))` : ``
+              contract.proxyType ? ` ([Implementation](${getEtherscanLink(chainId, contract.implementation)}))` : ``
             }`
         )
         .join("\n- ")}
