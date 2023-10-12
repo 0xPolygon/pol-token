@@ -191,6 +191,7 @@ ${generateDeploymentHistory(input.history, input.chainId)}`;
 }
 
 function getEtherscanLink(chainId, address, slug = "address") {
+  chainId = parseInt(chainId);
   switch (chainId) {
     case 1:
       return `https://etherscan.io/${slug}/${address}`;
@@ -330,4 +331,3 @@ function hexToUint8Array(hex) {
 }
 
 main();
-module.exports = { generateMarkdown };
