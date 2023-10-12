@@ -330,5 +330,4 @@ function hexToUint8Array(hex) {
   return new Uint8Array(Math.ceil(value.length / 2)).map((_, i) => parseInt(value.substring(i * 2, i * 2 + 2), 16));
 }
 
-// main();
-module.exports = { generateMarkdown };
+main();
