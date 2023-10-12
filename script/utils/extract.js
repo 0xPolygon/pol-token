@@ -169,13 +169,7 @@ ${
 
 Commit Hash: [${commitHash.slice(0, 7)}](https://github.com/0xPolygon/pol-token/commit/${commitHash})
 
-${new Date(timestamp * 1000).toLocaleString("en-GB", {
-  day: "2-digit",
-  month: "2-digit",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-})}
+${prettifyTimestamp(timestamp)}
 ${generateProxyInformationIfProxy({
   address,
   contractName,
@@ -184,13 +178,14 @@ ${generateProxyInformationIfProxy({
   proxyAdmin,
   history: input.history,
   chainId: input.chainId,
-})}
-
-### Deployment History
-
-${generateDeploymentHistory(input.history)}`
+})}`
     )
     .join("\n\n");
+
+  out += `
+### Deployment History
+
+${generateDeploymentHistory(input.history, input.chainId)}`;
 
   writeFileSync(join(__dirname, `../../output/${input.chainId}.md`), out, "utf-8");
 }
@@ -264,6 +259,69 @@ function generateProxyInformationIfProxy({
   return out;
 }
 
+function generateDeploymentHistory(history, chainId) {
+  const allVersions = history.reduce((obj, { contracts, input }) => {
+    Object.entries(contracts).forEach(([contractName, contract]) => {
+      if (typeof contract.version === "undefined") return;
+      if (!obj[contract.version]) obj[contract.version] = [];
+      obj[contract.version].push({ contract, contractName, input });
+    });
+    return obj;
+  }, {});
+  let out = ``;
+  out += Object.entries(allVersions)
+    .map(
+      ([version, contractInfos]) => `
+### [${version}](https://github.com/0xPolygon/pol-token/releases/tag/${version})
+
+${prettifyTimestamp(contractInfos[0].contract.timestamp)}
+
+Deployed contracts:
+
+- ${contractInfos
+        .map(
+          ({ contract, contractName }) =>
+            `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${getEtherscanLink(chainId, contract.address)})${
+              contract.proxyType ? ` ([implementation](${getEtherscanLink(chainId, contract.implementation)}))` : ``
+            }`
+        )
+        .join("\n- ")}
+
+<details>
+<summary>Inputs</summary>
+<table>
+    <tr>
+        <th>Parameter</th>
+        <th>Value</th>
+    </tr>
+    ${Object.entries(contractInfos[0].input)
+      .map(
+        ([key, value]) => `
+<tr>
+    <td>${key}</td>
+    <td>${value}</td>
+</tr>`
+      )
+      .join("\n")}
+</table>
+</details>
+    `
+    )
+    .join("\n\n");
+
+  return out;
+}
+
+function prettifyTimestamp(timestamp) {
+  return new Date(timestamp * 1000).toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const hexToAscii = (str) => hexToUtf8(str).replace(/[\u0000-\u0008,\u000A-\u001F,\u007F-\u00A0]+/g, ""); // remove non-ascii chars
 const hexToUtf8 = (str) => new TextDecoder().decode(hexToUint8Array(str)); // note: TextDecoder present in node, update if not using nodejs
 function hexToUint8Array(hex) {
@@ -272,3 +330,4 @@ function hexToUint8Array(hex) {
 }
 
 main();
+module.exports = { generateMarkdown };
