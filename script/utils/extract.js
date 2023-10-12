@@ -185,7 +185,7 @@ ${generateProxyInformationIfProxy({
   out += `
 ### Deployment History
 
-${generateDeploymentHistory(input.history, input.chainId)}`;
+${generateDeploymentHistory(input.history, input.latest, input.chainId)}`;
 
   writeFileSync(join(__dirname, `../../output/${input.chainId}.md`), out, "utf-8");
 }
@@ -260,8 +260,8 @@ function generateProxyInformationIfProxy({
   return out;
 }
 
-function generateDeploymentHistory(history, chainId) {
-  const allVersions = history.reduce((obj, { contracts, input }) => {
+function generateDeploymentHistory(history, latest, chainId) {
+  const allVersions = [...history, latest].reduce((obj, { contracts, input }) => {
     Object.entries(contracts).forEach(([contractName, contract]) => {
       if (typeof contract.version === "undefined") return;
       if (!obj[contract.version]) obj[contract.version] = [];
@@ -330,4 +330,5 @@ function hexToUint8Array(hex) {
   return new Uint8Array(Math.ceil(value.length / 2)).map((_, i) => parseInt(value.substring(i * 2, i * 2 + 2), 16));
 }
 
-main();
+// main();
+module.exports = { generateMarkdown };
