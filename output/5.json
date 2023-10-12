@@ -11,7 +11,7 @@
         "proxyType": "TransparentUpgradeableProxy",
         "timestamp": 1696415816,
         "deploymentTxn": "0xe0786d27a0f9ae581cabfcab6edf6a0fd261f0143e4a52cbd6c383cb87c5b4a4",
-        "commitHash": "d22c9624ff47afcef4b9f311b774725ffd5e6305"
+        "commitHash": "40fff9047712e8e18e05ab7bcea92a100a452751"
       },
       "DefaultEmissionManager": {
         "implementation": "0xe76193f2107bF7Cc9C6A0de6af63D3C74b936393",
@@ -22,14 +22,14 @@
         "proxyType": "TransparentUpgradeableProxy",
         "timestamp": 1696415816,
         "deploymentTxn": "0xff69667f86a1050432a4d07f93d6202b9141bad1d0e73da42675e1fdf9b1ce02",
-        "commitHash": "d22c9624ff47afcef4b9f311b774725ffd5e6305"
+        "commitHash": "40fff9047712e8e18e05ab7bcea92a100a452751"
       },
       "ProxyAdmin": {
         "address": "0x9Ed32fDC7E4600E1F733dbCEA750C19E7830FBc2",
         "proxy": false,
         "timestamp": 1696415816,
         "deploymentTxn": "0xcc62464cf4ef11bb1d03a0f898eb22feb335286a5c3b546942b03d34e960213d",
-        "commitHash": "d22c9624ff47afcef4b9f311b774725ffd5e6305"
+        "commitHash": "40fff9047712e8e18e05ab7bcea92a100a452751"
       },
       "PolygonEcosystemToken": {
         "address": "0x4f34BF3352A701AEc924CE34d6CfC373eABb186c",
@@ -37,7 +37,7 @@
         "version": "1.0.0",
         "timestamp": 1696415816,
         "deploymentTxn": "0x69ee54fefe2d7902a4de228f8f6b19bb3e1308013f10e47cecf07066ecd57fa1",
-        "commitHash": "d22c9624ff47afcef4b9f311b774725ffd5e6305"
+        "commitHash": "40fff9047712e8e18e05ab7bcea92a100a452751"
       }
     },
     "input": {
@@ -47,7 +47,7 @@
       "stakeManager": "0x00200eA4Ee292E253E6Ca07dBA5EdC07c8Aa37A3",
       "permit2revoker": "0x531c7Befe78B6496e5753815ab3d3Cc024c1E842"
     },
-    "commitHash": "d22c9624ff47afcef4b9f311b774725ffd5e6305",
+    "commitHash": "40fff9047712e8e18e05ab7bcea92a100a452751",
     "timestamp": 1696415816
   },
   "history": []
