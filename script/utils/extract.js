@@ -7,8 +7,6 @@ const { join } = require("path");
  * @usage node script/utils/extract.js {chainId}
  * @dev
  *  currently only supports TransparentUpgradeableProxy pattern
- *  uses sha256 hash of init code to determine if contract has changed,
- *  uses `node:crypto` module, update if not using nodejs
  */
 async function main() {
   const [chainId] = process.argv.slice(2);
@@ -22,12 +20,13 @@ async function main() {
   const deployedContractsMap = new Map(
     [...deployments].map(({ contractName, contractAddress }) => [contractAddress, contractName])
   );
+  const timestamp = data.timestamp;
 
   // todo(future): add support for other proxy patterns
   const proxies = await Promise.all(
     deployments
       .filter(({ contractName }) => contractName === "TransparentUpgradeableProxy")
-      .map(async ({ arguments, contractAddress, transaction: { data } }) => ({
+      .map(async ({ arguments, contractAddress, hash }) => ({
         implementation: arguments[0],
         proxyAdmin: arguments[1],
         address: contractAddress,
@@ -35,6 +34,9 @@ async function main() {
         proxy: true,
         ...(await getVersion(contractAddress, rpcUrl)),
         proxyType: "TransparentUpgradeableProxy",
+        timestamp,
+        deploymentTxn: hash,
+        commitHash,
       }))
   );
   const nonProxies = await Promise.all(
@@ -43,11 +45,14 @@ async function main() {
         ({ contractName }) =>
           contractName !== "TransparentUpgradeableProxy" && !proxies.find((p) => p.contractName === contractName)
       )
-      .map(async ({ contractName, contractAddress, transaction: { data } }) => ({
+      .map(async ({ contractName, contractAddress, hash }) => ({
         address: contractAddress,
         contractName,
         proxy: false,
         ...(await getVersion(contractAddress, rpcUrl)),
+        timestamp,
+        deploymentTxn: hash,
+        commitHash,
       }))
   );
   const contracts = [...proxies, ...nonProxies].reduce((obj, { contractName, ...rest }) => {
@@ -75,19 +80,15 @@ async function main() {
     },
     input: config[chainId],
     commitHash,
-    timestamp: data.timestamp,
+    timestamp,
   };
 
   writeFileSync(outPath, JSON.stringify(out, null, 2));
+  generateMarkdown(out);
 }
 
 function getCommitHash() {
   return execSync("git rev-parse HEAD").toString().trim(); // note: update if not using git
-}
-
-function sha256(data) {
-  const { createHash } = require("node:crypto"); // note: update if not using nodejs
-  return createHash("sha256").update(data).digest("hex");
 }
 
 async function getVersion(contractAddress, rpcUrl) {
@@ -107,10 +108,160 @@ async function getVersion(contractAddress, rpcUrl) {
     if (res.error) throw new Error(res.error.message);
     return { version: hexToAscii(res.result)?.trim() || res.result };
   } catch (e) {
-    if (e.message === "execution reverted") return null; // contract does not implement getVersion()
-    console.log("getVersion error:", rpcUrl, e.message);
-    return { version: undefined };
+    if (e.message === "execution reverted") return { version: undefined }; // contract does not implement getVersion()
+    if (e.message.includes("fetch is not defined")) {
+      console.warn("use node 18+");
+    }
+    throw e;
   }
+}
+
+function generateMarkdown(input) {
+  let out = `# Polygon Ecosystem Token\n\n`;
+  // read name from foundry.toml
+
+  out += `\n### Table of Contents\n- [Summary](#summary)\n- [Contracts](#contracts)\n\t- `;
+  out += Object.keys(input.latest.contracts)
+    .map(
+      (c) =>
+        `[${c.replace(/([A-Z])/g, " $1").trim()}](#${c
+          .replace(/([A-Z])/g, "-$1")
+          .trim()
+          .slice(1)
+          .toLowerCase()})`
+    )
+    .join("\n\t- ");
+  out += `\n ## Summary
+  <table>
+  <tr>
+      <th>Contract</th>
+      <th>Address</th>
+  </tr>`;
+  out += Object.entries(input.latest.contracts)
+    .map(
+      ([contractName, { address }]) =>
+        `<tr>
+      <td>${contractName}</td>
+      <td><a href="${getEtherscanLink(input.chainId, address)}" target="_blank">${address}</a></td>
+      </tr>`
+    )
+    .join("\n");
+  out += `</table>\n`;
+
+  out += `\n## Contracts\n\n`;
+
+  out += Object.entries(input.latest.contracts)
+    .map(
+      ([
+        contractName,
+        { address, deploymentTxn, version, commitHash, timestamp, proxyType, implementation, proxyAdmin },
+      ]) => `### ${contractName.replace(/([A-Z])/g, " $1").trim()}
+
+Address: ${getEtherscanLinkMd(input.chainId, address)}
+
+Deployment Txn: ${getEtherscanLinkMd(input.chainId, deploymentTxn, "tx")}
+
+${
+  typeof version === "undefined"
+    ? ""
+    : `Version: [${version}](https://github.com/0xPolygon/pol-token/releases/tag/${version})`
+}
+
+Commit Hash: [${commitHash.slice(0, 7)}](https://github.com/0xPolygon/pol-token/commit/${commitHash})
+
+${new Date(timestamp * 1000).toLocaleString("en-GB", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+})}
+${generateProxyInformationIfProxy({
+  address,
+  contractName,
+  proxyType,
+  implementation,
+  proxyAdmin,
+  history: input.history,
+  chainId: input.chainId,
+})}
+
+### Deployment History
+
+${generateDeploymentHistory(input.history)}`
+    )
+    .join("\n\n");
+
+  writeFileSync(join(__dirname, `../../output/${input.chainId}.md`), out, "utf-8");
+}
+
+function getEtherscanLink(chainId, address, slug = "address") {
+  switch (chainId) {
+    case 1:
+      return `https://etherscan.io/${slug}/${address}`;
+    case 5:
+      return `https://goerli.etherscan.io/${slug}/${address}`;
+    default:
+      return ``;
+    // return `https://blockscan.com/${slug}/${address}`;
+  }
+}
+function getEtherscanLinkMd(chainId, address, slug = "address") {
+  const etherscanLink = getEtherscanLink(chainId, address, slug);
+  return etherscanLink.length ? `[${address}](${etherscanLink})` : address;
+}
+
+function generateProxyInformationIfProxy({
+  address,
+  contractName,
+  proxyType,
+  implementation,
+  proxyAdmin,
+  history,
+  chainId,
+}) {
+  let out = ``;
+  if (typeof proxyType === "undefined") return out;
+  out += `\n\n_Proxy Information_\n\n`;
+  out += `\n\nProxy Type: ${proxyType}\n\n`;
+  out += `\n\nImplementation: ${getEtherscanLinkMd(chainId, implementation)}\n\n`;
+  out += `\n\nProxy Admin: ${getEtherscanLinkMd(chainId, proxyAdmin)}\n\n`;
+
+  const historyOfProxy = history.filter((h) => h?.contracts[contractName].address === address);
+  if (historyOfProxy.length === 0) return out;
+  out += `\n\nHistory\n\n`;
+  out += `
+<details>
+<summary>Implementation History</sumamry>
+<table>
+    <tr>
+        <th>Version</th>
+        <th>Address</th>
+        <th>Commit Hash</th>
+    </tr>${historyOfProxy
+      .map(
+        ({
+          contracts: {
+            [contractName]: { implementation, commitHash, version },
+          },
+        }) => `
+    <tr>
+        <td><a href="https://github.com/0xPolygon/pol-token/releases/tag/${version}" target="_blank">${version}</a></td>
+        <td><a href="${getEtherscanLink(
+          chainId,
+          implementation
+        )}" target="_blank">${implementation}</a>${implementation}</td>
+        <td><a href="https://github.com/0xPolygon/pol-token/commit/${commitHash}" target="_blank">${commitHash.slice(
+          0,
+          7
+        )}</a></td>
+    </tr>`
+      )
+      .join("\n")}
+</table>
+</details>
+  `;
+  return out;
 }
 
 const hexToAscii = (str) => hexToUtf8(str).replace(/[\u0000-\u0008,\u000A-\u001F,\u007F-\u00A0]+/g, ""); // remove non-ascii chars
