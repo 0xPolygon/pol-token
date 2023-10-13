@@ -3,8 +3,8 @@ const { execSync } = require("child_process");
 const { join } = require("path");
 
 /**
- * @description Extracts contract deployment data from run-latest.json (foundry broadcast output) and writes to output/{chainId}.json
- * @usage node script/utils/extract.js {chainId}
+ * @description Extracts contract deployment data from run-latest.json (foundry broadcast output) and writes to deployments/{chainId}.json
+ * @usage node scripts/utils/extract.js {chainId}
  * @dev
  *  currently only supports TransparentUpgradeableProxy pattern
  */
@@ -60,8 +60,8 @@ async function main() {
     return obj;
   }, {});
 
-  const outPath = join(__dirname, `../../output/${chainId}.json`);
-  if (!existsSync(join(__dirname, "../../output/"))) mkdirSync(join(__dirname, "../../output/"));
+  const outPath = join(__dirname, `../../deployments/${chainId}.json`);
+  if (!existsSync(join(__dirname, "../../deployments/"))) mkdirSync(join(__dirname, "../../deployments/"));
   const out = JSON.parse(
     (existsSync(outPath) && readFileSync(outPath, "utf-8")) || JSON.stringify({ chainId, latest: {}, history: [] })
   );
@@ -188,7 +188,7 @@ ${generateProxyInformationIfProxy({
 
 ${generateDeploymentHistory(input.history, input.latest, input.chainId)}`;
 
-  writeFileSync(join(__dirname, `../../output/${input.chainId}.md`), out, "utf-8");
+  writeFileSync(join(__dirname, `../../deployments/${input.chainId}.md`), out, "utf-8");
 }
 
 function getEtherscanLink(chainId, address, slug = "address") {

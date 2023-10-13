@@ -7,4 +7,4 @@ lcov.info
 .env
 
 broadcast/*/31337
-output/31337.json
+deployments/31337.*
