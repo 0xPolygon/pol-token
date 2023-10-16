@@ -9,7 +9,7 @@ const { join } = require("path");
  *  currently only supports TransparentUpgradeableProxy pattern
  */
 async function main() {
-  const [chainId, version, scriptName] = process.argv.slice(2);
+  let [chainId, version, scriptName] = process.argv.slice(2);
   if (!version?.length) version = "1.0.0";
   if (!scriptName?.length) scriptName = "Deploy.s.sol";
   const commitHash = getCommitHash();
@@ -17,69 +17,105 @@ async function main() {
     readFileSync(join(__dirname, `../../broadcast/${scriptName}/${chainId}/run-latest.json`), "utf-8")
   );
   const config = JSON.parse(readFileSync(join(__dirname, "../config.json"), "utf-8"));
-  const input = JSON.parse(readFileSync(join(__dirname, `../${version}/config.json`), "utf-8"));
+  const input = JSON.parse(readFileSync(join(__dirname, `../${version}/input.json`), "utf-8"));
   const rpcUrl = config.defaultRpc[chainId] || process.env.RPC_URL || "http://127.0.0.1:8545";
-  const deployments = data.transactions.filter(({ transactionType }) => transactionType === "CREATE"); // CREATE2?
-  const deployedContractsMap = new Map(
-    [...deployments].map(({ contractName, contractAddress }) => [contractAddress, contractName])
-  );
-  const timestamp = data.timestamp;
-
-  // todo(future): add support for other proxy patterns
-  const proxies = await Promise.all(
-    deployments
-      .filter(({ contractName }) => contractName === "TransparentUpgradeableProxy")
-      .map(async ({ arguments, contractAddress, hash }) => ({
-        implementation: arguments[0],
-        proxyAdmin: arguments[1],
-        address: contractAddress,
-        contractName: deployedContractsMap.get(arguments[0]),
-        proxy: true,
-        ...(await getVersion(contractAddress, rpcUrl)),
-        proxyType: "TransparentUpgradeableProxy",
-        timestamp,
-        deploymentTxn: hash,
-        commitHash,
-      }))
-  );
-  const nonProxies = await Promise.all(
-    deployments
-      .filter(
-        ({ contractName }) =>
-          contractName !== "TransparentUpgradeableProxy" && !proxies.find((p) => p.contractName === contractName)
-      )
-      .map(async ({ contractName, contractAddress, hash }) => ({
-        address: contractAddress,
-        contractName,
-        proxy: false,
-        ...(await getVersion(contractAddress, rpcUrl)),
-        timestamp,
-        deploymentTxn: hash,
-        commitHash,
-      }))
-  );
-  const contracts = [...proxies, ...nonProxies].reduce((obj, { contractName, ...rest }) => {
-    obj[contractName] = rest;
-    return obj;
-  }, {});
+  const deployments = data.transactions.filter(({ transactionType }) => transactionType === "CREATE");
 
   const outPath = join(__dirname, `../../deployments/json/${chainId}.json`);
   if (!existsSync(join(__dirname, "../../deployments/json/"))) mkdirSync(join(__dirname, "../../deployments/json/"));
   const out = JSON.parse(
-    (existsSync(outPath) && readFileSync(outPath, "utf-8")) || JSON.stringify({ chainId, latest: {}, history: [] })
+    (existsSync(outPath) && readFileSync(outPath, "utf-8")) ||
+      JSON.stringify({ chainId, latest: { contracts: {} }, history: [] })
   );
 
-  // only update if there are changes to specific contracts from history
-  if (Object.keys(out.latest).length != 0) {
-    if (out.history.find((h) => h.commitHash === commitHash) || out.latest.commitHash === commitHash)
-      return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
-    out.history.unshift(out.latest); // add latest to history
+  const timestamp = data.timestamp;
+  let latestContracts = {};
+  if (Object.keys(out.latest.contracts).length === 0) {
+    const deployedContractsMap = new Map(
+      [...deployments].map(({ contractAddress, contractName }) => [contractAddress, contractName])
+    );
+
+    // first deployment
+    // todo(future): add support for other proxy patterns
+    const proxies = await Promise.all(
+      deployments
+        .filter(({ contractName }) => contractName === "TransparentUpgradeableProxy")
+        .map(async ({ arguments, contractAddress, hash }) => ({
+          implementation: arguments[0],
+          proxyAdmin: arguments[1],
+          address: contractAddress,
+          contractName: deployedContractsMap.get(arguments[0]),
+          proxy: true,
+          ...(await getVersion(contractAddress, rpcUrl)),
+          proxyType: "TransparentUpgradeableProxy",
+          timestamp,
+          deploymentTxn: hash,
+          commitHash,
+        }))
+    );
+    const nonProxies = await Promise.all(
+      deployments
+        .filter(
+          ({ contractName }) =>
+            contractName !== "TransparentUpgradeableProxy" && !proxies.find((p) => p.contractName === contractName)
+        )
+        .map(async ({ contractName, contractAddress, hash }) => ({
+          address: contractAddress,
+          contractName,
+          proxy: false,
+          ...(await getVersion(contractAddress, rpcUrl)),
+          timestamp,
+          deploymentTxn: hash,
+          commitHash,
+        }))
+    );
+    const contracts = [...proxies, ...nonProxies].reduce((obj, { contractName, ...rest }) => {
+      obj[contractName] = rest;
+      return obj;
+    }, {});
+    latestContracts = contracts;
+    // only update if there are changes to specific contracts from history
+    if (Object.keys(out.latest.contracts).length != 0) {
+      if (out.history.find((h) => h.commitHash === commitHash) || out.latest.commitHash === commitHash)
+        return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
+      out.history.unshift(out.latest); // add latest to history
+    }
+  } else {
+    if (out.history.find((h) => h.commitHash === commitHash)) return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
+
+    const deployedContractsMap = new Map(
+      Object.entries(out.latest.contracts).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
+    );
+    // check for updates
+    for (const { transaction, transactionType } of data.transactions) {
+      if (
+        transactionType === "CALL" &&
+        deployedContractsMap.get(transaction.to.toLowerCase()) === "ProxyAdmin" &&
+        transaction.data.startsWith("0x99a88ec4") // upgrade(address, address)
+      ) {
+        const proxyAddress = "0x" + transaction.data.slice(34, 74);
+        const newImplementationAddress = "0x" + transaction.data.slice(98, 138);
+        const contractName = deployedContractsMap.get(proxyAddress.toLowerCase());
+
+        out.history.push({
+          ...out.latest,
+          contracts: { [contractName]: out.latest.contracts[contractName] },
+        });
+
+        latestContracts[contractName] = {
+          ...out.latest.contracts[contractName],
+          implementation: toChecksumAddress(newImplementationAddress),
+          version: (await getVersion(newImplementationAddress, rpcUrl))?.version || version,
+        };
+      }
+    }
   }
+
   // overwrite latest with changed contracts
   out.latest = {
     contracts: {
       ...out.latest?.contracts,
-      ...contracts,
+      ...latestContracts,
     },
     input: input[chainId],
     commitHash,
@@ -92,6 +128,15 @@ async function main() {
 
 function getCommitHash() {
   return execSync("git rev-parse HEAD").toString().trim(); // note: update if not using git
+}
+
+function toChecksumAddress(address) {
+  try {
+    return execSync(`cast to-check-sum-address ${address}`).toString().trim(); // note: update if not using cast
+  } catch (e) {
+    console.log("ERROR", e);
+    return address;
+  }
 }
 
 async function getVersion(contractAddress, rpcUrl) {
@@ -227,7 +272,7 @@ function generateProxyInformationIfProxy({
   out += `\n\nImplementation: ${getEtherscanLinkMd(chainId, implementation)}\n\n`;
   out += `\n\nProxy Admin: ${getEtherscanLinkMd(chainId, proxyAdmin)}\n\n`;
 
-  const historyOfProxy = history.filter((h) => h?.contracts[contractName].address === address);
+  const historyOfProxy = history.filter((h) => h?.contracts[contractName]?.address === address);
   if (historyOfProxy.length === 0) return out;
   out += `\n\nHistory\n\n`;
   out += `
