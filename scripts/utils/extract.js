@@ -292,10 +292,7 @@ function generateProxyInformationIfProxy({
         }) => `
     <tr>
         <td><a href="https://github.com/0xPolygon/pol-token/releases/tag/${version}" target="_blank">${version}</a></td>
-        <td><a href="${getEtherscanLink(
-          chainId,
-          implementation
-        )}" target="_blank">${implementation}</a>${implementation}</td>
+        <td><a href="${getEtherscanLink(chainId, implementation)}" target="_blank">${implementation}</a></td>
         <td><a href="https://github.com/0xPolygon/pol-token/commit/${commitHash}" target="_blank">${commitHash.slice(
           0,
           7
@@ -331,8 +328,8 @@ Deployed contracts:
 - ${contractInfos
         .map(
           ({ contract, contractName }) =>
-            `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${getEtherscanLink(chainId, contract.address)})${
-              contract.proxyType ? ` ([Implementation](${getEtherscanLink(chainId, contract.implementation)}))` : ``
+            `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${getEtherscanLinkMd(chainId, contract.address)})${
+              contract.proxyType ? ` ([Implementation](${getEtherscanLinkMd(chainId, contract.implementation)}))` : ``
             }`
         )
         .join("\n- ")}
