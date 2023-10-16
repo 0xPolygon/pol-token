@@ -60,8 +60,8 @@ async function main() {
     return obj;
   }, {});
 
-  const outPath = join(__dirname, `../../deployments/${chainId}.json`);
-  if (!existsSync(join(__dirname, "../../deployments/"))) mkdirSync(join(__dirname, "../../deployments/"));
+  const outPath = join(__dirname, `../../deployments/json/${chainId}.json`);
+  if (!existsSync(join(__dirname, "../../deployments/json/"))) mkdirSync(join(__dirname, "../../deployments/json/"));
   const out = JSON.parse(
     (existsSync(outPath) && readFileSync(outPath, "utf-8")) || JSON.stringify({ chainId, latest: {}, history: [] })
   );
