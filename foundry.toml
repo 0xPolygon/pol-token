@@ -9,6 +9,8 @@ solc = '0.8.21'
 ffi = true
 fs_permissions = [
   { access = "read", path = "scripts/config.json" },
+  { access = "read", path = "scripts/1.0.0/input.json" },
+  { access = "read", path = "scripts/1.1.0/input.json" },
 ]
 
 [profile.intense.fuzz]
