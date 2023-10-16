@@ -4,17 +4,20 @@ const { join } = require("path");
 
 /**
  * @description Extracts contract deployment data from run-latest.json (foundry broadcast output) and writes to deployments/{chainId}.json
- * @usage node scripts/utils/extract.js {chainId}
+ * @usage node scripts/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]
  * @dev
  *  currently only supports TransparentUpgradeableProxy pattern
  */
 async function main() {
-  const [chainId] = process.argv.slice(2);
+  const [chainId, version, scriptName] = process.argv.slice(2);
+  if (!version?.length) version = "1.0.0";
+  if (!scriptName?.length) scriptName = "Deploy.s.sol";
   const commitHash = getCommitHash();
   const data = JSON.parse(
-    readFileSync(join(__dirname, `../../broadcast/Deploy.s.sol/${chainId}/run-latest.json`), "utf-8")
+    readFileSync(join(__dirname, `../../broadcast/${scriptName}/${chainId}/run-latest.json`), "utf-8")
   );
   const config = JSON.parse(readFileSync(join(__dirname, "../config.json"), "utf-8"));
+  const input = JSON.parse(readFileSync(join(__dirname, `../${version}/config.json`), "utf-8"));
   const rpcUrl = config.defaultRpc[chainId] || process.env.RPC_URL || "http://127.0.0.1:8545";
   const deployments = data.transactions.filter(({ transactionType }) => transactionType === "CREATE"); // CREATE2?
   const deployedContractsMap = new Map(
@@ -78,7 +81,7 @@ async function main() {
       ...out.latest?.contracts,
       ...contracts,
     },
-    input: config[chainId],
+    input: input[chainId],
     commitHash,
     timestamp,
   };
