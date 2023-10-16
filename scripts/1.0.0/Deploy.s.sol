@@ -22,13 +22,13 @@ contract Deploy is Script {
     }
 
     function run() public {
-        string memory config = vm.readFile("scripts/config.json");
+        string memory input = vm.readFile("scripts/1.0.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
-        address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
-        address governance = config.readAddress(string.concat(chainIdSlug, ".governance"));
-        address treasury = config.readAddress(string.concat(chainIdSlug, ".treasury"));
-        address stakeManager = config.readAddress(string.concat(chainIdSlug, ".stakeManager"));
-        address permit2revoker = config.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
+        address matic = input.readAddress(string.concat(chainIdSlug, ".matic"));
+        address governance = input.readAddress(string.concat(chainIdSlug, ".governance"));
+        address treasury = input.readAddress(string.concat(chainIdSlug, ".treasury"));
+        address stakeManager = input.readAddress(string.concat(chainIdSlug, ".stakeManager"));
+        address permit2revoker = input.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
 
         vm.startBroadcast(deployerPrivateKey);
 
