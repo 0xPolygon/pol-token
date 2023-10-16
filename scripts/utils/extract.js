@@ -328,8 +328,14 @@ Deployed contracts:
 - ${contractInfos
         .map(
           ({ contract, contractName }) =>
-            `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${getEtherscanLinkMd(chainId, contract.address)})${
-              contract.proxyType ? ` ([Implementation](${getEtherscanLinkMd(chainId, contract.implementation)}))` : ``
+            `[${contractName.replace(/([A-Z])/g, " $1").trim()}](${
+              getEtherscanLink(chainId, contract.address) || contract.address
+            })${
+              contract.proxyType
+                ? ` ([Implementation](${
+                    getEtherscanLink(chainId, contract.implementation) || contract.implementation
+                  }))`
+                : ``
             }`
         )
         .join("\n- ")}
