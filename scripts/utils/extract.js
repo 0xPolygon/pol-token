@@ -401,13 +401,7 @@ Deployed contracts:
 }
 
 function prettifyTimestamp(timestamp) {
-  return new Date(timestamp * 1000).toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(timestamp * 1000).toUTCString();
 }
 
 const hexToAscii = (str) => hexToUtf8(str).replace(/[\u0000-\u0008,\u000A-\u001F,\u007F-\u00A0]+/g, ""); // remove non-ascii chars
