@@ -289,7 +289,7 @@ function generateProxyInformationIfProxy({
 
   const historyOfProxy = history.filter((h) => h?.contracts[contractName]?.address === address);
   if (historyOfProxy.length === 0) return out;
-  out += `\n\nHistory\n\n`;
+  out += `\n`;
   out += `
 <details>
 <summary>Implementation History</sumamry>
@@ -401,7 +401,7 @@ Deployed contracts:
 }
 
 function prettifyTimestamp(timestamp) {
-  return new Date(timestamp * 1000).toUTCString();
+  return new Date(timestamp * 1000).toUTCString().replace("GMT", "UTC");
 }
 
 const hexToAscii = (str) => hexToUtf8(str).replace(/[\u0000-\u0008,\u000A-\u001F,\u007F-\u00A0]+/g, ""); // remove non-ascii chars
