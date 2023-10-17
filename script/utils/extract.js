@@ -4,7 +4,7 @@ const { join } = require("path");
 
 /**
  * @description Extracts contract deployment data from run-latest.json (foundry broadcast output) and writes to deployments/{chainId}.json
- * @usage node scripts/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]
+ * @usage node script/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]
  * @dev
  *  currently only supports TransparentUpgradeableProxy pattern
  */
@@ -434,12 +434,12 @@ function validateInputs() {
     )
   ) {
     console.log(
-      `error: scripts/${version}/input.json or scripts/${version}/${scriptName || "<scriptName>"} does not exist\n`
+      `error: script/${version}/input.json or script/${version}/${scriptName || "<scriptName>"} does not exist\n`
     );
     printUsageAndExit = true;
   }
   if (printUsageAndExit) {
-    console.log(`usage: node scripts/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]`);
+    console.log(`usage: node script/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]`);
     process.exit(1);
   }
 }
