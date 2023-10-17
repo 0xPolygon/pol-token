@@ -97,11 +97,11 @@ async function main() {
         );
         if (currentImplementation === out.latest[contractName].implementation)
           throw new Error(
-            `Implementation for ${contractName}(${out.latest[contractName]}) did not change - ${currentImplementation}`
+            `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}`
           );
         if (currentImplementation !== contractAddress)
           throw new Error(
-            `Implementation mismatch for ${contractName}(${out.latest[contractName]}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
+            `Implementation mismatch for ${contractName}(${out.latest[contractName].address}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
           );
 
         // currentImplementation === contractAddress
