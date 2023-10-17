@@ -86,6 +86,45 @@ async function main() {
   } else {
     if (out.history.find((h) => h.commitHash === commitHash)) return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
 
+    for (const { contractName, contractAddress } of deployments) {
+      if (Object.keys(out.latest).includes(contractName) && out.latest[contractName].proxy) {
+        // new deployment, check if implementation changed on chain
+        if (out.latest[contractName].proxyType !== "TransparentUpgradeableProxy") continue; // only support TransparentUpgradeableProxy pattern
+        const currentImplementation = getImplementationAddress(
+          out.latest[contractName].address,
+          "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+          rpcUrl
+        );
+        if (currentImplementation === out.latest[contractName].implementation)
+          throw new Error(
+            `Implementation for ${contractName}(${out.latest[contractName]}) did not change - ${currentImplementation}`
+          );
+        if (currentImplementation !== contractAddress)
+          throw new Error(
+            `Implementation mismatch for ${contractName}(${out.latest[contractName]}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
+          );
+
+        // currentImplementation === contractAddress
+        // implementation changed, update latestContracts
+        latestContracts[contractName] = {
+          ...out.latest[contractName],
+          implementation: toChecksumAddress(newImplementationAddress),
+          version: (await getVersion(newImplementationAddress, rpcUrl))?.version || version,
+          timestamp,
+          commitHash,
+        };
+        out.history.unshift({
+          contracts: Object.entries(latestContracts).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
+            obj[key] = rest;
+            return obj;
+          }, {}),
+          input: input[chainId],
+          timestamp,
+          commitHash,
+        });
+      }
+    }
+
     const deployedContractsMap = new Map(
       Object.entries(out.latest).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
     );
@@ -140,6 +179,21 @@ function toChecksumAddress(address) {
   } catch (e) {
     console.log("ERROR", e);
     return address;
+  }
+}
+
+function getImplementationAddress(proxyAddress, implementationSlot, rpcUrl) {
+  try {
+    const implementationAddress = execSync(`cast storage ${proxyAddress} ${implementationSlot} --rpc-url ${rpcUrl}`)
+      .toString()
+      .trim(); // note: update if not using cast
+    if (implementationAddress === "0x0000000000000000000000000000000000000000000000000000000000000000")
+      throw new Error(`empty implementation address for ${proxyAddress} at slot ${implementationSlot}`);
+    const trimmedAddress = "0x" + implementationAddress.substring(66 - 40, 66);
+    return toChecksumAddress(trimmedAddress);
+  } catch (e) {
+    console.log("ERROR", e);
+    return "0x0000000000000000000000000000000000000000";
   }
 }
 
