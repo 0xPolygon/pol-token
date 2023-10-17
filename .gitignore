@@ -4,6 +4,7 @@
 /coverage
 lcov.info
 .DS_Store
+.vscode
 broadcast/
 .env
 
