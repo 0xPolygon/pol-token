@@ -1,11 +1,11 @@
 # PolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/a780764684dd1ef1ca70707f8069da35cddbd074/src/PolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/4e60db3944f1f433beb163a74034e19c0fc68cf0/src/PolygonEcosystemToken.sol)
 
 **Inherits:**
 ERC20Permit, AccessControlEnumerable, [IPolygonEcosystemToken](/src/interfaces/IPolygonEcosystemToken.sol/interface.IPolygonEcosystemToken.md)
 
 **Author:**
-Polygon Labs (@DhairyaSethi, @gretzke, @qedk)
+Polygon Labs (@DhairyaSethi, @gretzke, @qedk, @simonDos)
 
 This is the Polygon ERC20 token contract on Ethereum L1
 
@@ -44,7 +44,7 @@ address public constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
 ### mintPerSecondCap
 
 ```solidity
-uint256 public mintPerSecondCap = 10e18;
+uint256 public mintPerSecondCap = 13.37e18;
 ```
 
 
@@ -74,7 +74,7 @@ constructor(address migration, address emissionManager, address governance, addr
 
 ### mint
 
-Mint token entrypoint for the emission manager contract
+mint token entrypoint for the emission manager contract
 
 *The function only validates the sender, the emission manager is responsible for correctness*
 
@@ -86,13 +86,13 @@ function mint(address to, uint256 amount) external onlyRole(EMISSION_ROLE);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`to`|`address`|Address to mint to|
-|`amount`|`uint256`|Amount to mint|
+|`to`|`address`|address to mint to|
+|`amount`|`uint256`|amount to mint|
 
 
 ### updateMintCap
 
-Update the limit of tokens that can be minted per second
+update the limit of tokens that can be minted per second
 
 
 ```solidity
@@ -107,7 +107,7 @@ function updateMintCap(uint256 newCap) external onlyRole(CAP_MANAGER_ROLE);
 
 ### updatePermit2Allowance
 
-Manages the default max approval to the permit2 contract
+manages the default max approval to the permit2 contract
 
 
 ```solidity
@@ -122,7 +122,7 @@ function updatePermit2Allowance(bool enabled) external onlyRole(PERMIT2_REVOKER_
 
 ### allowance
 
-The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.
+*The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.*
 
 
 ```solidity
@@ -131,10 +131,9 @@ function allowance(address owner, address spender) public view override(ERC20, I
 
 ### getVersion
 
-Returns the implementation version
+returns the version of the contract
 
-*This is to support our dev pipeline, and is present despite
-this contract not being behind a proxy*
+*this is to support our dev pipeline, and is present despite this contract not being behind a proxy*
 
 
 ```solidity
@@ -144,7 +143,7 @@ function getVersion() external pure returns (string memory);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`string`|Version string|
+|`<none>`|`string`|version version string|
 
 
 ### _updatePermit2Allowance

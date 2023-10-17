@@ -15,7 +15,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     bytes32 public constant CAP_MANAGER_ROLE = keccak256("CAP_MANAGER_ROLE");
     bytes32 public constant PERMIT2_REVOKER_ROLE = keccak256("PERMIT2_REVOKER_ROLE");
     address public constant PERMIT2 = 0x000000000022D473030F116dDEE9F6B43aC78BA3;
-    uint256 public mintPerSecondCap = 13.37e18; // 13.37 POL tokens per second. will limit emission in ~23 years
+    uint256 public mintPerSecondCap = 13.37e18;
     uint256 public lastMint;
     bool public permit2Enabled;
 
@@ -41,10 +41,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
         _updatePermit2Allowance(true);
     }
 
-    /// @notice Mint token entrypoint for the emission manager contract
-    /// @dev The function only validates the sender, the emission manager is responsible for correctness
-    /// @param to Address to mint to
-    /// @param amount Amount to mint
+    /// @inheritdoc IPolygonEcosystemToken
     function mint(address to, uint256 amount) external onlyRole(EMISSION_ROLE) {
         uint256 timeElapsedSinceLastMint = block.timestamp - lastMint;
         uint256 maxMint = timeElapsedSinceLastMint * mintPerSecondCap;
@@ -54,29 +51,24 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
         _mint(to, amount);
     }
 
-    /// @notice Update the limit of tokens that can be minted per second
-    /// @param newCap the amount of tokens in 18 decimals as an absolute value
+    /// @inheritdoc IPolygonEcosystemToken
     function updateMintCap(uint256 newCap) external onlyRole(CAP_MANAGER_ROLE) {
         emit MintCapUpdated(mintPerSecondCap, newCap);
         mintPerSecondCap = newCap;
     }
 
-    /// @notice Manages the default max approval to the permit2 contract
-    /// @param enabled If true, the permit2 contract has full approval by default, if false, it has no approval by default
+    /// @inheritdoc IPolygonEcosystemToken
     function updatePermit2Allowance(bool enabled) external onlyRole(PERMIT2_REVOKER_ROLE) {
         _updatePermit2Allowance(enabled);
     }
 
-    /// @notice The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.
+    /// @dev The permit2 contract has full approval by default. If the approval is revoked, it can still be manually approved.
     function allowance(address owner, address spender) public view override(ERC20, IERC20) returns (uint256) {
         if (spender == PERMIT2 && permit2Enabled) return type(uint256).max;
         return super.allowance(owner, spender);
     }
 
-    /// @notice Returns the implementation version
-    /// @dev This is to support our dev pipeline, and is present despite
-    /// this contract not being behind a proxy
-    /// @return Version string
+    /// @inheritdoc IPolygonEcosystemToken
     function getVersion() external pure returns (string memory) {
         return "1.1.0";
     }

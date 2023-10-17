@@ -43,9 +43,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         polygon = IERC20(polygon_);
     }
 
-    /// @notice This function allows for migrating MATIC tokens to POL tokens
-    /// @dev The function does not do any validation since the migration is a one-way process
-    /// @param amount Amount of MATIC to migrate
+    /// @inheritdoc IPolygonMigration
     function migrate(uint256 amount) external {
         emit Migrated(msg.sender, amount);
 
@@ -53,10 +51,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         polygon.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice This function allows for unmigrating from POL tokens to MATIC tokens
-    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
-    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
-    /// @param amount Amount of POL to migrate
+    /// @inheritdoc IPolygonMigration
     function unmigrate(uint256 amount) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, msg.sender, amount);
 
@@ -64,11 +59,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         matic.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice This function allows for unmigrating POL tokens (from msg.sender) to MATIC tokens (to account)
-    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
-    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
-    /// @param recipient Address to receive MATIC tokens
-    /// @param amount Amount of POL to migrate
+    /// @inheritdoc IPolygonMigration
     function unmigrateTo(address recipient, uint256 amount) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, recipient, amount);
 
@@ -76,14 +67,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         matic.safeTransfer(recipient, amount);
     }
 
-    /// @notice This function allows for unmigrating from POL tokens to MATIC tokens using an EIP-2612 permit
-    /// @dev The function can only be called when unmigration is unlocked (lock updatable by governance)
-    /// @dev The function does not do any further validation, also note the unmigration is a reversible process
-    /// @param amount Amount of POL to migrate
-    /// @param deadline Deadline for the permit
-    /// @param v v value of the permit signature
-    /// @param r r value of the permit signature
-    /// @param s s value of the permit signature
+    /// @inheritdoc IPolygonMigration
     function unmigrateWithPermit(
         uint256 amount,
         uint256 deadline,
@@ -98,32 +82,21 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
         matic.safeTransfer(msg.sender, amount);
     }
 
-    /// @notice Allows governance to lock or unlock the unmigration process
-    /// @dev The function does not do any validation since governance can update the unmigration process if required
-    /// @param unmigrationLocked_ New unmigration lock status
+    /// @inheritdoc IPolygonMigration
     function updateUnmigrationLock(bool unmigrationLocked_) external onlyOwner {
         emit UnmigrationLockUpdated(unmigrationLocked_);
         unmigrationLocked = unmigrationLocked_;
     }
 
-    /// @notice Returns the implementation version
-    /// @return Version string
+    /// @inheritdoc IPolygonMigration
     function getVersion() external pure returns (string memory) {
         return "1.0.0";
     }
 
-    /// @notice Allows governance to burn `amount` of POL tokens
-    /// @dev This functions burns POL by sending to dead address
-    /// @dev does not change totalSupply in the internal accounting of POL
-    /// @param amount Amount of POL to burn
+    /// @inheritdoc IPolygonMigration
     function burn(uint256 amount) external onlyOwner {
         polygon.safeTransfer(0x000000000000000000000000000000000000dEaD, amount);
     }
 
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
     uint256[49] private __gap;
 }
