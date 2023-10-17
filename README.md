@@ -44,7 +44,7 @@ A default implementation is included and this contract will be proxy upgradable 
 - (mainnet): `forge script scripts/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --private-key $PRIVATE_KEY --etherscan-api-key $ETHERSCAN_API_KEY`
 - (testnet, goerli for example): `forge script scripts/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --private-key $PRIVATE_KEY --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
 
-4. Run `node scripts/util/extract.js <chainId>` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
+4. Run `node scripts/util/extract.js <chainId> [version = 1.0.0] [scriptName = Deploy.s.sol]` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
 
 ## Reference Deployments
 

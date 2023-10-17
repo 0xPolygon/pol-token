@@ -9,6 +9,7 @@ const { join } = require("path");
  *  currently only supports TransparentUpgradeableProxy pattern
  */
 async function main() {
+  validateInputs();
   let [chainId, version, scriptName] = process.argv.slice(2);
   if (!version?.length) version = "1.0.0";
   if (!scriptName?.length) scriptName = "Deploy.s.sol";
@@ -404,6 +405,39 @@ const hexToUtf8 = (str) => new TextDecoder().decode(hexToUint8Array(str)); // no
 function hexToUint8Array(hex) {
   const value = hex.toLowerCase().startsWith("0x") ? hex.slice(2) : hex;
   return new Uint8Array(Math.ceil(value.length / 2)).map((_, i) => parseInt(value.substring(i * 2, i * 2 + 2), 16));
+}
+
+function validateInputs() {
+  let [chainId, version, scriptName] = process.argv.slice(2);
+  let printUsageAndExit = false;
+  if (
+    !(
+      typeof chainId === "string" &&
+      ["string", "undefined"].includes(typeof version) &&
+      ["string", "undefined"].includes(typeof scriptName)
+    ) ||
+    chainId === "help"
+  ) {
+    if (chainId !== "help")
+      console.log(`error: invalid inputs: ${JSON.stringify({ chainId, version, scriptName }, null, 0)}\n`);
+    printUsageAndExit = true;
+  }
+  if (
+    version &&
+    !(
+      existsSync(join(__dirname, `../${version}/input.json`)) &&
+      existsSync(join(__dirname, `../${version}/${scriptName}`))
+    )
+  ) {
+    console.log(
+      `error: scripts/${version}/input.json or scripts/${version}/${scriptName || "<scriptName>"} does not exist\n`
+    );
+    printUsageAndExit = true;
+  }
+  if (printUsageAndExit) {
+    console.log(`usage: node scripts/utils/extract.js {chainId} [version = "1.0.0"] [scriptName = "Deploy.s.sol"]`);
+    process.exit(1);
+  }
 }
 
 main();
