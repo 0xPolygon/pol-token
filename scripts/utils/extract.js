@@ -185,13 +185,15 @@ function generateMarkdown(input) {
   <tr>
       <th>Contract</th>
       <th>Address</th>
+      <th>Version</th>
   </tr>`;
   out += Object.entries(input.latest.contracts)
     .map(
-      ([contractName, { address }]) =>
+      ([contractName, { address, version }]) =>
         `<tr>
       <td>${contractName}</td>
       <td><a href="${getEtherscanLink(input.chainId, address)}" target="_blank">${address}</a></td>
+      <td>${version || `N/A`}</td>
       </tr>`
     )
     .join("\n");
