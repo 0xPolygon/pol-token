@@ -240,9 +240,13 @@ ${generateProxyInformationIfProxy({
   chainId: input.chainId,
 })}`
     )
-    .join("\n\n");
+    .join("\n\n --- \n\n");
 
   out += `
+
+----
+
+
 ### Deployment History
 
 ${deploymentHistoryMd}`;
