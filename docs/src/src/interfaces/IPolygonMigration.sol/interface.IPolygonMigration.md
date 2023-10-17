@@ -166,6 +166,8 @@ function unmigrationLocked() external view returns (bool isUnmigrationLocked);
 
 ### getVersion
 
+returns the version of the contract
+
 
 ```solidity
 function getVersion() external pure returns (string memory version);
@@ -174,7 +176,7 @@ function getVersion() external pure returns (string memory version);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`version`|`string`|the implementation version|
+|`version`|`string`|version string|
 
 
 ## Events
