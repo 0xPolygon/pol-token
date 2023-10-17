@@ -5,7 +5,8 @@
 lcov.info
 .DS_Store
 .vscode
-broadcast/
 .env
 
-output/31337.json
+broadcast/*/31337
+deployments/31337.md
+deployments/json/31337.json

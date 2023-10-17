@@ -4,9 +4,9 @@ pragma solidity 0.8.21;
 import {Script, stdJson, console2 as console} from "forge-std/Script.sol";
 
 import {ProxyAdmin, TransparentUpgradeableProxy} from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
-import {PolygonEcosystemToken} from "../src/PolygonEcosystemToken.sol";
-import {DefaultEmissionManager} from "../src/DefaultEmissionManager.sol";
-import {PolygonMigration} from "../src/PolygonMigration.sol";
+import {PolygonEcosystemToken} from "../../src/PolygonEcosystemToken.sol";
+import {DefaultEmissionManager} from "../../src/DefaultEmissionManager.sol";
+import {PolygonMigration} from "../../src/PolygonMigration.sol";
 
 contract Deploy is Script {
     using stdJson for string;
@@ -21,22 +21,14 @@ contract Deploy is Script {
         }
     }
 
-    function _getLatestCommitHash() internal returns (string memory ret) {
-        string[] memory input = new string[](3);
-        input[0] = "git";
-        input[1] = "rev-parse";
-        input[2] = "HEAD";
-        ret = vm.toString(vm.ffi(input));
-    }
-
     function run() public {
-        string memory config = vm.readFile("script/config.json");
+        string memory input = vm.readFile("scripts/1.0.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
-        address matic = config.readAddress(string.concat(chainIdSlug, ".matic"));
-        address governance = config.readAddress(string.concat(chainIdSlug, ".governance"));
-        address treasury = config.readAddress(string.concat(chainIdSlug, ".treasury"));
-        address stakeManager = config.readAddress(string.concat(chainIdSlug, ".stakeManager"));
-        address permit2revoker = config.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
+        address matic = input.readAddress(string.concat(chainIdSlug, ".matic"));
+        address governance = input.readAddress(string.concat(chainIdSlug, ".governance"));
+        address treasury = input.readAddress(string.concat(chainIdSlug, ".treasury"));
+        address stakeManager = input.readAddress(string.concat(chainIdSlug, ".stakeManager"));
+        address permit2revoker = input.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
 
         vm.startBroadcast(deployerPrivateKey);
 
