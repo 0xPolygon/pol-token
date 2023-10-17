@@ -74,12 +74,6 @@ async function main() {
       return obj;
     }, {});
     latestContracts = contracts;
-    // only update if there are changes to specific contracts from history
-    if (Object.keys(out.latest.contracts).length != 0) {
-      if (out.history.find((h) => h.commitHash === commitHash) || out.latest.commitHash === commitHash)
-        return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
-      out.history.unshift(out.latest); // add latest to history
-    }
   } else {
     if (out.history.find((h) => h.commitHash === commitHash)) return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
 
