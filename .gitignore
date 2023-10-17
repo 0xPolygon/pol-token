@@ -4,7 +4,9 @@
 /coverage
 lcov.info
 .DS_Store
-broadcast/
+.vscode
 .env
 
-output/31337.json
+broadcast/*/31337
+deployments/31337.md
+deployments/json/31337.json
