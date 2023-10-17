@@ -11,18 +11,9 @@ import {PolygonMigration} from "../../src/PolygonMigration.sol";
 contract Deploy is Script {
     using stdJson for string;
 
-    string internal constant TEST_MNEMONIC = "test test test test test test test test test test test junk";
-    uint256 public deployerPrivateKey;
-
-    constructor() {
-        deployerPrivateKey = vm.envOr({name: "PRIVATE_KEY", defaultValue: uint256(0)});
-        if (deployerPrivateKey == 0) {
-            (, deployerPrivateKey) = deriveRememberKey({mnemonic: TEST_MNEMONIC, index: 0});
-        }
-    }
-
     function run() public {
-        string memory input = vm.readFile("scripts/1.0.0/input.json");
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        string memory input = vm.readFile("scripts/1.1.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address matic = input.readAddress(string.concat(chainIdSlug, ".matic"));
         address governance = input.readAddress(string.concat(chainIdSlug, ".governance"));
