@@ -42,6 +42,7 @@ interface IDefaultEmissionManager {
     /// log2(interestRatePerYear) = 0.04264433740849372 with 18 decimals, as the interest rate does not change, hard code the value
     function inflatedSupplyAfter(uint256 timeElapsedInSeconds) external pure returns (uint256 inflatedSupply);
 
-    /// @return version the implementation version
+    /// @notice returns the version of the contract
+    /// @return version version string
     function getVersion() external pure returns (string memory version);
 }

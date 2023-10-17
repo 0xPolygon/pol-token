@@ -81,6 +81,7 @@ interface IPolygonMigration {
     /// @return isUnmigrationLocked whether the unmigration is locked or not
     function unmigrationLocked() external view returns (bool isUnmigrationLocked);
 
-    /// @return version the implementation version
+    /// @notice returns the version of the contract
+    /// @return version version string
     function getVersion() external pure returns (string memory version);
 }
