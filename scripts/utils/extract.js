@@ -81,6 +81,20 @@ async function main() {
       Object.entries(out.latest).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
     );
     // check for updates
+    if (out.history.length === 0) {
+      const inputPath = join(__dirname, "../1.0.0/input.json");
+
+      out.history.push({
+        contracts: Object.entries(out.latest).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
+          obj[key] = rest;
+          return obj;
+        }, {}),
+        input: JSON.parse((existsSync(inputPath) && readFileSync(inputPath, "utf-8")) || `{"${chainId}":{}}`)[chainId],
+        timestamp,
+        commitHash,
+      });
+    }
+
     for (const { transaction, transactionType } of data.transactions) {
       if (
         transactionType === "CALL" &&
@@ -91,15 +105,6 @@ async function main() {
         const newImplementationAddress = "0x" + transaction.data.slice(98, 138);
         const contractName = deployedContractsMap.get(proxyAddress.toLowerCase());
 
-        if (out.history.length === 0) {
-          const inputPath = join(__dirname, "../1.0.0/input.json");
-          out.history.push({
-            contracts: out.latest,
-            input: JSON.parse((existsSync(inputPath) && readFileSync(inputPath, "utf-8")) || `{"${chainId}":{}}`)[
-              chainId
-            ],
-          });
-        }
         latestContracts[contractName] = {
           ...out.latest[contractName],
           implementation: toChecksumAddress(newImplementationAddress),
@@ -108,8 +113,13 @@ async function main() {
           commitHash,
         };
         out.history.unshift({
-          contracts: latestContracts,
+          contracts: Object.entries(latestContracts).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
+            obj[key] = rest;
+            return obj;
+          }, {}),
           input: input[chainId],
+          timestamp,
+          commitHash,
         });
       }
     }
@@ -293,8 +303,9 @@ function generateProxyInformationIfProxy({
       .map(
         ({
           contracts: {
-            [contractName]: { implementation, commitHash, version },
+            [contractName]: { implementation, version },
           },
+          commitHash,
         }) => `
     <tr>
         <td><a href="https://github.com/0xPolygon/pol-token/releases/tag/${version}" target="_blank">${version}</a></td>
@@ -326,11 +337,12 @@ function generateDeploymentHistory(history, latest, chainId) {
       return obj;
     }, {});
   } else {
-    allVersions = history.reduce((obj, { contracts, input }) => {
+    allVersions = history.reduce((obj, { contracts, input, timestamp, commitHash }) => {
+      console.log({ obj, contracts, input, timestamp, commitHash });
       Object.entries(contracts).forEach(([contractName, contract]) => {
         if (typeof contract.version === "undefined") return;
         if (!obj[contract.version]) obj[contract.version] = [];
-        obj[contract.version].push({ contract, contractName, input });
+        obj[contract.version].push({ contract: { ...contract, timestamp, commitHash }, contractName, input });
       });
       return obj;
     }, {});
