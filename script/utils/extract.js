@@ -241,7 +241,7 @@ function generateMarkdown(input) {
   const { deploymentHistoryMd, allVersions } = generateDeploymentHistory(input.history, input.latest, input.chainId);
   out += Object.keys(allVersions)
     .map((v) => `\n\t- [${v}](#${v.replace(/\./g, "")})`)
-    .join("\n");
+    .join("");
 
   out += `\n\n## Summary
   <table>
@@ -346,7 +346,7 @@ function generateProxyInformationIfProxy({
   out += `\n`;
   out += `
 <details>
-<summary>Implementation History</sumamry>
+<summary>Implementation History</summary>
 <table>
     <tr>
         <th>Version</th>
