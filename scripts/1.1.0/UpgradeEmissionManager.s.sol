@@ -22,21 +22,12 @@ contract Deploy is Script {
     function run() public {
         string memory input = vm.readFile("scripts/1.1.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
-        ITransparentUpgradeableProxy emissionProxy = ITransparentUpgradeableProxy(
-            input.readAddress(string.concat(chainIdSlug, ".emissionProxy"))
-        );
-        address proxyAdmin = input.readAddress(string.concat(chainIdSlug, ".proxyAdmin"));
         address migrationProxy = input.readAddress(string.concat(chainIdSlug, ".migrationProxy"));
         address stakeManager = input.readAddress(string.concat(chainIdSlug, ".stakeManager"));
         address treasury = input.readAddress(string.concat(chainIdSlug, ".treasury"));
         vm.startBroadcast(deployerPrivateKey);
-        ProxyAdmin admin = ProxyAdmin(proxyAdmin);
 
-        address emissionManagerImplementationUpgrade = address(
-            new DefaultEmissionManager(migrationProxy, stakeManager, treasury)
-        );
-
-        admin.upgrade(emissionProxy, emissionManagerImplementationUpgrade);
+        new DefaultEmissionManager(migrationProxy, stakeManager, treasury);
 
         vm.stopBroadcast();
     }
