@@ -11,7 +11,7 @@ contract Deploy is Script {
 
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        string memory input = vm.readFile("scripts/1.1.0/input.json");
+        string memory input = vm.readFile("script/1.1.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address migrationProxy = input.readAddress(string.concat(chainIdSlug, ".migrationProxy"));
         address stakeManager = input.readAddress(string.concat(chainIdSlug, ".stakeManager"));
