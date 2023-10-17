@@ -24,13 +24,12 @@ async function main() {
   const outPath = join(__dirname, `../../deployments/json/${chainId}.json`);
   if (!existsSync(join(__dirname, "../../deployments/json/"))) mkdirSync(join(__dirname, "../../deployments/json/"));
   const out = JSON.parse(
-    (existsSync(outPath) && readFileSync(outPath, "utf-8")) ||
-      JSON.stringify({ chainId, latest: { contracts: {} }, history: [] })
+    (existsSync(outPath) && readFileSync(outPath, "utf-8")) || JSON.stringify({ chainId, latest: {}, history: [] })
   );
 
   const timestamp = data.timestamp;
   let latestContracts = {};
-  if (Object.keys(out.latest.contracts).length === 0) {
+  if (Object.keys(out.latest).length === 0) {
     const deployedContractsMap = new Map(
       [...deployments].map(({ contractAddress, contractName }) => [contractAddress, contractName])
     );
@@ -78,7 +77,7 @@ async function main() {
     if (out.history.find((h) => h.commitHash === commitHash)) return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
 
     const deployedContractsMap = new Map(
-      Object.entries(out.latest.contracts).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
+      Object.entries(out.latest).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
     );
     // check for updates
     for (const { transaction, transactionType } of data.transactions) {
@@ -91,29 +90,34 @@ async function main() {
         const newImplementationAddress = "0x" + transaction.data.slice(98, 138);
         const contractName = deployedContractsMap.get(proxyAddress.toLowerCase());
 
-        out.history.push({
-          ...out.latest,
-          contracts: { [contractName]: out.latest.contracts[contractName] },
-        });
-
+        if (out.history.length === 0) {
+          const inputPath = join(__dirname, "../1.0.0/input.json");
+          out.history.push({
+            contracts: out.latest,
+            input: JSON.parse((existsSync(inputPath) && readFileSync(inputPath, "utf-8")) || `{"${chainId}":{}}`)[
+              chainId
+            ],
+          });
+        }
         latestContracts[contractName] = {
-          ...out.latest.contracts[contractName],
+          ...out.latest[contractName],
           implementation: toChecksumAddress(newImplementationAddress),
           version: (await getVersion(newImplementationAddress, rpcUrl))?.version || version,
+          timestamp,
+          commitHash,
         };
+        out.history.unshift({
+          contracts: latestContracts,
+          input: input[chainId],
+        });
       }
     }
   }
 
   // overwrite latest with changed contracts
   out.latest = {
-    contracts: {
-      ...out.latest?.contracts,
-      ...latestContracts,
-    },
-    input: input[chainId],
-    commitHash,
-    timestamp,
+    ...out.latest,
+    ...latestContracts,
   };
 
   writeFileSync(outPath, JSON.stringify(out, null, 2));
@@ -163,7 +167,7 @@ function generateMarkdown(input) {
   // read name from foundry.toml
 
   out += `\n### Table of Contents\n- [Summary](#summary)\n- [Contracts](#contracts)\n\t- `;
-  out += Object.keys(input.latest.contracts)
+  out += Object.keys(input.latest)
     .map(
       (c) =>
         `[${c.replace(/([A-Z])/g, " $1").trim()}](#${c
@@ -173,19 +177,20 @@ function generateMarkdown(input) {
           .toLowerCase()})`
     )
     .join("\n\t- ");
-  out += `\n- [Deployment History](#deployment-history)\n`;
+  out += `\n- [Deployment History](#deployment-history)`;
   const { deploymentHistoryMd, allVersions } = generateDeploymentHistory(input.history, input.latest, input.chainId);
   out += Object.keys(allVersions)
     .map((v) => `\n\t- [${v}](#${v.replace(/\./g, "")})`)
     .join("\n");
-  out += `\n ## Summary
+
+  out += `\n\n## Summary
   <table>
   <tr>
       <th>Contract</th>
       <th>Address</th>
       <th>Version</th>
   </tr>`;
-  out += Object.entries(input.latest.contracts)
+  out += Object.entries(input.latest)
     .map(
       ([contractName, { address, version }]) =>
         `<tr>
@@ -199,7 +204,7 @@ function generateMarkdown(input) {
 
   out += `\n## Contracts\n\n`;
 
-  out += Object.entries(input.latest.contracts)
+  out += Object.entries(input.latest)
     .map(
       ([
         contractName,
@@ -299,7 +304,7 @@ function generateProxyInformationIfProxy({
         )}</a></td>
     </tr>`
       )
-      .join("\n")}
+      .join("")}
 </table>
 </details>
   `;
@@ -307,14 +312,29 @@ function generateProxyInformationIfProxy({
 }
 
 function generateDeploymentHistory(history, latest, chainId) {
-  const allVersions = [...history, latest].reduce((obj, { contracts, input }) => {
-    Object.entries(contracts).forEach(([contractName, contract]) => {
-      if (typeof contract.version === "undefined") return;
+  let allVersions = {};
+  if (history.length === 0) {
+    const inputPath = join(__dirname, "../1.0.0/input.json");
+    const input = JSON.parse((existsSync(inputPath) && readFileSync(inputPath, "utf-8")) || `{"${chainId}":{}}`)[
+      chainId
+    ];
+    allVersions = Object.entries(latest).reduce((obj, [contractName, contract]) => {
+      if (typeof contract.version === "undefined") return obj;
       if (!obj[contract.version]) obj[contract.version] = [];
       obj[contract.version].push({ contract, contractName, input });
-    });
-    return obj;
-  }, {});
+      return obj;
+    }, {});
+  } else {
+    allVersions = history.reduce((obj, { contracts, input }) => {
+      Object.entries(contracts).forEach(([contractName, contract]) => {
+        if (typeof contract.version === "undefined") return;
+        if (!obj[contract.version]) obj[contract.version] = [];
+        obj[contract.version].push({ contract, contractName, input });
+      });
+      return obj;
+    }, {});
+  }
+
   let out = ``;
   out += Object.entries(allVersions)
     .map(
@@ -322,6 +342,10 @@ function generateDeploymentHistory(history, latest, chainId) {
 ### [${version}](https://github.com/0xPolygon/pol-token/releases/tag/${version})
 
 ${prettifyTimestamp(contractInfos[0].contract.timestamp)}
+
+Commit Hash: [${contractInfos[0].contract.commitHash.slice(0, 7)}](https://github.com/0xPolygon/pol-token/commit/${
+        contractInfos[0].contract.commitHash
+      })
 
 Deployed contracts:
 
