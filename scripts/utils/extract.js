@@ -180,6 +180,10 @@ function generateMarkdown(input) {
     )
     .join("\n\t- ");
   out += `\n- [Deployment History](#deployment-history)\n`;
+  const { deploymentHistoryMd, allVersions } = generateDeploymentHistory(input.history, input.latest, input.chainId);
+  out += Object.keys(allVersions)
+    .map((v) => `\n\t- [${v}](#${v.replace(/\./g, "")})`)
+    .join("\n");
   out += `\n ## Summary
   <table>
   <tr>
@@ -236,7 +240,7 @@ ${generateProxyInformationIfProxy({
   out += `
 ### Deployment History
 
-${generateDeploymentHistory(input.history, input.latest, input.chainId)}`;
+${deploymentHistoryMd}`;
 
   writeFileSync(join(__dirname, `../../deployments/${input.chainId}.md`), out, "utf-8");
 }
@@ -364,7 +368,7 @@ Deployed contracts:
     )
     .join("\n\n");
 
-  return out;
+  return { deploymentHistoryMd: out, allVersions };
 }
 
 function prettifyTimestamp(timestamp) {
