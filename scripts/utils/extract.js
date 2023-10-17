@@ -74,26 +74,21 @@ async function main() {
       return obj;
     }, {});
     latestContracts = contracts;
+    out.history.push({
+      contracts: Object.entries(contracts).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
+        obj[key] = rest;
+        return obj;
+      }, {}),
+      input: input[chainId],
+      timestamp,
+      commitHash,
+    });
   } else {
     if (out.history.find((h) => h.commitHash === commitHash)) return console.log("warn: commitHash already deployed"); // if commitHash already exists in history, return
 
     const deployedContractsMap = new Map(
       Object.entries(out.latest).map(([contractName, { address }]) => [address.toLowerCase(), contractName])
     );
-    // check for updates
-    if (out.history.length === 0) {
-      const inputPath = join(__dirname, "../1.0.0/input.json");
-
-      out.history.push({
-        contracts: Object.entries(out.latest).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
-          obj[key] = rest;
-          return obj;
-        }, {}),
-        input: JSON.parse((existsSync(inputPath) && readFileSync(inputPath, "utf-8")) || `{"${chainId}":{}}`)[chainId],
-        timestamp,
-        commitHash,
-      });
-    }
 
     for (const { transaction, transactionType } of data.transactions) {
       if (
@@ -338,7 +333,6 @@ function generateDeploymentHistory(history, latest, chainId) {
     }, {});
   } else {
     allVersions = history.reduce((obj, { contracts, input, timestamp, commitHash }) => {
-      console.log({ obj, contracts, input, timestamp, commitHash });
       Object.entries(contracts).forEach(([contractName, contract]) => {
         if (typeof contract.version === "undefined") return;
         if (!obj[contract.version]) obj[contract.version] = [];
