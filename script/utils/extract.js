@@ -97,7 +97,7 @@ async function main() {
         );
         if (currentImplementation === out.latest[contractName].implementation)
           throw new Error(
-            `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}`
+            `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}, deployed - ${contractAddress}`
           );
         if (currentImplementation !== contractAddress)
           throw new Error(
@@ -108,8 +108,8 @@ async function main() {
         // implementation changed, update latestContracts
         latestContracts[contractName] = {
           ...out.latest[contractName],
-          implementation: toChecksumAddress(newImplementationAddress),
-          version: (await getVersion(newImplementationAddress, rpcUrl))?.version || version,
+          implementation: toChecksumAddress(currentImplementation),
+          version: (await getVersion(currentImplementation, rpcUrl))?.version || version,
           timestamp,
           commitHash,
         };
