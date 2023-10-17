@@ -130,6 +130,8 @@ function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 s
 
 ### getVersion
 
+returns the version of the contract
+
 
 ```solidity
 function getVersion() external pure returns (string memory);
@@ -138,6 +140,6 @@ function getVersion() external pure returns (string memory);
 
 |Name|Type|Description|
 |----|----|-----------|
-|`<none>`|`string`|version the implementation version|
+|`<none>`|`string`|version version string|
 
 
