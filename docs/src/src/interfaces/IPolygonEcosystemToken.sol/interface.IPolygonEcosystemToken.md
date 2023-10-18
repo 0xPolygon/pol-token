@@ -1,5 +1,5 @@
 # IPolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/7a1dec282d430e9f94fc81b42f7da0c058e0221b/src/interfaces/IPolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/c90f15d50e8eaa68c8104f9ffe45a66d1d128a64/src/interfaces/IPolygonEcosystemToken.sol)
 
 **Inherits:**
 IERC20, IERC20Permit, IAccessControlEnumerable
@@ -115,7 +115,7 @@ function PERMIT2() external view returns (address);
 
 ### mintPerSecondCap
 
-*13.37 POL tokens per second. will limit emission in ~23 years*
+*13.37 POL tokens per second. will limit emission in ~12 years*
 
 
 ```solidity

@@ -55,7 +55,7 @@ interface IPolygonEcosystemToken is IERC20, IERC20Permit, IAccessControlEnumerab
     function PERMIT2() external view returns (address);
 
     /// @return currentMintPerSecondCap the current amount of tokens that can be minted per second
-    /// @dev 13.37 POL tokens per second. will limit emission in ~23 years
+    /// @dev 13.37 POL tokens per second. will limit emission in ~12 years
     function mintPerSecondCap() external view returns (uint256 currentMintPerSecondCap);
 
     /// @return lastMintTimestamp the timestamp of the last mint
