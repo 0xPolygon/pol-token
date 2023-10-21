@@ -226,6 +226,12 @@ rule unmigrateWithPermit(env e) {
             => assert_uint256(0) == callerAllowanceAfter;
 
         assert to_mathint(_PolygonEcosystemToken.nonces(holder)) == nonceBefore + 1;
+        
+        assert require_uint256(polygonBalanceBeforeCaller - amount) == polygonBalanceAfterCaller && 
+            require_uint256(maticBalanceBeforeCaller + amount) == maticBalanceAfterCaller;
+
+        assert require_uint256(polygonBalanceBeforeContract + amount) == polygonBalanceAfterContract && 
+            require_uint256(maticBalanceBeforeContract - amount) == maticBalanceAfterContract;
 
         // deadline was respected
         assert deadline >= e.block.timestamp;
@@ -278,4 +284,25 @@ rule verifyMigrate(env e) {
         assert assert_uint256(maticBalanceBeforeContract + amount) == maticBalanceAfterContract;
         assert polygonBalanceBeforeOther == polygonBalanceAfterOther && polygonBalanceAfterOther == polygonBalanceAfterOther;
     }
+}
+
+rule shouldRevertIfUnmigrateIsLocked(env e) {
+
+    uint256 amount;
+
+    requireInvariant totalSupplyIsSumOfBalances();
+    require nonpayable(e);
+    require nonzerosender(e);
+    require e.msg.sender != currentContract;
+    require (_PolygonEcosystemToken.allowance(e.msg.sender, currentContract)) >= amount;
+
+    require (_PolygonEcosystemToken.balanceOf(e.msg.sender) >= amount);
+    require (_Matic.balanceOf(currentContract) >= amount);
+        
+    unmigrate@withrevert(e, amount);
+
+    bool didUnmigrateRevert = lastReverted;
+
+    assert didUnmigrateRevert => unmigrationLocked() == true;
+
 }
