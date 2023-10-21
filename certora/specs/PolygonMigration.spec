@@ -12,12 +12,13 @@ methods {
     function unmigrateWithPermit(uint256) external;
     function unmigrateWithPermit(uint256,uint256,uint8,bytes32,bytes32) external;
     function updateUnmigrationLock(bool) external;
+    function burn() external;
 
     function matic() external returns (address) envfree;
     function polygon() external returns (address) envfree;
     function unmigrationLocked() external returns (bool) envfree;
     function owner() external returns (address) envfree;
-
+    function dead() external returns (address) envfree;
 
     // Polygon Harness
     function _PolygonEcosystemToken.allowance(address, address) external returns (uint256) envfree;
@@ -118,10 +119,10 @@ rule verifyUnmigrate(env e) {
         assert polygonBalanceBeforeCaller == polygonBalanceAfterCaller && maticBalanceBeforeCaller == maticBalanceAfterCaller;
         assert polygonBalanceBeforeContract == polygonBalanceAfterContract && maticBalanceBeforeContract == maticBalanceAfterContract;
     } else {
-        assert assert_uint256(polygonBalanceBeforeCaller - amount) == polygonBalanceAfterCaller;
-        assert assert_uint256(maticBalanceBeforeCaller + amount) == maticBalanceAfterCaller;
-        assert assert_uint256(polygonBalanceBeforeContract + amount) == polygonBalanceAfterContract;
-        assert assert_uint256(maticBalanceBeforeContract - amount) == maticBalanceAfterContract;
+        assert require_uint256(polygonBalanceBeforeCaller - amount) == polygonBalanceAfterCaller;
+        assert require_uint256(maticBalanceBeforeCaller + amount) == maticBalanceAfterCaller;
+        assert require_uint256(polygonBalanceBeforeContract + amount) == polygonBalanceAfterContract;
+        assert require_uint256(maticBalanceBeforeContract - amount) == maticBalanceAfterContract;
     }
 }
 
@@ -160,12 +161,12 @@ rule verifyUnmigrateTo(env e) {
         assert polygonBalanceBeforeReceiver == polygonBalanceAfterReceiver && maticBalanceBeforeReceiver == maticBalanceAfterReceiver;
         assert polygonBalanceBeforeContract == polygonBalanceAfterContract && maticBalanceBeforeContract == maticBalanceAfterContract;
     } else {
-        assert assert_uint256(polygonBalanceBeforeCaller - amount) == polygonBalanceAfterCaller;
-        assert assert_uint256(polygonBalanceBeforeReceiver) == polygonBalanceAfterReceiver;
-        assert assert_uint256(maticBalanceBeforeReceiver + amount) == maticBalanceAfterReceiver;
-        assert assert_uint256(maticBalanceBeforeCaller) == maticBalanceAfterCaller;
-        assert assert_uint256(polygonBalanceBeforeContract + amount) == polygonBalanceAfterContract;
-        assert assert_uint256(maticBalanceBeforeContract - amount) == maticBalanceAfterContract;
+        assert require_uint256(polygonBalanceBeforeCaller - amount) == polygonBalanceAfterCaller;
+        assert require_uint256(polygonBalanceBeforeReceiver) == polygonBalanceAfterReceiver;
+        assert require_uint256(maticBalanceBeforeReceiver + amount) == maticBalanceAfterReceiver;
+        assert require_uint256(maticBalanceBeforeCaller) == maticBalanceAfterCaller;
+        assert require_uint256(polygonBalanceBeforeContract + amount) == polygonBalanceAfterContract;
+        assert require_uint256(maticBalanceBeforeContract - amount) == maticBalanceAfterContract;
     }
 }
 
@@ -175,6 +176,9 @@ rule unmigrateWithPermit(env e) {
 
     address holder = e.msg.sender;
     address spender = currentContract;
+
+    require(holder != spender);
+
     uint256 amount;
     uint256 deadline;
     uint8 v;
@@ -223,7 +227,7 @@ rule unmigrateWithPermit(env e) {
         assert amount == max_uint256 => (max_uint256) == callerAllowanceAfter;
 
         assert (amount < max_uint256 && (!_PolygonEcosystemToken.permit2Enabled() || spender != _PolygonEcosystemToken.PERMIT2())) 
-            => assert_uint256(0) == callerAllowanceAfter;
+            => require_uint256(0) == callerAllowanceAfter;
 
         assert to_mathint(_PolygonEcosystemToken.nonces(holder)) == nonceBefore + 1;
         
@@ -278,10 +282,10 @@ rule verifyMigrate(env e) {
         assert polygonBalanceBeforeContract == polygonBalanceAfterContract && maticBalanceBeforeContract == maticBalanceAfterContract;
         assert polygonBalanceBeforeOther == polygonBalanceAfterOther && polygonBalanceAfterOther == polygonBalanceAfterOther;
     } else {
-        assert assert_uint256(polygonBalanceBeforeCaller + amount) == polygonBalanceAfterCaller;
-        assert assert_uint256(maticBalanceBeforeCaller - amount) == maticBalanceAfterCaller;
-        assert assert_uint256(polygonBalanceBeforeContract - amount) == polygonBalanceAfterContract;
-        assert assert_uint256(maticBalanceBeforeContract + amount) == maticBalanceAfterContract;
+        assert require_uint256(polygonBalanceBeforeCaller + amount) == polygonBalanceAfterCaller;
+        assert require_uint256(maticBalanceBeforeCaller - amount) == maticBalanceAfterCaller;
+        assert require_uint256(polygonBalanceBeforeContract - amount) == polygonBalanceAfterContract;
+        assert require_uint256(maticBalanceBeforeContract + amount) == maticBalanceAfterContract;
         assert polygonBalanceBeforeOther == polygonBalanceAfterOther && polygonBalanceAfterOther == polygonBalanceAfterOther;
     }
 }
@@ -303,6 +307,21 @@ rule shouldRevertIfUnmigrateIsLocked(env e) {
 
     bool didUnmigrateRevert = lastReverted;
 
-    assert didUnmigrateRevert => unmigrationLocked() == true;
+    assert didUnmigrateRevert <=> unmigrationLocked() == true;
 
+}
+
+rule shouldBurn(env e) {
+    require(currentContract != dead());
+    uint256 amount;
+
+    uint256 balanceBefore = _PolygonEcosystemToken.balanceOf(currentContract);
+
+    burn(e, amount);
+    bool didRevert = lastReverted;
+
+    uint256 balanceAfter = _PolygonEcosystemToken.balanceOf(currentContract);
+
+    assert didRevert <=> (balanceBefore < amount || owner() != e.msg.sender);
+    assert !didRevert <=> (require_uint256(balanceAfter + amount) == balanceBefore);
 }
