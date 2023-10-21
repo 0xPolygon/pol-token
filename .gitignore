@@ -10,3 +10,5 @@ lcov.info
 broadcast/*/31337
 deployments/31337.md
 deployments/json/31337.json
+
+.certora_internal
