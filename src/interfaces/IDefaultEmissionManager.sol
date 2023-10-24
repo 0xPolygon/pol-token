@@ -44,5 +44,5 @@ interface IDefaultEmissionManager {
 
     /// @notice returns the version of the contract
     /// @return version version string
-    function getVersion() external pure returns (string memory version);
+    function version() external pure returns (string memory version);
 }

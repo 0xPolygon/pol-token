@@ -1,5 +1,5 @@
 # DefaultEmissionManager
-[Git Source](https://github.com/0xPolygon/pol-token/blob/7a1dec282d430e9f94fc81b42f7da0c058e0221b/src/DefaultEmissionManager.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/59aa38c99af46d3b365ecc8a7e9d0765591960b9/src/DefaultEmissionManager.sol)
 
 **Inherits:**
 Ownable2StepUpgradeable, [IDefaultEmissionManager](/src/interfaces/IDefaultEmissionManager.sol/interface.IDefaultEmissionManager.md)
@@ -128,13 +128,13 @@ function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 s
 |`supply`|`uint256`|inflatedSupply supply total supply from compounded emission after timeElapsed|
 
 
-### getVersion
+### version
 
 returns the version of the contract
 
 
 ```solidity
-function getVersion() external pure returns (string memory);
+function version() external pure returns (string memory);
 ```
 **Returns**
 

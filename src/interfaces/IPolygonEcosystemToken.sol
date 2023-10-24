@@ -67,5 +67,5 @@ interface IPolygonEcosystemToken is IERC20, IERC20Permit, IAccessControlEnumerab
     /// @notice returns the version of the contract
     /// @return version version string
     /// @dev this is to support our dev pipeline, and is present despite this contract not being behind a proxy
-    function getVersion() external pure returns (string memory version);
+    function version() external pure returns (string memory version);
 }

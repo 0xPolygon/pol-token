@@ -70,7 +70,7 @@ contract PolygonEcosystemToken is ERC20Permit, AccessControlEnumerable, IPolygon
     }
 
     /// @inheritdoc IPolygonEcosystemToken
-    function getVersion() external pure returns (string memory) {
+    function version() external pure returns (string memory) {
         return "1.1.0";
     }
 

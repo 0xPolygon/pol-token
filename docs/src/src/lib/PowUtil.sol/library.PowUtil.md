@@ -1,5 +1,5 @@
 # PowUtil
-[Git Source](https://github.com/0xPolygon/pol-token/blob/7a1dec282d430e9f94fc81b42f7da0c058e0221b/src/lib/PowUtil.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/59aa38c99af46d3b365ecc8a7e9d0765591960b9/src/lib/PowUtil.sol)
 
 
 ## Functions

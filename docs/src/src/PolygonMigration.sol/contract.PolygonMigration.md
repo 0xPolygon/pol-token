@@ -1,5 +1,5 @@
 # PolygonMigration
-[Git Source](https://github.com/0xPolygon/pol-token/blob/7a1dec282d430e9f94fc81b42f7da0c058e0221b/src/PolygonMigration.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/59aa38c99af46d3b365ecc8a7e9d0765591960b9/src/PolygonMigration.sol)
 
 **Inherits:**
 Ownable2StepUpgradeable, [IPolygonMigration](/src/interfaces/IPolygonMigration.sol/interface.IPolygonMigration.md)
@@ -170,13 +170,13 @@ function updateUnmigrationLock(bool unmigrationLocked_) external onlyOwner;
 |`unmigrationLocked_`|`bool`||
 
 
-### getVersion
+### version
 
 returns the version of the contract
 
 
 ```solidity
-function getVersion() external pure returns (string memory);
+function version() external pure returns (string memory);
 ```
 **Returns**
 

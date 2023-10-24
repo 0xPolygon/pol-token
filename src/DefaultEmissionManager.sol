@@ -81,7 +81,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     }
 
     /// @inheritdoc IDefaultEmissionManager
-    function getVersion() external pure returns (string memory) {
+    function version() external pure returns (string memory) {
         return "1.1.0";
     }
 

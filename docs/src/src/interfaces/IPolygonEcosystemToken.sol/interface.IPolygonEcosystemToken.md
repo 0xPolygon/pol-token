@@ -1,5 +1,5 @@
 # IPolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/c90f15d50e8eaa68c8104f9ffe45a66d1d128a64/src/interfaces/IPolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/59aa38c99af46d3b365ecc8a7e9d0765591960b9/src/interfaces/IPolygonEcosystemToken.sol)
 
 **Inherits:**
 IERC20, IERC20Permit, IAccessControlEnumerable
@@ -154,7 +154,7 @@ function permit2Enabled() external view returns (bool isPermit2Enabled);
 |`isPermit2Enabled`|`bool`|whether the permit2 default approval is currently active|
 
 
-### getVersion
+### version
 
 returns the version of the contract
 
@@ -162,7 +162,7 @@ returns the version of the contract
 
 
 ```solidity
-function getVersion() external pure returns (string memory version);
+function version() external pure returns (string memory version);
 ```
 **Returns**
 
