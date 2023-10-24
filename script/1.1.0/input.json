@@ -1,10 +1,10 @@
 {
     "1": {
         "matic": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
-        "governance": "0x9A53B1651C8Dd587c30392f8931e61daBBB50899",
+        "protocolCouncil": "0x29A6f32f36EDeD399763524018F17F03B1435b18",
         "treasury": "0x2ff25495d77f380d5F65B95F103181aE8b1cf898",
         "stakeManager": "0x5e3Ef299fDDf15eAa0432E6e66473ace8c13D908",
-        "permit2revoker": "0x9A53B1651C8Dd587c30392f8931e61daBBB50899"
+        "emergencyCouncil": "0x37D085ca4a24f6b29214204E8A8666f12cf19516"
     },
     "5": {
         "migrationProxy": "0x5c5589fca76237Ed00BA024e19b6C077a108f687",
