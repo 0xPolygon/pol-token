@@ -207,7 +207,7 @@ async function getVersion(contractAddress, rpcUrl) {
           jsonrpc: "2.0",
           id: Date.now(),
           method: "eth_call",
-          params: [{ to: contractAddress, data: "0x0d8e6e2c" }, "latest"], // getVersion()(string)
+          params: [{ to: contractAddress, data: "0x54fd4d50" }, "latest"], // version()(string)
         }),
       })
     ).json();

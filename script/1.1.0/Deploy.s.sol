@@ -16,15 +16,15 @@ contract Deploy is Script {
         string memory input = vm.readFile("script/1.1.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address matic = input.readAddress(string.concat(chainIdSlug, ".matic"));
-        address governance = input.readAddress(string.concat(chainIdSlug, ".governance"));
+        address protocolCouncil = input.readAddress(string.concat(chainIdSlug, ".protocolCouncil"));
         address treasury = input.readAddress(string.concat(chainIdSlug, ".treasury"));
         address stakeManager = input.readAddress(string.concat(chainIdSlug, ".stakeManager"));
-        address permit2revoker = input.readAddress(string.concat(chainIdSlug, ".permit2revoker"));
+        address emergencyCouncil = input.readAddress(string.concat(chainIdSlug, ".emergencyCouncil"));
 
         vm.startBroadcast(deployerPrivateKey);
 
         ProxyAdmin admin = new ProxyAdmin();
-        admin.transferOwnership(governance);
+        admin.transferOwnership(emergencyCouncil);
 
         address migrationImplementation = address(new PolygonMigration(matic));
 
@@ -46,15 +46,15 @@ contract Deploy is Script {
         PolygonEcosystemToken polygonToken = new PolygonEcosystemToken(
             migrationProxy,
             emissionManagerProxy,
-            governance,
-            permit2revoker
+            protocolCouncil,
+            emergencyCouncil
         );
 
-        DefaultEmissionManager(emissionManagerProxy).initialize(address(polygonToken), governance);
+        DefaultEmissionManager(emissionManagerProxy).initialize(address(polygonToken), protocolCouncil);
 
         PolygonMigration(migrationProxy).setPolygonToken(address(polygonToken));
 
-        PolygonMigration(migrationProxy).transferOwnership(governance); // governance needs to accept the ownership transfer
+        PolygonMigration(migrationProxy).transferOwnership(protocolCouncil); // governance needs to accept the ownership transfer
 
         vm.stopBroadcast();
     }

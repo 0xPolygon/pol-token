@@ -1,5 +1,5 @@
 # PolygonEcosystemToken
-[Git Source](https://github.com/0xPolygon/pol-token/blob/7a1dec282d430e9f94fc81b42f7da0c058e0221b/src/PolygonEcosystemToken.sol)
+[Git Source](https://github.com/0xPolygon/pol-token/blob/59aa38c99af46d3b365ecc8a7e9d0765591960b9/src/PolygonEcosystemToken.sol)
 
 **Inherits:**
 ERC20Permit, AccessControlEnumerable, [IPolygonEcosystemToken](/src/interfaces/IPolygonEcosystemToken.sol/interface.IPolygonEcosystemToken.md)
@@ -67,7 +67,7 @@ bool public permit2Enabled;
 
 
 ```solidity
-constructor(address migration, address emissionManager, address governance, address permit2Revoker)
+constructor(address migration, address emissionManager, address protocolCouncil, address emergencyCouncil)
     ERC20("Polygon Ecosystem Token", "POL")
     ERC20Permit("Polygon Ecosystem Token");
 ```
@@ -129,7 +129,7 @@ function updatePermit2Allowance(bool enabled) external onlyRole(PERMIT2_REVOKER_
 function allowance(address owner, address spender) public view override(ERC20, IERC20) returns (uint256);
 ```
 
-### getVersion
+### version
 
 returns the version of the contract
 
@@ -137,7 +137,7 @@ returns the version of the contract
 
 
 ```solidity
-function getVersion() external pure returns (string memory);
+function version() external pure returns (string memory);
 ```
 **Returns**
 
