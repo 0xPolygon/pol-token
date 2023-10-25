@@ -1,0 +1,23 @@
+{
+    "31337": {
+        "matic": "0x0000000000000000000000000000000000000001",
+        "governance": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "treasury": "0x0000000000000000000000000000000000000001",
+        "stakeManager": "0x0000000000000000000000000000000000000001",
+        "permit2revoker": "0x0000000000000000000000000000000000000001"
+    },
+    "1": {
+        "matic": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+        "governance": "0x6e7a5820baD6cebA8Ef5ea69c0C92EbbDAc9CE48",
+        "treasury": "0x2ff25495d77f380d5F65B95F103181aE8b1cf898",
+        "stakeManager": "0x5e3Ef299fDDf15eAa0432E6e66473ace8c13D908",
+        "permit2revoker": "0x6e7a5820baD6cebA8Ef5ea69c0C92EbbDAc9CE48"
+    },
+    "5": {
+        "matic": "0x499d11E0b6eAC7c0593d8Fb292DCBbF815Fb29Ae",
+        "governance": "0x531c7Befe78B6496e5753815ab3d3Cc024c1E842",
+        "treasury": "0x531c7Befe78B6496e5753815ab3d3Cc024c1E842",
+        "stakeManager": "0x00200eA4Ee292E253E6Ca07dBA5EdC07c8Aa37A3",
+        "permit2revoker": "0x531c7Befe78B6496e5753815ab3d3Cc024c1E842"
+    }
+}

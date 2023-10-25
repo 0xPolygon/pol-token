@@ -1,0 +1,21 @@
+{
+    "1": {
+        "matic": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+        "protocolCouncil": "0x29A6f32f36EDeD399763524018F17F03B1435b18",
+        "treasury": "0x2ff25495d77f380d5F65B95F103181aE8b1cf898",
+        "stakeManager": "0x5e3Ef299fDDf15eAa0432E6e66473ace8c13D908",
+        "emergencyCouncil": "0x37D085ca4a24f6b29214204E8A8666f12cf19516"
+    },
+    "5": {
+        "migrationProxy": "0x5c5589fca76237Ed00BA024e19b6C077a108f687",
+        "stakeManager": "0x00200eA4Ee292E253E6Ca07dBA5EdC07c8Aa37A3",
+        "treasury": "0x531c7Befe78B6496e5753815ab3d3Cc024c1E842"
+    },
+    "31337": {
+        "matic": "0x0000000000000000000000000000000000000001",
+        "protocolCouncil": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+        "treasury": "0x0000000000000000000000000000000000000001",
+        "stakeManager": "0x0000000000000000000000000000000000000001",
+        "emergencyCouncil": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+    }
+}
