@@ -90,7 +90,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
 
     /// @inheritdoc IPolygonMigration
     function version() external pure returns (string memory) {
-        return "1.0.0";
+        return "1.1.0";
     }
 
     /// @inheritdoc IPolygonMigration
