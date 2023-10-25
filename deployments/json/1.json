@@ -1,0 +1,86 @@
+{
+  "chainId": "1",
+  "latest": {
+    "PolygonMigration": {
+      "implementation": "0x550B7CDaC6F5a0d9e840505c3Df74aC045530446",
+      "proxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+      "address": "0x29e7DF7b6A1B2b07b731457f499E1696c60E2C4e",
+      "proxy": true,
+      "version": "1.1.0",
+      "proxyType": "TransparentUpgradeableProxy",
+      "timestamp": 1698224867,
+      "deploymentTxn": "0x352acb72eddab7b1d810af8823b8ff22de00a3fcbb0c270870b0fa3834230752",
+      "commitHash": "4d110d71d5904bb7fb6ef4ffabd774aee519d1ad"
+    },
+    "DefaultEmissionManager": {
+      "implementation": "0x2126E6952C3af75C9D4CF21f63F509195C79ce44",
+      "proxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+      "address": "0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53",
+      "proxy": true,
+      "version": "1.1.0",
+      "proxyType": "TransparentUpgradeableProxy",
+      "timestamp": 1698224867,
+      "deploymentTxn": "0xeb8da48615884160b61712096c4d770d0f8374b0c3d2686afb798cc3f7b40610",
+      "commitHash": "4d110d71d5904bb7fb6ef4ffabd774aee519d1ad"
+    },
+    "ProxyAdmin": {
+      "address": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+      "proxy": false,
+      "timestamp": 1698224867,
+      "deploymentTxn": "0xedee60942078fd462735060f9c49c730ac7d0e16e22ae982feb8fc88f1dd4de9",
+      "commitHash": "4d110d71d5904bb7fb6ef4ffabd774aee519d1ad"
+    },
+    "PolygonEcosystemToken": {
+      "address": "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6",
+      "proxy": false,
+      "version": "1.1.0",
+      "timestamp": 1698224867,
+      "deploymentTxn": "0x2a88c595a815c6aac8bf6734ee12d939c7d0dce8965771330b72f2ebc3d673bd",
+      "commitHash": "4d110d71d5904bb7fb6ef4ffabd774aee519d1ad"
+    }
+  },
+  "history": [
+    {
+      "contracts": {
+        "PolygonMigration": {
+          "implementation": "0x550B7CDaC6F5a0d9e840505c3Df74aC045530446",
+          "proxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+          "address": "0x29e7DF7b6A1B2b07b731457f499E1696c60E2C4e",
+          "proxy": true,
+          "version": "1.1.0",
+          "proxyType": "TransparentUpgradeableProxy",
+          "deploymentTxn": "0x352acb72eddab7b1d810af8823b8ff22de00a3fcbb0c270870b0fa3834230752"
+        },
+        "DefaultEmissionManager": {
+          "implementation": "0x2126E6952C3af75C9D4CF21f63F509195C79ce44",
+          "proxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+          "address": "0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53",
+          "proxy": true,
+          "version": "1.1.0",
+          "proxyType": "TransparentUpgradeableProxy",
+          "deploymentTxn": "0xeb8da48615884160b61712096c4d770d0f8374b0c3d2686afb798cc3f7b40610"
+        },
+        "ProxyAdmin": {
+          "address": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+          "proxy": false,
+          "deploymentTxn": "0xedee60942078fd462735060f9c49c730ac7d0e16e22ae982feb8fc88f1dd4de9"
+        },
+        "PolygonEcosystemToken": {
+          "address": "0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6",
+          "proxy": false,
+          "version": "1.1.0",
+          "deploymentTxn": "0x2a88c595a815c6aac8bf6734ee12d939c7d0dce8965771330b72f2ebc3d673bd"
+        }
+      },
+      "input": {
+        "matic": "0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0",
+        "protocolCouncil": "0x29A6f32f36EDeD399763524018F17F03B1435b18",
+        "treasury": "0x2ff25495d77f380d5F65B95F103181aE8b1cf898",
+        "stakeManager": "0x5e3Ef299fDDf15eAa0432E6e66473ace8c13D908",
+        "emergencyCouncil": "0x37D085ca4a24f6b29214204E8A8666f12cf19516"
+      },
+      "timestamp": 1698224867,
+      "commitHash": "4d110d71d5904bb7fb6ef4ffabd774aee519d1ad"
+    }
+  ]
+}
