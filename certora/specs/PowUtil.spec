@@ -9,7 +9,7 @@ rule verifyingSteadyIncrease(env e) {
     uint256 a;
     uint256 b;
 
-    require a >= 10 ^ 18;
+    require a >= 1352 * 10^6;
     require b <= 28569152196770896000;
     require a <= b;
 
@@ -24,7 +24,7 @@ rule verifyingSteadyIncrease(env e) {
 rule resultShouldAlwaysbeGEThanOne(env e) {
     uint256 a;
 
-    require a >= 10 ^ 18;
+    require a >= 1352 * 10^6;
     require a < 0xa688906bd8b000000;
 
 
@@ -36,7 +36,7 @@ rule resultShouldAlwaysbeGEThanOne(env e) {
 rule resultShouldNotBeZero(env e) {
     uint256 a;
 
-    require a >= 10 ^ 18;
+    require a >= 1352 * 10^6;
     require a < 0xa688906bd8b000000;
 
     mathint result = exp2(a);
