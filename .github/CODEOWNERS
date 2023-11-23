@@ -1,0 +1,4 @@
+# This group is setup to ensure a security review is always required for PRs
+/src/             @0xPolygon/internal-security
+/script/**/*.sol  @0xPolygon/internal-security
+/deployments/     @0xPolygon/internal-security
