@@ -50,7 +50,7 @@ Note: There are multiple versions available. For this example, we use `1.0.0`.
 - (mainnet): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY`
 - (testnet, goerli for example): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
 
-4. Run `node script/util/extract.js <chainId> [version = '1.0.0'] [scriptName = 'Deploy.s.sol']` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
+4. Run `node script/util/extract.js <chainId> [version = 1.0.0] [scriptName = Deploy.s.sol]` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
 
 ## Reference Deployments
 
