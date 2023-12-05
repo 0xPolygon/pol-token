@@ -45,8 +45,6 @@ Forge scripts are used to deploy or upgrade contracts and an additional extract.
 
 3. Deploy using foundry
 
-Note: There are multiple versions available. For this example, we use `1.0.0`.
-
 - (mainnet): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY`
 - (testnet, goerli for example): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
 
