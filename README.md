@@ -39,13 +39,14 @@ A default implementation is included and this contract will be proxy upgradable 
 
 Forge scripts are used to deploy or upgrade contracts and an additional extract.js script can be used to generate a JSON and Markdown file with coalesced deployment information. (see [deployments](./deployments/))
 
-1. Ensure .env file is set, `cp .env.example`
+1. Ensure .env file is set, `cp .env.example .env`
+
 2. `source .env`
 
 3. Deploy using foundry
 
-- (mainnet): `forge script script/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY`
-- (testnet, goerli for example): `forge script script/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
+- (mainnet): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --etherscan-api-key $ETHERSCAN_API_KEY`
+- (testnet, goerli for example): `forge script script/1.0.0/Deploy.s.sol --broadcast --verify --rpc-url $RPC_URL --verifier-url https://api-goerli.etherscan.io/api --chain-id 5`
 
 4. Run `node script/util/extract.js <chainId> [version = 1.0.0] [scriptName = Deploy.s.sol]` to extract deployment information from forge broadcast output (broadcast/latest-run.json).
 

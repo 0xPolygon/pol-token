@@ -88,40 +88,45 @@ async function main() {
 
     for (const { contractName, contractAddress } of deployments) {
       if (Object.keys(out.latest).includes(contractName) && out.latest[contractName].proxy) {
-        // new deployment, check if implementation changed on chain
-        if (out.latest[contractName].proxyType !== "TransparentUpgradeableProxy") continue; // only support TransparentUpgradeableProxy pattern
-        const currentImplementation = getImplementationAddress(
-          out.latest[contractName].address,
-          "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
-          rpcUrl
-        );
-        if (currentImplementation === out.latest[contractName].implementation)
-          throw new Error(
-            `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}, deployed - ${contractAddress}`
+        try {
+          // new deployment, check if implementation changed on chain
+          if (out.latest[contractName].proxyType !== "TransparentUpgradeableProxy") continue; // only support TransparentUpgradeableProxy pattern
+          const currentImplementation = getImplementationAddress(
+            out.latest[contractName].address,
+            "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
+            rpcUrl
           );
-        if (currentImplementation !== contractAddress)
-          throw new Error(
-            `Implementation mismatch for ${contractName}(${out.latest[contractName].address}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
-          );
+          if (currentImplementation === out.latest[contractName].implementation)
+            throw new Error(
+              `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}, deployed - ${contractAddress}`
+            );
+          if (currentImplementation !== contractAddress)
+            throw new Error(
+              `Implementation mismatch for ${contractName}(${out.latest[contractName].address}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
+            );
 
-        // currentImplementation === contractAddress
-        // implementation changed, update latestContracts
-        latestContracts[contractName] = {
-          ...out.latest[contractName],
-          implementation: toChecksumAddress(currentImplementation),
-          version: (await getVersion(currentImplementation, rpcUrl))?.version || version,
-          timestamp,
-          commitHash,
-        };
-        out.history.unshift({
-          contracts: Object.entries(latestContracts).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
-            obj[key] = rest;
-            return obj;
-          }, {}),
-          input: input[chainId],
-          timestamp,
-          commitHash,
-        });
+          // currentImplementation === contractAddress
+          // implementation changed, update latestContracts
+          latestContracts[contractName] = {
+            ...out.latest[contractName],
+            implementation: toChecksumAddress(currentImplementation),
+            version: (await getVersion(currentImplementation, rpcUrl))?.version || version,
+            timestamp,
+            commitHash,
+          };
+          out.history.unshift({
+            contracts: Object.entries(latestContracts).reduce((obj, [key, { timestamp, commitHash, ...rest }]) => {
+              obj[key] = rest;
+              return obj;
+            }, {}),
+            input: input[chainId],
+            timestamp,
+            commitHash,
+          });
+        } catch (e) {
+          console.log(e);
+          process.exit(1);
+        }
       }
     }
 
