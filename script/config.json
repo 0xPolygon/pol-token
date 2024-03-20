@@ -2,6 +2,7 @@
     "defaultRpc": {
         "31337": "http://127.0.0.1:8545",
         "1": "https://eth.llamarpc.com",
-        "5": "https://ethereum-goerli.publicnode.com"
+        "5": "https://ethereum-goerli.publicnode.com",
+        "11155111": "https://ethereum-sepolia-rpc.publicnode.com"
     }
 }
