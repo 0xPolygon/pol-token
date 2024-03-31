@@ -315,6 +315,8 @@ function getEtherscanLink(chainId, address, slug = "address") {
       return `https://etherscan.io/${slug}/${address}`;
     case 5:
       return `https://goerli.etherscan.io/${slug}/${address}`;
+    case 11155111:
+      return `https://sepolia.etherscan.io/${slug}/${address}`;
     default:
       return ``;
     // return `https://blockscan.com/${slug}/${address}`;
