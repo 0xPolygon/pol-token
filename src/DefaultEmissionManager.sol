@@ -16,7 +16,7 @@ import {PowUtil} from "./lib/PowUtil.sol";
 contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
 
-    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.04264433740849372e18;
+    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.03562390973072122e18; // log2(1.025)
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
 
@@ -62,7 +62,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
         uint256 amountToMint = newSupply - currentSupply;
         if (amountToMint == 0) return; // no minting required
 
-        uint256 treasuryAmt = amountToMint / 3;
+        uint256 treasuryAmt = amountToMint * 2 / 5;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
         emit TokenMint(amountToMint, msg.sender);
@@ -82,7 +82,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
     /// @inheritdoc IDefaultEmissionManager
     function version() external pure returns (string memory) {
-        return "1.1.0";
+        return "1.2.0";
     }
 
     uint256[48] private __gap;
