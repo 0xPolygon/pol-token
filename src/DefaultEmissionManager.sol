@@ -11,7 +11,7 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @title Default Emission Manager
 /// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk, @simonDos)
 /// @notice A default emission manager implementation for the Polygon ERC20 token contract on Ethereum L1
-/// @dev The contract allows for a 3% mint per year (compounded). 2% staking layer and 1% treasury
+/// @dev The contract allows for a 2.5% mint per year (compounded). 1.5% staking layer and 1% treasury
 /// @custom:security-contact security@polygon.technology
 contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
