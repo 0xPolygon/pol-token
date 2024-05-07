@@ -27,6 +27,9 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     IPolygonEcosystemToken public token;
     uint256 public startTimestamp;
 
+    // NEW STORAGE 1.2.0
+    uint256 public START_SUPPLY_1_2_0;
+
     constructor(address migration_, address stakeManager_, address treasury_) {
         if (migration_ == address(0) || stakeManager_ == address(0) || treasury_ == address(0)) revert InvalidAddress();
         DEPLOYER = msg.sender;
@@ -36,6 +39,11 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
         // so that the implementation contract cannot be initialized
         _disableInitializers();
+    }
+
+    function reinitialize() external reinitializer(2) {
+        START_SUPPLY_1_2_0 = token.totalSupply();
+        startTimestamp = block.timestamp;
     }
 
     function initialize(address token_, address owner_) external initializer {
@@ -75,9 +83,9 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     }
 
     /// @inheritdoc IDefaultEmissionManager
-    function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 supply) {
+    function inflatedSupplyAfter(uint256 timeElapsed) public view returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
-        supply = (supplyFactor * START_SUPPLY) / 1e18;
+        supply = (supplyFactor * START_SUPPLY_1_2_0) / 1e18;
     }
 
     /// @inheritdoc IDefaultEmissionManager

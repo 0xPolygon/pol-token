@@ -55,6 +55,8 @@ contract DefaultEmissionManagerTest is Test {
         vm.prank(governance);
         migration.acceptOwnership();
         emissionManager.initialize(address(polygon), governance);
+        emissionManager.reinitialize();
+        
         // POL being emissionary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
@@ -144,7 +146,7 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+        uint256 totalAmtMintedOneThird = totalAmtMinted * 2 / 5;
         assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedOneThird);
         assertEq(matic.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -164,7 +166,7 @@ contract DefaultEmissionManagerTest is Test {
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 3;
+        uint256 balance = (polygon.totalSupply() - initialTotalSupply) * 2 / 5;
         uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
         assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -180,7 +182,7 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+        uint256 totalAmtMintedOneThird = totalAmtMinted * 2 / 5;
 
         balance += totalAmtMintedOneThird;
         stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
@@ -208,7 +210,7 @@ contract DefaultEmissionManagerTest is Test {
 
             assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
             uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-            uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+            uint256 totalAmtMintedOneThird = totalAmtMinted * 2/ 5;
 
             balance += totalAmtMintedOneThird;
             stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
