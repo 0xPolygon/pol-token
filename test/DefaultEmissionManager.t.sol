@@ -125,7 +125,6 @@ contract DefaultEmissionManagerTest is Test {
         emissionManager.mint();
         // timeElapsed is zero, so no minting
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(matic.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), 0);
     }
 
@@ -145,9 +144,7 @@ contract DefaultEmissionManagerTest is Test {
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
         uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
-        assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedOneThird);
-        assertEq(matic.balanceOf(treasury), 0);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedOneThird);
         assertEq(polygon.balanceOf(treasury), totalAmtMintedOneThird);
     }
 
@@ -166,8 +163,7 @@ contract DefaultEmissionManagerTest is Test {
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 3;
         uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
-        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(treasury), balance);
 
         initialTotalSupply = polygon.totalSupply(); // for the new run
@@ -185,8 +181,7 @@ contract DefaultEmissionManagerTest is Test {
         balance += totalAmtMintedOneThird;
         stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
 
-        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(treasury), balance);
     }
 
@@ -213,8 +208,7 @@ contract DefaultEmissionManagerTest is Test {
             balance += totalAmtMintedOneThird;
             stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
 
-            assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-            assertEq(polygon.balanceOf(stakeManager), 0);
+            assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
             assertEq(polygon.balanceOf(treasury), balance);
         }
     }
