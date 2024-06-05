@@ -50,14 +50,15 @@ contract DefaultEmissionManagerTest is Test {
 
         vm.prank(POLYGON_PROTOCOL_COUNCIL);
 
-        admin.upgrade(ITransparentUpgradeableProxy(address(emProxy)), address(newEmImpl));
+        admin.upgradeAndCall(
+            ITransparentUpgradeableProxy(address(emProxy)),
+            address(newEmImpl),
+            abi.encodeWithSelector(DefaultEmissionManager.reinitialize.selector)
+        );
 
         // initialize can still not be called
         vm.expectRevert("Initializable: contract is already initialized");
         emProxy.initialize(makeAddr("token"), msg.sender);
-
-        // reinitialize to reset startTimestamp and start supply
-        emProxy.reinitialize();
 
         assertEq(pol.totalSupply(), emProxy.START_SUPPLY_1_2_0());
         assertEq(block.timestamp, emProxy.startTimestamp());
