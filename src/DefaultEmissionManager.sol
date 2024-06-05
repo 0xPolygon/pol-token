@@ -70,6 +70,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
         uint256 amountToMint = newSupply - currentSupply;
         if (amountToMint == 0) return; // no minting required
 
+        // 2/5 of 2.5% is 1% going to the treasury
         uint256 treasuryAmt = amountToMint * 2 / 5;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
