@@ -93,5 +93,5 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
         return "1.2.0";
     }
 
-    uint256[48] private __gap;
+    uint256[47] private __gap;
 }
