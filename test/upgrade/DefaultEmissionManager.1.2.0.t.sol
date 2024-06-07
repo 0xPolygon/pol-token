@@ -19,7 +19,7 @@ contract DefaultEmissionManagerTest is Test {
 
     address POLYGON_PROTOCOL_COUNCIL = 0x37D085ca4a24f6b29214204E8A8666f12cf19516;
     address EM_PROXY = 0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53;
-    address COMMUNITY_TREASURY_BOARD = 0x2ff25495d77f380d5F65B95F103181aE8b1cf898;
+    address COMMUNITY_TREASURY = 0x2ff25495d77f380d5F65B95F103181aE8b1cf898;
     address EM_PROXY_ADMIN = 0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3;
     PolygonEcosystemToken pol = PolygonEcosystemToken(0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6);
 
@@ -39,7 +39,7 @@ contract DefaultEmissionManagerTest is Test {
 
         DefaultEmissionManager emProxy = DefaultEmissionManager(EM_PROXY);
 
-        assertEq(emProxy.treasury(), COMMUNITY_TREASURY_BOARD);
+        assertEq(emProxy.treasury(), COMMUNITY_TREASURY);
 
         address migration = address(emProxy.migration());
         address stakeManager = emProxy.stakeManager();
