@@ -35,9 +35,13 @@ jobs:
               run: |
                   forge --version
                   forge build --sizes
+              env:
+                MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
               id: build
 
             - name: Run Forge tests
               # ! revert back to FOUNDRY_PROFILE=intense forge test -vvv
               run: forge test -vvv
+              env:
+                MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
               id: test

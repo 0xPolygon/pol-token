@@ -55,6 +55,8 @@ contract DefaultEmissionManagerTest is Test {
         vm.prank(governance);
         migration.acceptOwnership();
         emissionManager.initialize(address(polygon), governance);
+        emissionManager.reinitialize();
+
         // POL being emissionary, while MATIC having a constant supply,
         // the requirement of unmigrating POL to MATIC for StakeManager on each mint
         // is satisfied by a one-time transfer of MATIC to the migration contract
@@ -144,16 +146,17 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
-        assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedOneThird);
+        uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
+        assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedTwoFifth);
         assertEq(matic.balanceOf(treasury), 0);
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(polygon.balanceOf(treasury), totalAmtMintedOneThird);
+        assertEq(polygon.balanceOf(treasury), totalAmtMintedTwoFifth);
     }
 
     function test_MintDelayTwice(uint128 delay) external {
         vm.assume(delay <= 5 * 365 days && delay > 0);
 
+        // now that we actually pass this to calc.js, we only need to set it once.
         uint256 initialTotalSupply = polygon.totalSupply();
 
         skip(delay);
@@ -164,13 +167,12 @@ contract DefaultEmissionManagerTest is Test {
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 3;
+        uint256 balance = (polygon.totalSupply() - initialTotalSupply) * 2 / 5;
         uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
         assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), balance);
 
-        initialTotalSupply = polygon.totalSupply(); // for the new run
         skip(delay);
         emissionManager.mint();
 
@@ -180,10 +182,10 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+        uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
 
-        balance += totalAmtMintedOneThird;
-        stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
+        balance = totalAmtMintedTwoFifth;
+        stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
 
         assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(stakeManager), 0);
@@ -195,10 +197,10 @@ contract DefaultEmissionManagerTest is Test {
 
         uint256 balance;
         uint256 stakeManagerBalance;
+        // now that we actually pass this to calc.js, we only need to set it once.
+        uint256 initialTotalSupply = polygon.totalSupply();
 
         for (uint256 cycle; cycle < cycles; cycle++) {
-            uint256 initialTotalSupply = polygon.totalSupply();
-
             skip(delay);
             emissionManager.mint();
 
@@ -208,10 +210,10 @@ contract DefaultEmissionManagerTest is Test {
 
             assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
             uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-            uint256 totalAmtMintedOneThird = totalAmtMinted / 3;
+            uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
 
-            balance += totalAmtMintedOneThird;
-            stakeManagerBalance += totalAmtMinted - totalAmtMintedOneThird;
+            balance = totalAmtMintedTwoFifth;
+            stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
 
             assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
             assertEq(polygon.balanceOf(stakeManager), 0);
@@ -224,6 +226,6 @@ contract DefaultEmissionManagerTest is Test {
         inputs[2] = vm.toString(delay);
         inputs[3] = vm.toString(polygon.totalSupply());
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
-        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(block.timestamp + delay), 1e20);
+        assertApproxEqAbs(newSupply, emissionManager.inflatedSupplyAfter(delay), 1e20);
     }
 }

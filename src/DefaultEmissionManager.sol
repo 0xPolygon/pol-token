@@ -11,12 +11,12 @@ import {PowUtil} from "./lib/PowUtil.sol";
 /// @title Default Emission Manager
 /// @author Polygon Labs (@DhairyaSethi, @gretzke, @qedk, @simonDos)
 /// @notice A default emission manager implementation for the Polygon ERC20 token contract on Ethereum L1
-/// @dev The contract allows for a 3% mint per year (compounded). 2% staking layer and 1% treasury
+/// @dev The contract allows for a 2.5% mint per year (compounded). 1.5% staking layer and 1% treasury
 /// @custom:security-contact security@polygon.technology
 contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionManager {
     using SafeERC20 for IPolygonEcosystemToken;
 
-    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.04264433740849372e18;
+    uint256 public constant INTEREST_PER_YEAR_LOG2 = 0.03562390973072122e18; // log2(1.025)
     uint256 public constant START_SUPPLY = 10_000_000_000e18;
     address private immutable DEPLOYER;
 
@@ -27,6 +27,9 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     IPolygonEcosystemToken public token;
     uint256 public startTimestamp;
 
+    // NEW STORAGE 1.2.0
+    uint256 public START_SUPPLY_1_2_0;
+
     constructor(address migration_, address stakeManager_, address treasury_) {
         if (migration_ == address(0) || stakeManager_ == address(0) || treasury_ == address(0)) revert InvalidAddress();
         DEPLOYER = msg.sender;
@@ -36,6 +39,11 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
         // so that the implementation contract cannot be initialized
         _disableInitializers();
+    }
+
+    function reinitialize() external reinitializer(2) {
+        START_SUPPLY_1_2_0 = token.totalSupply();
+        startTimestamp = block.timestamp;
     }
 
     function initialize(address token_, address owner_) external initializer {
@@ -62,7 +70,8 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
         uint256 amountToMint = newSupply - currentSupply;
         if (amountToMint == 0) return; // no minting required
 
-        uint256 treasuryAmt = amountToMint / 3;
+        // 2/5 of 2.5% is 1% going to the treasury
+        uint256 treasuryAmt = amountToMint * 2 / 5;
         uint256 stakeManagerAmt = amountToMint - treasuryAmt;
 
         emit TokenMint(amountToMint, msg.sender);
@@ -75,15 +84,15 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
     }
 
     /// @inheritdoc IDefaultEmissionManager
-    function inflatedSupplyAfter(uint256 timeElapsed) public pure returns (uint256 supply) {
+    function inflatedSupplyAfter(uint256 timeElapsed) public view returns (uint256 supply) {
         uint256 supplyFactor = PowUtil.exp2((INTEREST_PER_YEAR_LOG2 * timeElapsed) / 365 days);
-        supply = (supplyFactor * START_SUPPLY) / 1e18;
+        supply = (supplyFactor * START_SUPPLY_1_2_0) / 1e18;
     }
 
     /// @inheritdoc IDefaultEmissionManager
     function version() external pure returns (string memory) {
-        return "1.1.0";
+        return "1.2.0";
     }
 
-    uint256[48] private __gap;
+    uint256[47] private __gap;
 }

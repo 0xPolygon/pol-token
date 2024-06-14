@@ -40,7 +40,7 @@ interface IDefaultEmissionManager {
     /// approximate the compounded interest rate using x^y = 2^(log2(x)*y)
     /// where x is the interest rate per year and y is the number of seconds elapsed since deployment divided by 365 days in seconds
     /// log2(interestRatePerYear) = 0.04264433740849372 with 18 decimals, as the interest rate does not change, hard code the value
-    function inflatedSupplyAfter(uint256 timeElapsedInSeconds) external pure returns (uint256 inflatedSupply);
+    function inflatedSupplyAfter(uint256 timeElapsedInSeconds) external view returns (uint256 inflatedSupply);
 
     /// @notice returns the version of the contract
     /// @return version version string
