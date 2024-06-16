@@ -14,7 +14,7 @@ import {Test} from "forge-std/Test.sol";
 
 // this test forks mainnet and tests the upgradeability of DefaultEmissionManagerProxy
 
-contract DefaultEmissionManagerTest is Test {
+contract DefaultEmissionManagerTestMainnet is Test {
     uint256 mainnetFork;
 
     address POLYGON_PROTOCOL_COUNCIL = 0x37D085ca4a24f6b29214204E8A8666f12cf19516;
@@ -28,8 +28,7 @@ contract DefaultEmissionManagerTest is Test {
     string[] internal inputs = new string[](5);
 
     function setUp() public {
-        string memory MAINNET_RPC_URL = vm.envString("MAINNET_RPC_URL");
-        mainnetFork = vm.createFork(MAINNET_RPC_URL);
+        mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
     }
 
     function testUpgrade() external {
