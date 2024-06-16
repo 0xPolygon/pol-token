@@ -11,7 +11,12 @@ fs_permissions = [
   { access = "read", path = "script/config.json" },
   { access = "read", path = "script/1.0.0/input.json" },
   { access = "read", path = "script/1.1.0/input.json" },
+  { access = "read", path = "script/1.2.0/input.json" },
 ]
+
+[rpc_endpoints]
+testnet = "${RPC_URL}"
+mainnet = "${RPC_MAINNET}"
 
 [profile.intense.fuzz]
 runs = 10000
