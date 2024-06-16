@@ -146,9 +146,7 @@ contract DefaultEmissionManagerTest is Test {
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
         uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
-        assertEq(matic.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedTwoFifth);
-        assertEq(matic.balanceOf(treasury), 0);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedTwoFifth);
         assertEq(polygon.balanceOf(treasury), totalAmtMintedTwoFifth);
     }
 
