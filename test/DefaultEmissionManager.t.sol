@@ -127,7 +127,6 @@ contract DefaultEmissionManagerTest is Test {
         emissionManager.mint();
         // timeElapsed is zero, so no minting
         assertEq(polygon.balanceOf(stakeManager), 0);
-        assertEq(matic.balanceOf(stakeManager), 0);
         assertEq(polygon.balanceOf(treasury), 0);
     }
 
@@ -169,8 +168,7 @@ contract DefaultEmissionManagerTest is Test {
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 balance = (polygon.totalSupply() - initialTotalSupply) * 2 / 5;
         uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
-        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(treasury), balance);
 
         skip(delay);
@@ -187,8 +185,7 @@ contract DefaultEmissionManagerTest is Test {
         balance = totalAmtMintedTwoFifth;
         stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
 
-        assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-        assertEq(polygon.balanceOf(stakeManager), 0);
+        assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(polygon.balanceOf(treasury), balance);
     }
 
@@ -215,8 +212,7 @@ contract DefaultEmissionManagerTest is Test {
             balance = totalAmtMintedTwoFifth;
             stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
 
-            assertEq(matic.balanceOf(stakeManager), stakeManagerBalance);
-            assertEq(polygon.balanceOf(stakeManager), 0);
+            assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
             assertEq(polygon.balanceOf(treasury), balance);
         }
     }
