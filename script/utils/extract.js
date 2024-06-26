@@ -95,11 +95,11 @@ async function main() {
           "0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc",
           rpcUrl
         );
-        if (currentImplementation === out.latest[contractName].implementation)
+        if (currentImplementation.toLowerCase() === out.latest[contractName].implementation.toLowerCase())
           throw new Error(
             `Implementation for ${contractName}(${out.latest[contractName].address}) did not change - ${currentImplementation}, deployed - ${contractAddress}`
           );
-        if (currentImplementation !== contractAddress)
+        if (currentImplementation.toLowerCase() !== contractAddress.toLowerCase())
           throw new Error(
             `Implementation mismatch for ${contractName}(${out.latest[contractName].address}), onchain - ${currentImplementation}, deployed - ${contractAddress}`
           );
