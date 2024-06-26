@@ -78,9 +78,10 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
         IPolygonEcosystemToken _token = token;
         _token.mint(address(this), amountToMint);
+
         _token.safeTransfer(treasury, treasuryAmt);
-        // backconvert POL to MATIC before sending to StakeManager
-        migration.unmigrateTo(stakeManager, stakeManagerAmt);
+
+        _token.safeTransfer(stakeManager, stakeManagerAmt);
     }
 
     /// @inheritdoc IDefaultEmissionManager
@@ -91,7 +92,7 @@ contract DefaultEmissionManager is Ownable2StepUpgradeable, IDefaultEmissionMana
 
     /// @inheritdoc IDefaultEmissionManager
     function version() external pure returns (string memory) {
-        return "1.2.0";
+        return "1.3.0";
     }
 
     uint256[47] private __gap;
