@@ -4,7 +4,7 @@
 # PRIVATE_KEY has to be set in .env
 # rpc-url synonyms are in foundry.toml, which points to .env as well
 upgrade-emission-manager-testnet:
-	forge script script/1.2.0/UpgradeEmissionManager.s.sol --legacy --verify --rpc-url testnet
+	forge script script/1.2.0/UpgradeEmissionManager.s.sol --verify --rpc-url testnet
 
 upgrade-emission-manager-MAINNET:
-	forge script script/1.2.0/UpgradeEmissionManager.s.sol --legacy --verify --rpc-url mainnet
+	forge script script/1.2.0/UpgradeEmissionManager.s.sol --verify --rpc-url mainnet

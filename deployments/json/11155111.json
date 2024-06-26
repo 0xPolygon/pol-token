@@ -13,15 +13,15 @@
       "commitHash": "18b8ce1680539d71c2f244d8fdb2f7368c5a5f02"
     },
     "DefaultEmissionManager": {
-      "implementation": "0x9B4D4Fc98C2Aa924a65AB827494159a76Fce6ceD",
+      "implementation": "0xBd5b3D1E179457435b368E3D1C019D487869b85E",
       "proxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
       "address": "0x20393fF3B3C38b72a16eB7d7A474cd38ABD8Ff27",
       "proxy": true,
-      "version": "1.1.0",
+      "version": "1.2.0",
       "proxyType": "TransparentUpgradeableProxy",
-      "timestamp": 1710941983,
+      "timestamp": 1719405184,
       "deploymentTxn": "0x2f5ba33092820287a2f5f58fb34eeddf334785f2925215933b1dc9145d5bc280",
-      "commitHash": "18b8ce1680539d71c2f244d8fdb2f7368c5a5f02"
+      "commitHash": "5cd82b54935a53bd2aabd5d71805b289b5582afa"
     },
     "ProxyAdmin": {
       "address": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
@@ -40,6 +40,26 @@
     }
   },
   "history": [
+    {
+      "contracts": {
+        "DefaultEmissionManager": {
+          "implementation": "0xBd5b3D1E179457435b368E3D1C019D487869b85E",
+          "proxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
+          "address": "0x20393fF3B3C38b72a16eB7d7A474cd38ABD8Ff27",
+          "proxy": true,
+          "version": "1.2.0",
+          "proxyType": "TransparentUpgradeableProxy",
+          "deploymentTxn": "0x2f5ba33092820287a2f5f58fb34eeddf334785f2925215933b1dc9145d5bc280"
+        }
+      },
+      "input": {
+        "emissionManagerProxy": "0x20393fF3B3C38b72a16eB7d7A474cd38ABD8Ff27",
+        "emProxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
+        "treasury": "0xeE76bECaF80fFe451c8B8AFEec0c21518Def02f9"
+      },
+      "timestamp": 1719405184,
+      "commitHash": "5cd82b54935a53bd2aabd5d71805b289b5582afa"
+    },
     {
       "contracts": {
         "PolygonMigration": {
