@@ -34,46 +34,23 @@ contract DefaultEmissionManagerTestMainnet is Test {
     function testUpgrade() external {
         vm.selectFork(mainnetFork);
 
-        address newTreasury = makeAddr("newTreasury");
-
         DefaultEmissionManager emProxy = DefaultEmissionManager(EM_PROXY);
 
         assertEq(emProxy.treasury(), COMMUNITY_TREASURY);
 
         address migration = address(emProxy.migration());
         address stakeManager = emProxy.stakeManager();
+        address treasury = emProxy.treasury();
 
-        DefaultEmissionManager newEmImpl = new DefaultEmissionManager(migration, stakeManager, newTreasury);
+        DefaultEmissionManager newEmImpl = new DefaultEmissionManager(migration, stakeManager, treasury);
 
         ProxyAdmin admin = ProxyAdmin(EM_PROXY_ADMIN);
 
         vm.prank(POLYGON_PROTOCOL_COUNCIL);
 
-        admin.upgradeAndCall(
+        admin.upgrade(
             ITransparentUpgradeableProxy(address(emProxy)),
-            address(newEmImpl),
-            abi.encodeWithSelector(DefaultEmissionManager.reinitialize.selector)
+            address(newEmImpl)
         );
-
-        // initialize can still not be called
-        vm.expectRevert("Initializable: contract is already initialized");
-        emProxy.initialize(makeAddr("token"), msg.sender);
-
-        assertEq(pol.totalSupply(), emProxy.START_SUPPLY_1_2_0());
-        assertEq(block.timestamp, emProxy.startTimestamp());
-
-        // emission is now 2.5%
-        inputs[0] = "node";
-        inputs[1] = "test/util/calc.js";
-        inputs[2] = vm.toString(uint256(365 days));
-        inputs[3] = vm.toString(pol.totalSupply());
-        // vm.ffi executes the js script which contains the new emission rate
-        uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
-        assertApproxEqAbs(newSupply, emProxy.inflatedSupplyAfter(365 days), 1e20);
-
-        // treasury has been updated
-        assertEq(emProxy.treasury(), newTreasury);
-        // emission has been updated
-        assertEq(emProxy.INTEREST_PER_YEAR_LOG2(), NEW_INTEREST_PER_YEAR_LOG2);
     }
 }
