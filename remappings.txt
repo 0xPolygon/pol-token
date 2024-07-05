@@ -1,0 +1,6 @@
+forge-std/=dependencies/forge-std-1.9.1/src/
+openzeppelin-contracts-upgradeable/contracts/=dependencies/@openzeppelin-contracts-upgradeable-4.9.2/
+openzeppelin-contracts/contracts/=dependencies/@openzeppelin-contracts-4.9.2/
+@forge-std-1.9.1=dependencies/forge-std-1.9.1
+@openzeppelin-contracts-upgradeable-4.9.2=dependencies/@openzeppelin-contracts-upgradeable-4.9.2
+@openzeppelin-contracts-4.9.2=dependencies/@openzeppelin-contracts-4.9.2

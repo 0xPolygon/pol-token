@@ -1,6 +1,7 @@
 /target
 /out
 /cache
+/dependencies
 /coverage
 lcov.info
 .DS_Store

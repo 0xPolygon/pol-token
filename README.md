@@ -31,7 +31,7 @@ A default implementation is included and this contract will be proxy upgradable 
 ### Setup
 
 - [Install foundry](https://book.getfoundry.sh/getting-started/installation)
-- Install Dependencies: `forge install`
+- Install Dependencies: `forge soldeer install`
 - Build: `forge build`
 - Test: `forge test`
 
