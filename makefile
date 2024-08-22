@@ -7,4 +7,4 @@ upgrade-emission-manager-testnet:
 	forge script script/1.2.0/UpgradeEmissionManager.s.sol --verify --rpc-url testnet
 
 upgrade-emission-manager-MAINNET:
-	forge script script/1.2.0/UpgradeEmissionManager.s.sol --verify --rpc-url mainnet
+	forge script script/1.3.0/UpgradeEmissionManager.s.sol --verify --rpc-url mainnet

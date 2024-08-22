@@ -52,5 +52,13 @@ contract DefaultEmissionManagerTestMainnet is Test {
             ITransparentUpgradeableProxy(address(emProxy)),
             address(newEmImpl)
         );
+
+        // minting in POL from now on
+        uint256 currentPolBalance = pol.balanceOf(address(stakeManager));
+
+        emProxy.mint();
+        uint256 newPolBalance = pol.balanceOf(address(stakeManager));
+
+        assert(newPolBalance > currentPolBalance);
     }
 }
