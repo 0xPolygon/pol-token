@@ -34,6 +34,7 @@ jobs:
             - name: Run Forge build
               run: |
                   forge --version
+                  forge soldeer install
                   forge build --sizes
               env:
                 RPC_MAINNET: ${{ secrets.RPC_MAINNET }}
