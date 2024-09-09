@@ -1,0 +1,10 @@
+{
+    "1": {
+        "emissionManagerProxy": "0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53",
+        "emProxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3"
+    },
+    "11155111": {
+        "emissionManagerProxy": "0x20393fF3B3C38b72a16eB7d7A474cd38ABD8Ff27",
+        "emProxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2"
+    }
+}
