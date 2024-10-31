@@ -38,6 +38,12 @@ interface IPolygonMigration {
     /// @dev the function does not do any validation since the migration is a one-way process
     function migrate(uint256 amount) external;
 
+    /// @notice this function allows for migrating MATIC tokens to POL tokens to an account
+    /// @param recipient address to receive POL tokens
+    /// @param amount amount of MATIC to migrate
+    /// @dev the function does not do any validation since the migration is a one-way process
+    function migrateTo(address recipient, uint256 amount) external;
+
     /// @notice this function allows for unmigrating from POL tokens to MATIC tokens
     /// @param amount amount of POL to migrate
     /// @dev the function can only be called when unmigration is unlocked (lock updatable by governance)
