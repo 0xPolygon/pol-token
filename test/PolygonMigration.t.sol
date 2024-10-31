@@ -20,7 +20,12 @@ contract PolygonMigrationTest is Test {
     address public stakeManager;
     address public emissionManager;
 
+    uint256 mainnetFork;
+
     function setUp() external {
+        mainnetFork = vm.createFork(vm.rpcUrl("mainnet"), 20678429);
+        vm.selectFork(mainnetFork);
+
         treasury = makeAddr("treasury");
         governance = makeAddr("governance");
         stakeManager = makeAddr("stakeManager");
@@ -84,6 +89,27 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(user), 0);
         assertEq(matic.balanceOf(address(migration)), amount);
         assertEq(polygon.balanceOf(user), amount);
+    }
+
+    function test_MigrateTo(address migrateTo, address user, uint256 amount) external {
+        vm.assume(
+            amount <= 10000000000 * 10 ** 18 && user != address(0) && user != address(migration) && user != governance
+                && user != address(admin) && migrateTo != address(0) && migrateTo != address(migration)
+                && polygon.balanceOf(migrateTo) == 0 && matic.balanceOf(user) == 0
+                && amount <= matic.balanceOf(address(matic))
+        );
+
+        matic = ERC20PresetMinterPauser(0x7D1AfA7B718fb893dB30A3aBc0Cfc608AaCfeBB0);
+
+        vm.startPrank(address(matic));
+        matic.transfer(user, amount);
+        vm.startPrank(user);
+        matic.approve(address(migration), amount);
+        migration.migrateTo(migrateTo, amount);
+
+        assertEq(matic.balanceOf(user), 0);
+        assertEq(matic.balanceOf(address(migration)), amount);
+        assertEq(polygon.balanceOf(migrateTo), amount);
     }
 
     function test_CannotResetPolygonToken() external {
@@ -204,7 +230,7 @@ contract PolygonMigrationTest is Test {
         assertEq(matic.balanceOf(address(migration)), amount);
         assertEq(polygon.balanceOf(user), amount);
 
-        uint256 deadline = 1 minutes;
+        uint256 deadline = block.timestamp + 1 minutes;
         SigUtils.Permit memory permit = SigUtils.Permit({
             owner: user,
             spender: address(migration),

@@ -52,6 +52,14 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
     }
 
     /// @inheritdoc IPolygonMigration
+    function migrateTo(address recipient, uint256 amount) external {
+        emit Migrated(msg.sender, amount);
+
+        matic.safeTransferFrom(msg.sender, address(this), amount);
+        polygon.safeTransfer(recipient, amount);
+    }
+
+    /// @inheritdoc IPolygonMigration
     function unmigrate(uint256 amount) external onlyUnmigrationUnlocked {
         emit Unmigrated(msg.sender, msg.sender, amount);
 
