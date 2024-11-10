@@ -11,8 +11,9 @@ import {IERC20} from "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 interface IPolygonMigration {
     /// @notice emitted when MATIC are migrated to POL
     /// @param account the account that migrated MATIC
+    /// @param recipient the account that received POL
     /// @param amount the amount of MATIC that was migrated
-    event Migrated(address indexed account, uint256 amount);
+    event Migrated(address indexed account, address recipient, uint256 amount);
 
     /// @notice emitted when POL are unmigrated to MATIC
     /// @param account the account that unmigrated POL

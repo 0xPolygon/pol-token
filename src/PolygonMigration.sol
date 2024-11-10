@@ -45,7 +45,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
 
     /// @inheritdoc IPolygonMigration
     function migrate(uint256 amount) external {
-        emit Migrated(msg.sender, amount);
+        emit Migrated(msg.sender, msg.sender, amount);
 
         matic.safeTransferFrom(msg.sender, address(this), amount);
         polygon.safeTransfer(msg.sender, amount);
@@ -53,7 +53,7 @@ contract PolygonMigration is Ownable2StepUpgradeable, IPolygonMigration {
 
     /// @inheritdoc IPolygonMigration
     function migrateTo(address recipient, uint256 amount) external {
-        emit Migrated(msg.sender, amount);
+        emit Migrated(msg.sender, recipient, amount);
 
         matic.safeTransferFrom(msg.sender, address(this), amount);
         polygon.safeTransfer(recipient, amount);
