@@ -12,6 +12,7 @@ fs_permissions = [
   { access = "read", path = "script/1.0.0/input.json" },
   { access = "read", path = "script/1.1.0/input.json" },
   { access = "read", path = "script/1.2.0/input.json" },
+  { access = "read", path = "script/1.3.0/input.json" },
 ]
 
 [rpc_endpoints]

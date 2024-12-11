@@ -16,7 +16,7 @@ contract UpgradeEmissionManager is Script {
     function run() public {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
 
-        string memory input = vm.readFile("script/1.2.0/input.json");
+        string memory input = vm.readFile("script/1.3.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address emProxyAddress = input.readAddress(string.concat(chainIdSlug, ".emissionManagerProxy"));
         address emProxyAdmin = input.readAddress(string.concat(chainIdSlug, ".emProxyAdmin"));
