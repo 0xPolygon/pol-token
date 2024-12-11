@@ -23,6 +23,7 @@ contract UpgradeEmissionManager is Script {
         address pmProxyAddress = input.readAddress(string.concat(chainIdSlug, ".polygonMigrationProxy"));
         address pmProxyAdmin = input.readAddress(string.concat(chainIdSlug, ".proxyAdmin"));
         address proxyAdminOwner = input.readAddress(string.concat(chainIdSlug, ".proxyAdminOwner"));
+        address pol = input.readAddress(string.concat(chainIdSlug, ".polToken"));
 
         vm.startBroadcast(deployerPrivateKey);
 
@@ -71,7 +72,7 @@ contract UpgradeEmissionManager is Script {
 
         vm.assertEq(maticContract.balanceOf(user), 0);
         vm.assertEq(maticContract.balanceOf(address(pmProxyAddress)), balanceBefore + amount);
-        vm.assertEq(PolygonEcosystemToken(0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6).balanceOf(migrateTo), amount);
+        vm.assertEq(PolygonEcosystemToken(pol).balanceOf(migrateTo), amount);
 
         console.log("Send this payload to: ", pmProxyAdmin);
         console.logBytes(payload);
