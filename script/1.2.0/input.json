@@ -1,12 +1,16 @@
 {
     "1": {
         "emissionManagerProxy": "0xbC9f74b3b14f460a6c47dCdDFd17411cBc7b6c53",
-        "emProxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+        "polygonMigrationProxy": "0x29e7DF7b6A1B2b07b731457f499E1696c60E2C4e",
+        "proxyAdmin": "0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3",
+        "proxyAdminOwner": "0x37D085ca4a24f6b29214204E8A8666f12cf19516",
         "treasury": "0x86380e136A3AaD5677A210Ad02713694c4E6a5b9"
     },
     "11155111": {
         "emissionManagerProxy": "0x20393fF3B3C38b72a16eB7d7A474cd38ABD8Ff27",
-        "emProxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
+        "polygonMigrationProxy": "0x3A3B750E7d4d389Bc1d0be20E5D09530F82B9911",
+        "proxyAdmin": "0x28cDCE6FfE44D03da1F7b15b474a0e72243873F2",
+        "proxyAdminOwner": "0xeE76bECaF80fFe451c8B8AFEec0c21518Def02f9",
         "treasury": "0xeE76bECaF80fFe451c8B8AFEec0c21518Def02f9"
     }
 }
