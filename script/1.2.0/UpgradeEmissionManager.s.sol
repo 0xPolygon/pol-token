@@ -19,7 +19,7 @@ contract UpgradeEmissionManager is Script {
         string memory input = vm.readFile("script/1.2.0/input.json");
         string memory chainIdSlug = string(abi.encodePacked('["', vm.toString(block.chainid), '"]'));
         address emProxyAddress = input.readAddress(string.concat(chainIdSlug, ".emissionManagerProxy"));
-        address emProxyAdmin = input.readAddress(string.concat(chainIdSlug, ".emProxyAdmin"));
+        address emProxyAdmin = input.readAddress(string.concat(chainIdSlug, ".proxyAdmin"));
         address newTreasury = input.readAddress(string.concat(chainIdSlug, ".treasury"));
 
         vm.startBroadcast(deployerPrivateKey);
