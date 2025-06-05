@@ -55,7 +55,7 @@ contract PolygonMigrationTest is Test {
         migration.acceptOwnership(); // governance accepts ownership
     }
 
-    function test_Deployment() external {
+    function test_Deployment() view external {
         assertEq(address(migration.polygon()), address(polygon));
         assertEq(address(migration.matic()), address(matic));
         assertEq(migration.owner(), governance);

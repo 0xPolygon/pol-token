@@ -72,7 +72,7 @@ contract DefaultEmissionManagerTest is Test {
         emissionManager.initialize(address(0), address(0));
     }
 
-    function test_Deployment() external {
+    function test_Deployment() view external {
         assertEq(address(emissionManager.token()), address(polygon));
         assertEq(emissionManager.stakeManager(), stakeManager);
         assertEq(emissionManager.treasury(), treasury);
@@ -146,7 +146,7 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
+        uint256 totalAmtMintedTwoFifth = totalAmtMinted / 2;
         assertEq(polygon.balanceOf(stakeManager), totalAmtMinted - totalAmtMintedTwoFifth);
         assertEq(polygon.balanceOf(treasury), totalAmtMintedTwoFifth);
     }
@@ -165,7 +165,7 @@ contract DefaultEmissionManagerTest is Test {
         uint256 newSupply = abi.decode(vm.ffi(inputs), (uint256));
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
-        uint256 balance = (polygon.totalSupply() - initialTotalSupply) * 2 / 5;
+        uint256 balance = (polygon.totalSupply() - initialTotalSupply) / 2;
         uint256 stakeManagerBalance = (polygon.totalSupply() - initialTotalSupply) - balance;
         assertEq(polygon.balanceOf(stakeManager), stakeManagerBalance);
         assertEq(matic.balanceOf(stakeManager), 0);
@@ -180,7 +180,7 @@ contract DefaultEmissionManagerTest is Test {
 
         assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
         uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-        uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
+        uint256 totalAmtMintedTwoFifth = totalAmtMinted / 2;
 
         balance = totalAmtMintedTwoFifth;
         stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
@@ -208,7 +208,7 @@ contract DefaultEmissionManagerTest is Test {
 
             assertApproxEqAbs(newSupply, polygon.totalSupply(), _MAX_PRECISION_DELTA);
             uint256 totalAmtMinted = polygon.totalSupply() - initialTotalSupply;
-            uint256 totalAmtMintedTwoFifth = totalAmtMinted * 2 / 5;
+            uint256 totalAmtMintedTwoFifth = totalAmtMinted / 2;
 
             balance = totalAmtMintedTwoFifth;
             stakeManagerBalance = totalAmtMinted - totalAmtMintedTwoFifth;
