@@ -1,4 +1,4 @@
-const emissionRatePerYear = 1.025;
+const emissionRatePerYear = 1.02;
 
 function main() {
     const [timeElapsedInSeconds] = process.argv.slice(2);

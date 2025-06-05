@@ -41,7 +41,7 @@ contract PolygonTest is Test {
         emissionManager.initialize(address(polygon), msg.sender);
     }
 
-    function test_Deployment(address owner) external {
+    function test_Deployment(address owner) view external {
         assertEq(polygon.name(), "Polygon Ecosystem Token");
         assertEq(polygon.symbol(), "POL");
         assertEq(polygon.decimals(), 18);
