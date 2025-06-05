@@ -11,10 +11,11 @@ import {
     ITransparentUpgradeableProxy
 } from "openzeppelin-contracts/contracts/proxy/transparent/ProxyAdmin.sol";
 import {Test} from "forge-std/Test.sol";
+import {UpgradeEmissionManager} from "script/1.4.0/UpgradeEmissionManager.s.sol";
 
 // this test forks mainnet and tests the upgradeability of DefaultEmissionManagerProxy
 
-contract DefaultEmissionManagerTestMainnet is Test {
+contract DefaultEmissionManagerTestMainnet is Test, UpgradeEmissionManager {
     uint256 mainnetFork;
 
     address POLYGON_PROTOCOL_COUNCIL = 0x37D085ca4a24f6b29214204E8A8666f12cf19516;
@@ -23,9 +24,7 @@ contract DefaultEmissionManagerTestMainnet is Test {
     address EM_PROXY_ADMIN = 0xEBea33f2c92D03556b417F4F572B2FbbE62C39c3;
     PolygonEcosystemToken pol = PolygonEcosystemToken(0x455e53CBB86018Ac2B8092FdCd39d8444aFFC3F6);
 
-    uint256 NEW_INTEREST_PER_YEAR_LOG2 = 0.03562390973072122e18; // log2(1.025)
-
-    string[] internal inputs = new string[](5);
+    uint256 NEW_INTEREST_PER_YEAR_LOG2 = 0.02856915219677089e18; // log2(1.02)
 
     function setUp() public {
         mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
@@ -34,31 +33,21 @@ contract DefaultEmissionManagerTestMainnet is Test {
     function testUpgrade() external {
         vm.selectFork(mainnetFork);
 
-        DefaultEmissionManager emProxy = DefaultEmissionManager(EM_PROXY);
-
-        assertEq(emProxy.treasury(), COMMUNITY_TREASURY);
-
-        address migration = address(emProxy.migration());
-        address stakeManager = emProxy.stakeManager();
-        address treasury = emProxy.treasury();
-
-        DefaultEmissionManager newEmImpl = new DefaultEmissionManager(migration, stakeManager, treasury);
-
-        ProxyAdmin admin = ProxyAdmin(EM_PROXY_ADMIN);
+        bytes memory payload = upgradeEM();
 
         vm.prank(POLYGON_PROTOCOL_COUNCIL);
+        (bool success, /* */) = payable(EM_PROXY_ADMIN).call{value: 0}(payload);
+        vm.assertTrue(success);
 
-        admin.upgrade(
-            ITransparentUpgradeableProxy(address(emProxy)),
-            address(newEmImpl)
-        );
+        vm.assertEq(emProxy.START_SUPPLY_1_4_0(), pol.totalSupply());
+        vm.assertEq(emProxy.INTEREST_PER_YEAR_LOG2(), NEW_INTEREST_PER_YEAR_LOG2);
 
-        // minting in POL from now on
-        uint256 currentPolBalance = pol.balanceOf(address(stakeManager));
-
+        address stakeManager = emProxy.stakeManager();
+        uint256 currentPolBalance = pol.balanceOf(stakeManager);
+        vm.warp(block.timestamp + 1 days);
         emProxy.mint();
-        uint256 newPolBalance = pol.balanceOf(address(stakeManager));
+        uint256 newPolBalance = pol.balanceOf(stakeManager);
 
-        assert(newPolBalance > currentPolBalance);
+        vm.assertTrue(newPolBalance > currentPolBalance);
     }
 }
