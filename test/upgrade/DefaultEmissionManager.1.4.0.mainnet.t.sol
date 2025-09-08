@@ -27,7 +27,7 @@ contract DefaultEmissionManagerTestMainnet is Test, UpgradeEmissionManager {
     uint256 NEW_INTEREST_PER_YEAR_LOG2 = 0.02856915219677089e18; // log2(1.02)
 
     function setUp() public {
-        mainnetFork = vm.createFork(vm.rpcUrl("mainnet"));
+        mainnetFork = vm.createFork(vm.rpcUrl("mainnet"), 0x15c2e7f); // block number 22818431, deployment of new version
     }
 
     function testUpgrade() external {
